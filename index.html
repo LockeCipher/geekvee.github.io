@@ -170,7 +170,7 @@
               <span class="post-meta-item-text">Posted on</span>
               
 
-              <time title="Created: 2021-12-24 15:10:49 / Modified: 19:40:20" itemprop="dateCreated datePublished" datetime="2021-12-24T15:10:49+08:00">2021-12-24</time>
+              <time title="Created: 2021-12-24 15:10:49 / Modified: 19:44:42" itemprop="dateCreated datePublished" datetime="2021-12-24T15:10:49+08:00">2021-12-24</time>
             </span>
 
           
@@ -189,57 +189,20 @@
 <thead>
 <tr class="header">
 <th><img src="https://techgage.com/articles/nvidia/fermi/block_diagram_gf100.png" alt="img" style="zoom:50%;" /></th>
-<th><img src="/Users/huziliang/Library/Application Support/typora-user-images/image-20211224153019867.png" alt="image-20211224153019867" style="zoom:45%;" /></th>
+<th><img src="https://gitee.com/huziliang/blog-picgo/raw/master/image-20211224153019867.png" alt="image-20211224153019867" style="zoom:45%;" /></th>
 </tr>
 </thead>
 <tbody>
 </tbody>
 </table>
-<ul>
-<li>Host Interface： GPU，CPU，Memory通信的接口</li>
-<li>Giga Thread Engine：任务管理器，管理所有正在进行的工作</li>
-<li>Fermi架构拥有16个SM，SM属于硬件实体。每一个SM拥有21个CUDA core，每一个CUDA core拥有一个INT和一个FP计算单元；一个SM有16个LOAD/STORE单元，可以提供16线程同时读取/存储数据的能力；4个SFU单元，SFU：Special Function Unit，特殊函数计算单元，包括sin，cos函数。</li>
-</ul>
-<h2 id="kepler-architecture">Kepler Architecture</h2>
-<p>Kepler架构将SM重命名为SMX，其中大致结构并未改变，最明显的是增加了CUDA Core的数量。一个SMX中有192个CUDA Core。</p>
-<table>
-<thead>
-<tr class="header">
-<th><img src="https://images.anandtech.com/doci/5699/GeForce_GTX_680_Block_Diagram_FINAL.png" alt="img" style="zoom:50%;" /></th>
-<th><img src="/Users/huziliang/Library/Application Support/typora-user-images/image-20211224155413671.png" alt="image-20211224155413671" style="zoom:32%;" /></th>
-</tr>
-</thead>
-<tbody>
-</tbody>
-</table>
-<h2 id="maxwell-architecture">Maxwell Architecture</h2>
-<p>SMM变得更多了，架构变化不大。</p>
-<table>
-<thead>
-<tr class="header">
-<th><img src="https://images.anandtech.com/doci/8526/GeForce_GTX_980_Block_Diagram_FINAL.png" alt="img" style="zoom:75%;" /></th>
-<th><img src="/Users/huziliang/Library/Application Support/typora-user-images/image-20211224161723378.png" alt="image-20211224161723378" style="zoom:50%;" /></th>
-</tr>
-</thead>
-<tbody>
-</tbody>
-</table>
-<h2 id="pascal-architecture">Pascal Architecture</h2>
-<p>第一个加入Deep Learning相关硬件设置的架构，即：DP Unit。</p>
-<table>
-<thead>
-<tr class="header">
-<th><img src="https://www.gamersnexus.net/images/media/2016/features/pascal/gp100-pascal-block-diagram.jpg" alt="img" /></th>
-<th><img src="/Users/huziliang/Library/Application Support/typora-user-images/image-20211224162909490.png" alt="image-20211224162909490" style="zoom:50%;" /></th>
-</tr>
-</thead>
-<tbody>
-</tbody>
-</table>
-<h2 id="volta-architecture">Volta Architecture</h2>
-<p>第一个以Deep Learning为主的GPU架构。原本的CUDA Core变成FP64，INT，FP32，TENSOR Core。</p>
-<p><img src="/Users/huziliang/Library/Application Support/typora-user-images/image-20211224165854516.png" alt="image-20211224165854516" style="zoom:50%;" /></p>
-
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2021/12/24/Nvidia-CUDA-Architecture/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
