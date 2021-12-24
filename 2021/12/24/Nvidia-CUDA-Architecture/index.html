@@ -20,22 +20,29 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="image-20210927104516396  图片来源：CMU Computational Photography, Fall 2020">
+  <meta name="description" content="Fermi Architecture            Host Interface： GPU，CPU，Memory通信的接口 Giga Thread Engine：任务管理器，管理所有正在进行的工作 Fermi架构拥有16个SM，SM属于硬件实体。每一个SM拥有21个CUDA core，每一个CUDA core拥有一个INT和一个FP计算单元；一个SM有16个LOAD&#x2F;STORE单元，可以提">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Sensor Noise Model Calibration">
-<meta property="og:url" content="http://example.com/2021/09/26/Sensor-Noise-Model-Calibration/index.html">
+<meta property="og:title" content="Nvidia CUDA Architecture">
+<meta property="og:url" content="http://example.com/2021/12/24/Nvidia-CUDA-Architecture/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="image-20210927104516396  图片来源：CMU Computational Photography, Fall 2020">
+<meta property="og:description" content="Fermi Architecture            Host Interface： GPU，CPU，Memory通信的接口 Giga Thread Engine：任务管理器，管理所有正在进行的工作 Fermi架构拥有16个SM，SM属于硬件实体。每一个SM拥有21个CUDA core，每一个CUDA core拥有一个INT和一个FP计算单元；一个SM有16个LOAD&#x2F;STORE单元，可以提">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="https://gitee.com/huziliang/blog-picgo/raw/master/img/202109271045431.png">
-<meta property="og:image" content="https://gitee.com/huziliang/blog-picgo/raw/master/img/202109271052339.png">
-<meta property="article:published_time" content="2021-09-26T12:05:04.000Z">
-<meta property="article:modified_time" content="2021-10-13T07:41:45.646Z">
+<meta property="og:image" content="https://techgage.com/articles/nvidia/fermi/block_diagram_gf100.png">
+<meta property="og:image" content="http://example.com/Users/huziliang/Library/Application%20Support/typora-user-images/image-20211224153019867.png">
+<meta property="og:image" content="https://images.anandtech.com/doci/5699/GeForce_GTX_680_Block_Diagram_FINAL.png">
+<meta property="og:image" content="http://example.com/Users/huziliang/Library/Application%20Support/typora-user-images/image-20211224155413671.png">
+<meta property="og:image" content="https://images.anandtech.com/doci/8526/GeForce_GTX_980_Block_Diagram_FINAL.png">
+<meta property="og:image" content="http://example.com/Users/huziliang/Library/Application%20Support/typora-user-images/image-20211224161723378.png">
+<meta property="og:image" content="https://www.gamersnexus.net/images/media/2016/features/pascal/gp100-pascal-block-diagram.jpg">
+<meta property="og:image" content="http://example.com/Users/huziliang/Library/Application%20Support/typora-user-images/image-20211224162909490.png">
+<meta property="og:image" content="http://example.com/Users/huziliang/Library/Application%20Support/typora-user-images/image-20211224165854516.png">
+<meta property="article:published_time" content="2021-12-24T07:10:49.000Z">
+<meta property="article:modified_time" content="2021-12-24T11:40:20.921Z">
 <meta property="article:author" content="John Doe">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://gitee.com/huziliang/blog-picgo/raw/master/img/202109271045431.png">
+<meta name="twitter:image" content="https://techgage.com/articles/nvidia/fermi/block_diagram_gf100.png">
 
-<link rel="canonical" href="http://example.com/2021/09/26/Sensor-Noise-Model-Calibration/">
+<link rel="canonical" href="http://example.com/2021/12/24/Nvidia-CUDA-Architecture/">
 
 
 <script id="page-configurations">
@@ -48,7 +55,7 @@
   };
 </script>
 
-  <title>Sensor Noise Model Calibration | Hexo</title>
+  <title>Nvidia CUDA Architecture | Hexo</title>
   
 
 
@@ -153,7 +160,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2021/09/26/Sensor-Noise-Model-Calibration/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/12/24/Nvidia-CUDA-Architecture/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="https://avatars1.githubusercontent.com/u/32269?v=3&s=460">
@@ -166,7 +173,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          Sensor Noise Model Calibration
+          Nvidia CUDA Architecture
         </h1>
 
         <div class="post-meta">
@@ -175,16 +182,10 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
+              
 
-              <time title="Created: 2021-09-26 20:05:04" itemprop="dateCreated datePublished" datetime="2021-09-26T20:05:04+08:00">2021-09-26</time>
+              <time title="Created: 2021-12-24 15:10:49 / Modified: 19:40:20" itemprop="dateCreated datePublished" datetime="2021-12-24T15:10:49+08:00">2021-12-24</time>
             </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2021-10-13 15:41:45" itemprop="dateModified" datetime="2021-10-13T15:41:45+08:00">2021-10-13</time>
-              </span>
 
           
 
@@ -197,134 +198,61 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <figure>
-<img src="https://gitee.com/huziliang/blog-picgo/raw/master/img/202109271045431.png" alt="image-20210927104516396" /><figcaption aria-hidden="true">image-20210927104516396</figcaption>
-</figure>
-<p>图片来源：<a target="_blank" rel="noopener" href="http://graphics.cs.cmu.edu/courses/15-463/2020_fall/lectures/lecture2.pdf">CMU Computational Photography, Fall 2020</a></p>
-<span id="more"></span>
-<p>Pipeline中绿色框部分会引入噪声，具体如下:</p>
-<figure>
-<img src="https://gitee.com/huziliang/blog-picgo/raw/master/img/202109271052339.png" alt="image-20210927105235305" /><figcaption aria-hidden="true">image-20210927105235305</figcaption>
-</figure>
-<p>图片来源：<a target="_blank" rel="noopener" href="http://graphics.cs.cmu.edu/courses/15-463/2020_fall/lectures/lecture2.pdf">CMU Computational Photography, Fall 2020</a> w 具体而言会有以下三种noise：</p>
-<ol type="1">
-<li><p>Photon noise，也称Shot noise 光粒子到达的随机性，符合泊松分布</p></li>
-<li><p>Dark noise</p>
-<p>暗电流的影响，即便没有光粒子到达，也会因为元器件本身的特性产生噪声，一般而言温度越高，噪声越大，符合均值0的高斯分布</p></li>
-<li><p>Read noise</p>
-<p>信号放大过程中、模数转换过程中引入的噪声，俗称：gain、ADC；符合均值0的高斯分布</p></li>
-</ol>
-<p>因此可以在Raw denoise的相关论文中找到以下noise model。</p>
-<blockquote>
-<p><a target="_blank" rel="noopener" href="https://openaccess.thecvf.com/content_cvpr_2018/papers/Mildenhall_Burst_Denoising_With_CVPR_2018_paper.pdf">Google: Burst Denoising with Kernel Prediction Networks</a></p>
-</blockquote>
-<p><span class="math display">\[
-x_p \sim N(y_p, \sigma_r^2 + \sigma_s y_p)
-\]</span></p>
-<blockquote>
-<p><a target="_blank" rel="noopener" href="https://arxiv.org/abs/1811.11127">Google: Unprocessing Images for Learned Raw Denoising</a></p>
-</blockquote>
-<p><span class="math display">\[
-y \sim N(\mu=x, \sigma^2=\lambda_{read} + \lambda_{shot} x) \to N(\mu=x,\sigma^2=g_d^2\sigma_r^2 + g_dg_ax)
-\]</span></p>
-<p>其中digital gain $ g_d $， analog gain $ g_a <span class="math inline">\(，read noise的固定方差\)</span> ^2 $ <span class="math display">\[
-\lambda_{read}=g_d^2 \sigma_r^2, \ \lambda_{shot} = g_d g_a
-\]</span></p>
-<p>以下对上面的噪声联合分布进行推导。</p>
-<p>(Photon)Shot noise与环境照度，曝光有关。令环境照度$ $ ，光电转换效率$ $，曝光时间t,，暗电流强度D</p>
-<p>Shot noise满足泊松分布 <span class="math display">\[
-n \sim Possion(\varphi, \alpha, t) = Possion(\varphi \cdot \alpha \cdot t)
-\]</span> Dark noise与曝光有关，曝光时间越长，元器件温度越高，暗电流影响越大，与环境光无关，满足泊松分布 <span class="math display">\[
-n \sim Possion(D \cdot t)
-\]</span> 那么电信号L满足泊松分布，Shot noise和Dark noise的联合分布 <span class="math display">\[
-L \sim Possion(t \cdot (\alpha \cdot \varphi + D))
-\]</span> 信号放大过程中产生Read noise，模数转换过程中产生ADC noise，两种noise满足均值为0的高斯分布</p>
-<p><span class="math display">\[
-n_{read} \sim Normal(0, \sigma_{read})
-\]</span></p>
-<p><span class="math display">\[
-n_{ADC} \sim Normal(0, \sigma_{ADC})
-\]</span></p>
-<p>电信号L放大后表示为G，放大的增益g，g与ISO有关 <span class="math inline">\(g = k \cdot ISO\)</span>，<span class="math inline">\(G = L \cdot g + n_{read} \cdot g\)</span>，</p>
-<p>经过ADC后信号：<span class="math inline">\(I = G + n_{ADC}\)</span></p>
-<p>最终信号I表示为： <span class="math display">\[
-I = L \cdot g + n_{read} \cdot g + n_{ADC}
-\]</span> 计算信号的均值和方差 <span class="math display">\[
-E(I) = g \cdot E(L) + g \cdot E(n_{read}) + E(n_{ADC})
-\]</span> 由于read noise和ADC noise均符合均值为0的高斯分布，因此 <span class="math display">\[
-E(I) = g \cdot E(L) = g \cdot t \cdot (\alpha \cdot \varphi + D)
-\]</span> 方差 <span class="math display">\[
-\begin{aligned}
-\sigma(I)^2 &amp;= \sigma(L \cdot g)^2 + \sigma(n_{read} \cdot g)^2 + \sigma(n_{ADC})^2 \\
-&amp;= g^2 \cdot t \cdot (\alpha \cdot \varphi + D) + g^2 \cdot \sigma(n_{read})^2 + \sigma(n_{ADC})^2
-\end{aligned}
-\]</span> read noise和ADC noise都属于加性噪声，可以合并 <span class="math display">\[
-I = L \cdot g + n_{read} + n_{ADC} = L \cdot g + n_{Add}
-\]</span></p>
-<p><span class="math display">\[
-n_{Add} = n_{read} \cdot g + n_{ADC}
-\]</span></p>
-<p>方差可以表示为： <span class="math display">\[
-\sigma(I)^2 = g^2 \cdot t \cdot (\alpha \cdot \varphi + D) + \sigma(n_{Add})^2
-\]</span> 一直暗电流，即：black level，那么可以消除暗电流D <span class="math display">\[
-E(I) = g \cdot t \cdot (\alpha \cdot \varphi + D) = g \cdot t \cdot (\alpha \cdot 0 + D) = g \cdot t \cdot D
-\]</span> 估计出暗电流的影响，可以将其从信号中减去，得到以下表达： <span class="math display">\[
-E(I) = g \cdot t \cdot \alpha \cdot \varphi
-\]</span></p>
-<p><span class="math display">\[
-\begin{aligned}
-\sigma(I)^2 &amp;= g^2 \cdot t \cdot \alpha \cdot \varphi + \sigma(n_{Add})^2 \\
-&amp;= g \cdot E(I) + \sigma(n_{Add})^2
-\end{aligned}
-\]</span></p>
-<p>因此可以看出联合分布的方差是一个线性关系，可与通过最小二乘法进行拟合。</p>
-<p>在实际的噪声估计中当做是 <span class="math inline">\(pixel \ value \to x\)</span>，最终得到开头的推导：<span class="math inline">\(g \to \lambda_{shot}, \sigma(n_{add})^2 \to \lambda_{read} \to g_d^2\sigma_r^2\)</span> <span class="math display">\[
-y \sim N(\mu=x, \sigma^2=\lambda_{read} + \lambda_{shot} x)
-\]</span></p>
-<p>实际上，<span class="math inline">\(\lambda_{read}\)</span>和 <span class="math inline">\(\lambda_{shot}\)</span>都是与ISO强相关的，在噪声标定1.0版本，需要对ISO 100，300，500，800，1600，3200进行标定，得到RGB三通道<span class="math inline">\(\lambda_{read}\)</span>和<span class="math inline">\(\lambda_{shot}\)</span>共3*2*6=36组参数，在其它ISO值时，需要对齐进行插值。可能会引入不必要的误差，因此在噪声标定2.0版本中，将ISO作为参数引入标定过程。针对Sony sensor，有一个比较通用的公式：<span class="math inline">\(g_d \cdot g_a = \frac{ISO}{100}\)</span>，此时我们<span class="math inline">\(\lambda_{read}\)</span>和<span class="math inline">\(\lambda_{shot}\)</span>进行二次拟合，拟合的目标如下： <span class="math display">\[
-\lambda_{shot} = S \cdot g_d \cdot g_a = S \cdot \frac{ISO}{100}
-\]</span></p>
-<p><span class="math display">\[
-\lambda_{read} = R_0 \cdot (g_d \cdot g_a)^2 + R_1 = R_0 \cdot \frac{ISO}{100} + R_1
-\]</span></p>
-<p>此时将ISO作为参数引入标定过程，未来在噪声估计时会更精准。</p>
-<p>总结不同噪声在不同场景下的主导地位：</p>
+        <h2 id="fermi-architecture">Fermi Architecture</h2>
 <table>
 <thead>
 <tr class="header">
-<th style="text-align: left;">regime</th>
-<th>dominant noise</th>
-<th>notes</th>
+<th><img src="https://techgage.com/articles/nvidia/fermi/block_diagram_gf100.png" alt="img" style="zoom:50%;" /></th>
+<th><img src="/Users/huziliang/Library/Application Support/typora-user-images/image-20211224153019867.png" alt="image-20211224153019867" style="zoom:45%;" /></th>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
-<td style="text-align: left;">bright noise</td>
-<td>photon noise</td>
-<td>scene-dependent</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">dark noise</td>
-<td>read and ADC noise</td>
-<td>scene-independent</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">low iso</td>
-<td>ADC noise</td>
-<td>post-gain</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">high iso</td>
-<td>photon and read noise</td>
-<td>pre-gain</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">long exposure</td>
-<td>dark noise</td>
-<td>thermal dependence</td>
-</tr>
 </tbody>
 </table>
+<ul>
+<li>Host Interface： GPU，CPU，Memory通信的接口</li>
+<li>Giga Thread Engine：任务管理器，管理所有正在进行的工作</li>
+<li>Fermi架构拥有16个SM，SM属于硬件实体。每一个SM拥有21个CUDA core，每一个CUDA core拥有一个INT和一个FP计算单元；一个SM有16个LOAD/STORE单元，可以提供16线程同时读取/存储数据的能力；4个SFU单元，SFU：Special Function Unit，特殊函数计算单元，包括sin，cos函数。</li>
+</ul>
+<h2 id="kepler-architecture">Kepler Architecture</h2>
+<p>Kepler架构将SM重命名为SMX，其中大致结构并未改变，最明显的是增加了CUDA Core的数量。一个SMX中有192个CUDA Core。</p>
+<table>
+<thead>
+<tr class="header">
+<th><img src="https://images.anandtech.com/doci/5699/GeForce_GTX_680_Block_Diagram_FINAL.png" alt="img" style="zoom:50%;" /></th>
+<th><img src="/Users/huziliang/Library/Application Support/typora-user-images/image-20211224155413671.png" alt="image-20211224155413671" style="zoom:32%;" /></th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+<h2 id="maxwell-architecture">Maxwell Architecture</h2>
+<p>SMM变得更多了，架构变化不大。</p>
+<table>
+<thead>
+<tr class="header">
+<th><img src="https://images.anandtech.com/doci/8526/GeForce_GTX_980_Block_Diagram_FINAL.png" alt="img" style="zoom:75%;" /></th>
+<th><img src="/Users/huziliang/Library/Application Support/typora-user-images/image-20211224161723378.png" alt="image-20211224161723378" style="zoom:50%;" /></th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+<h2 id="pascal-architecture">Pascal Architecture</h2>
+<p>第一个加入Deep Learning相关硬件设置的架构，即：DP Unit。</p>
+<table>
+<thead>
+<tr class="header">
+<th><img src="https://www.gamersnexus.net/images/media/2016/features/pascal/gp100-pascal-block-diagram.jpg" alt="img" /></th>
+<th><img src="/Users/huziliang/Library/Application Support/typora-user-images/image-20211224162909490.png" alt="image-20211224162909490" style="zoom:50%;" /></th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+<h2 id="volta-architecture">Volta Architecture</h2>
+<p>第一个以Deep Learning为主的GPU架构。原本的CUDA Core变成FP64，INT，FP32，TENSOR Core。</p>
+<p><img src="/Users/huziliang/Library/Application Support/typora-user-images/image-20211224165854516.png" alt="image-20211224165854516" style="zoom:50%;" /></p>
 
     </div>
 
@@ -339,11 +267,11 @@ y \sim N(\mu=x, \sigma^2=\lambda_{read} + \lambda_{shot} x)
 
         
     <div class="post-nav">
-      <div class="post-nav-item"></div>
       <div class="post-nav-item">
-    <a href="/2021/10/13/Guided-Filter/" rel="next" title="Guided Filter">
-      Guided Filter <i class="fa fa-chevron-right"></i>
+    <a href="/2021/10/13/Guided-Filter/" rel="prev" title="Guided Filter">
+      <i class="fa fa-chevron-left"></i> Guided Filter
     </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -402,6 +330,7 @@ y \sim N(\mu=x, \sigma^2=\lambda_{read} + \lambda_{shot} x)
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#fermi-architecture"><span class="nav-number">1.</span> <span class="nav-text">Fermi Architecture</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#kepler-architecture"><span class="nav-number">2.</span> <span class="nav-text">Kepler Architecture</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#maxwell-architecture"><span class="nav-number">3.</span> <span class="nav-text">Maxwell Architecture</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#pascal-architecture"><span class="nav-number">4.</span> <span class="nav-text">Pascal Architecture</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#volta-architecture"><span class="nav-number">5.</span> <span class="nav-text">Volta Architecture</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
