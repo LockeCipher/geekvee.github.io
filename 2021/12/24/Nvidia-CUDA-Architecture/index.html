@@ -6,8 +6,8 @@
 <meta name="theme-color" content="#222">
 <meta name="generator" content="Hexo 5.4.0">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
   <link rel="mask-icon" href="/images/logo.svg" color="#222">
 
 <link rel="stylesheet" href="/css/main.css">
@@ -24,14 +24,14 @@
 <meta property="og:type" content="article">
 <meta property="og:title" content="Nvidia CUDA Architecture">
 <meta property="og:url" content="http://example.com/2021/12/24/Nvidia-CUDA-Architecture/index.html">
-<meta property="og:site_name" content="Hexo">
+<meta property="og:site_name" content="Raggedy">
 <meta property="og:description" content="Fermi Architecture">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="https://techgage.com/articles/nvidia/fermi/block_diagram_gf100.png">
+<meta property="og:image" content="https://gitee.com/huziliang/blog-picgo/raw/master/block_diagram_gf100.png">
 <meta property="og:image" content="https://gitee.com/huziliang/blog-picgo/raw/master/image-20211224153019867.png">
-<meta property="og:image" content="https://images.anandtech.com/doci/5699/GeForce_GTX_680_Block_Diagram_FINAL.png">
-<meta property="og:image" content="https://images.anandtech.com/doci/5699/GeForce_GTX_680_SM_Diagram_FINAL.png">
-<meta property="og:image" content="https://images.anandtech.com/doci/8526/GeForce_GTX_980_Block_Diagram_FINAL.png">
+<meta property="og:image" content="https://gitee.com/huziliang/blog-picgo/raw/master/GeForce_GTX_680_Block_Diagram_FINAL.png">
+<meta property="og:image" content="https://gitee.com/huziliang/blog-picgo/raw/master/GeForce_GTX_680_SM_Diagram_FINAL.png">
+<meta property="og:image" content="https://gitee.com/huziliang/blog-picgo/raw/master/GeForce_GTX_980_Block_Diagram_FINAL.png">
 <meta property="og:image" content="https://gitee.com/huziliang/blog-picgo/raw/master/image-20211224161723378.png">
 <meta property="og:image" content="https://www.gamersnexus.net/images/media/2016/features/pascal/gp100-pascal-block-diagram.jpg">
 <meta property="og:image" content="https://gitee.com/huziliang/blog-picgo/raw/master/image-20211224155413671.jpg">
@@ -41,10 +41,10 @@
 <meta property="og:image" content="https://gitee.com/huziliang/blog-picgo/raw/master/Xnip2021-12-24_21-46-35.png">
 <meta property="og:image" content="https://gitee.com/huziliang/blog-picgo/raw/master/Xnip2021-12-24_21-46-56.png">
 <meta property="article:published_time" content="2021-12-24T07:10:49.000Z">
-<meta property="article:modified_time" content="2021-12-24T13:51:50.173Z">
-<meta property="article:author" content="John Doe">
+<meta property="article:modified_time" content="2022-05-05T08:17:25.787Z">
+<meta property="article:author" content="raggedy.man">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://techgage.com/articles/nvidia/fermi/block_diagram_gf100.png">
+<meta name="twitter:image" content="https://gitee.com/huziliang/blog-picgo/raw/master/block_diagram_gf100.png">
 
 <link rel="canonical" href="http://example.com/2021/12/24/Nvidia-CUDA-Architecture/">
 
@@ -59,7 +59,7 @@
   };
 </script>
 
-  <title>Nvidia CUDA Architecture | Hexo</title>
+  <title>Nvidia CUDA Architecture | Raggedy</title>
   
 
 
@@ -90,6 +90,7 @@
   </style>
 </noscript>
 
+  <meta name="referrer" content="no-referrer" />
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage">
@@ -110,9 +111,10 @@
 
     <a href="/" class="brand" rel="start">
       <span class="logo-line-before"><i></i></span>
-      <h1 class="site-title">Hexo</h1>
+      <h1 class="site-title">Raggedy</h1>
       <span class="logo-line-after"><i></i></span>
     </a>
+      <p class="site-subtitle" itemprop="description">Raggedy.man Blog</p>
   </div>
 
   <div class="site-nav-right">
@@ -168,12 +170,12 @@
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="https://avatars1.githubusercontent.com/u/32269?v=3&s=460">
-      <meta itemprop="name" content="John Doe">
-      <meta itemprop="description" content="">
+      <meta itemprop="name" content="raggedy.man">
+      <meta itemprop="description" content="Just for record">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Hexo">
+      <meta itemprop="name" content="Raggedy">
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
@@ -186,10 +188,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
-              
 
-              <time title="Created: 2021-12-24 15:10:49 / Modified: 21:51:50" itemprop="dateCreated datePublished" datetime="2021-12-24T15:10:49+08:00">2021-12-24</time>
+              <time title="Created: 2021-12-24 15:10:49" itemprop="dateCreated datePublished" datetime="2021-12-24T15:10:49+08:00">2021-12-24</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-05-05 16:17:25" itemprop="dateModified" datetime="2022-05-05T16:17:25+08:00">2022-05-05</time>
+              </span>
 
           
 
@@ -206,7 +214,7 @@
 <table>
 <thead>
 <tr class="header">
-<th><img src="https://techgage.com/articles/nvidia/fermi/block_diagram_gf100.png" alt="img" style="zoom:50%;" /></th>
+<th><img src="https://gitee.com/huziliang/blog-picgo/raw/master/block_diagram_gf100.png" alt="img" style="zoom:50%;" /></th>
 <th><img src="https://gitee.com/huziliang/blog-picgo/raw/master/image-20211224153019867.png" alt="image-20211224153019867" style="zoom:45%;" /></th>
 </tr>
 </thead>
@@ -224,8 +232,8 @@
 <table>
 <thead>
 <tr class="header">
-<th><img src="https://images.anandtech.com/doci/5699/GeForce_GTX_680_Block_Diagram_FINAL.png" alt="img" style="zoom:50%;" /></th>
-<th><img src="https://images.anandtech.com/doci/5699/GeForce_GTX_680_SM_Diagram_FINAL.png" alt="img" style="zoom: 50%;" /></th>
+<th><img src="https://gitee.com/huziliang/blog-picgo/raw/master/GeForce_GTX_680_Block_Diagram_FINAL.png" alt="img" style="zoom:50%;" /></th>
+<th><img src="https://gitee.com/huziliang/blog-picgo/raw/master/GeForce_GTX_680_SM_Diagram_FINAL.png" alt="img" style="zoom: 50%;" /></th>
 </tr>
 </thead>
 <tbody>
@@ -236,7 +244,7 @@
 <table>
 <thead>
 <tr class="header">
-<th><img src="https://images.anandtech.com/doci/8526/GeForce_GTX_980_Block_Diagram_FINAL.png" alt="img" style="zoom:75%;" /></th>
+<th><img src="https://gitee.com/huziliang/blog-picgo/raw/master/GeForce_GTX_980_Block_Diagram_FINAL.png" alt="img" style="zoom:75%;" /></th>
 <th><img src="https://gitee.com/huziliang/blog-picgo/raw/master/image-20211224161723378.png" alt="image-20211224161723378" style="zoom:50%;" /></th>
 </tr>
 </thead>
@@ -298,7 +306,10 @@
     <a href="/2021/10/13/Guided-Filter/" rel="prev" title="Guided Filter">
       <i class="fa fa-chevron-left"></i> Guided Filter
     </a></div>
-      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2022/05/05/C-Tips/" rel="next" title="C++ Tips">
+      C++ Tips <i class="fa fa-chevron-right"></i>
+    </a></div>
     </div>
       </footer>
     
@@ -363,17 +374,17 @@
 
       <div class="site-overview-wrap sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
-    <img class="site-author-image" itemprop="image" alt="John Doe"
+    <img class="site-author-image" itemprop="image" alt="raggedy.man"
       src="https://avatars1.githubusercontent.com/u/32269?v=3&s=460">
-  <p class="site-author-name" itemprop="name">John Doe</p>
-  <div class="site-description" itemprop="description"></div>
+  <p class="site-author-name" itemprop="name">raggedy.man</p>
+  <div class="site-description" itemprop="description">Just for record</div>
 </div>
 <div class="site-state-wrap motion-element">
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">3</span>
+          <span class="site-state-item-count">4</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
@@ -407,7 +418,7 @@
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
-  <span class="author" itemprop="copyrightHolder">John Doe</span>
+  <span class="author" itemprop="copyrightHolder">raggedy.man</span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
   </div>
