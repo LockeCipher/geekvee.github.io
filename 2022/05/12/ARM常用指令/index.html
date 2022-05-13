@@ -28,7 +28,7 @@
 <meta property="og:description" content="加载与存储指令 基于基地址的寻址模式  基地址寻址  1ldr x0, [x1]">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2022-05-12T08:23:36.000Z">
-<meta property="article:modified_time" content="2022-05-12T08:26:27.617Z">
+<meta property="article:modified_time" content="2022-05-13T07:15:11.748Z">
 <meta property="article:author" content="raggedy.man">
 <meta name="twitter:card" content="summary">
 
@@ -174,10 +174,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
-              
 
-              <time title="Created: 2022-05-12 16:23:36 / Modified: 16:26:27" itemprop="dateCreated datePublished" datetime="2022-05-12T16:23:36+08:00">2022-05-12</time>
+              <time title="Created: 2022-05-12 16:23:36" itemprop="dateCreated datePublished" datetime="2022-05-12T16:23:36+08:00">2022-05-12</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-05-13 15:15:11" itemprop="dateModified" datetime="2022-05-13T15:15:11+08:00">2022-05-13</time>
+              </span>
 
           
 
@@ -286,6 +292,28 @@
 <p>一般情况，栈是从高地址向低地址生长的数据结构，起始地址称为栈底，最后一个入栈元素地址称之为栈顶，指向栈顶的指针称之为栈指针，SP(Stack Point)。</p>
 <p>A32提供了push和pop指令进行入栈出栈操作，在A64指令集中移除了push和pop，使用ldp和stp取代。</p>
 <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">.arch armv8-a</span><br><span class="line">.text</span><br><span class="line">.align	<span class="number">3</span></span><br><span class="line"></span><br><span class="line">.global	test2</span><br><span class="line">test2:</span><br><span class="line"></span><br><span class="line">    mov x1, x0</span><br><span class="line">    ldp x2, x3, [x1] <span class="comment">// x2 = 1, x3 = 2</span></span><br><span class="line">		<span class="comment">// 栈向下扩展16字节</span></span><br><span class="line">    stp x2, x3, [sp, #<span class="number">-16</span>]!</span><br><span class="line">		<span class="comment">// 出栈，并使用后变基恢复sp位置</span></span><br><span class="line">    ldp x2, x3, [sp], #<span class="number">16</span></span><br><span class="line"></span><br><span class="line">    mov x0, x3 <span class="comment">// x2 = 1, x3 = 2</span></span><br><span class="line"></span><br><span class="line">    ret</span><br></pre></td></tr></table></figure>
+<h2 id="mov指令">MOV指令</h2>
+<p>mov指令通常用于寄存器之间的搬移和立即数搬移。</p>
+<p>而能搬运的立即数只有以下两种：</p>
+<ol type="1">
+<li>16位立即数</li>
+<li>16位立即数左移16位、32位或者48位的立即数</li>
+</ol>
+<p>此时mov指令等同于movz指令</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">movz x0, <span class="number">0x12bc</span>, LSL #<span class="number">16</span></span><br></pre></td></tr></table></figure>
+<p>mov指令还可以用来搬运bitmask，此时等同orr指令</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">orr x0, XZR, #<span class="number">0xffff0000ffff</span></span><br></pre></td></tr></table></figure>
+<p>可以通过反汇编验证以上结论：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">main.s:</span><br><span class="line"></span><br><span class="line">.arch armv8-a</span><br><span class="line">.text</span><br><span class="line">.align    <span class="number">3</span></span><br><span class="line"></span><br><span class="line">.global    test2</span><br><span class="line">test2:</span><br><span class="line">	mov x0, <span class="number">0x12bc0000</span></span><br><span class="line">	mov x1, <span class="number">0xffff0000ffff</span></span><br><span class="line">	ret</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>通常一个cpp文件要变成熟悉的可执行文件a.out，需要经过以下四个步骤</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">graph LR</span><br><span class="line">A[main.cpp] --预处理--&gt;B(main.i)--编译--&gt;C(main.s)--汇编--&gt;D(main.o)--链接--&gt;E(a.out)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>调用aarch64-linux-android-g++对main.s进行汇编过程：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">aarch64-linux-android-g++ -c main.s -o main.o</span><br></pre></td></tr></table></figure>
+<p>调用aarch64-linux-android-objdump -s -d -M no-aliases test.o对main.o进行反汇编</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">aarch64-linux-android-objdump -s -d -M no-aliases main.o</span><br><span class="line"></span><br><span class="line"><span class="comment"># shell会打印出反汇编结果：</span></span><br><span class="line">main.o:     file format elf64-littleaarch64</span><br><span class="line"></span><br><span class="line">Contents of section .text:</span><br><span class="line"> 0000 8057a2d2 e13f00b2 c0035fd6 1f2003d5  .W...?...._.. ..</span><br><span class="line"></span><br><span class="line">Disassembly of section .text:</span><br><span class="line"></span><br><span class="line">0000000000000000 &lt;test2&gt;:</span><br><span class="line">   0:	d2a25780 	movz	x0, <span class="comment">#0x12bc, lsl #16</span></span><br><span class="line">   4:	b2003fe1 	orr	x1, xzr, <span class="comment">#0xffff0000ffff</span></span><br><span class="line">   8:	d65f03c0 	ret</span><br><span class="line">   c:	d503201f 	hint	<span class="comment">#0x0</span></span><br></pre></td></tr></table></figure>
+<p>可以看到mov指令变成了movz和orr指令</p>
 
     </div>
 
@@ -363,7 +391,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8A%A0%E8%BD%BD%E4%B8%8E%E5%AD%98%E5%82%A8%E6%8C%87%E4%BB%A4"><span class="nav-number">1.</span> <span class="nav-text">加载与存储指令</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E%E5%9F%BA%E5%9C%B0%E5%9D%80%E7%9A%84%E5%AF%BB%E5%9D%80%E6%A8%A1%E5%BC%8F"><span class="nav-number">1.1.</span> <span class="nav-text">基于基地址的寻址模式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%98%E5%9F%BA%E5%AF%BB%E5%9D%80%E6%A8%A1%E5%BC%8F"><span class="nav-number">1.2.</span> <span class="nav-text">变基寻址模式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ldr%E4%BC%AA%E6%8C%87%E4%BB%A4"><span class="nav-number">1.3.</span> <span class="nav-text">LDR伪指令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ldr%E5%92%8Cstr%E7%9A%84%E5%8F%98%E7%A7%8D"><span class="nav-number">1.4.</span> <span class="nav-text">ldr和str的变种</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%9A%E5%AD%97%E8%8A%82%E5%8A%A0%E8%BD%BD%E4%B8%8E%E5%AD%98%E5%82%A8%E6%8C%87%E4%BB%A4"><span class="nav-number">1.5.</span> <span class="nav-text">多字节加载与存储指令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%A5%E6%A0%88%E4%B8%8E%E5%87%BA%E6%A0%88"><span class="nav-number">1.6.</span> <span class="nav-text">入栈与出栈</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8A%A0%E8%BD%BD%E4%B8%8E%E5%AD%98%E5%82%A8%E6%8C%87%E4%BB%A4"><span class="nav-number">1.</span> <span class="nav-text">加载与存储指令</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E%E5%9F%BA%E5%9C%B0%E5%9D%80%E7%9A%84%E5%AF%BB%E5%9D%80%E6%A8%A1%E5%BC%8F"><span class="nav-number">1.1.</span> <span class="nav-text">基于基地址的寻址模式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%98%E5%9F%BA%E5%AF%BB%E5%9D%80%E6%A8%A1%E5%BC%8F"><span class="nav-number">1.2.</span> <span class="nav-text">变基寻址模式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ldr%E4%BC%AA%E6%8C%87%E4%BB%A4"><span class="nav-number">1.3.</span> <span class="nav-text">LDR伪指令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ldr%E5%92%8Cstr%E7%9A%84%E5%8F%98%E7%A7%8D"><span class="nav-number">1.4.</span> <span class="nav-text">ldr和str的变种</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%9A%E5%AD%97%E8%8A%82%E5%8A%A0%E8%BD%BD%E4%B8%8E%E5%AD%98%E5%82%A8%E6%8C%87%E4%BB%A4"><span class="nav-number">1.5.</span> <span class="nav-text">多字节加载与存储指令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%A5%E6%A0%88%E4%B8%8E%E5%87%BA%E6%A0%88"><span class="nav-number">1.6.</span> <span class="nav-text">入栈与出栈</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#mov%E6%8C%87%E4%BB%A4"><span class="nav-number">1.7.</span> <span class="nav-text">MOV指令</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
