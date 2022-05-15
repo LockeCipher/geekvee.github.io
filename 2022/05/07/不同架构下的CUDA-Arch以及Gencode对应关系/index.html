@@ -20,15 +20,15 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="不同架构下的CUDA Arch以及Gencode对应关系    Fermi† Kepler† Maxwell‡ Pascal Volta Turing Ampere Hopper* Lovelace     sm_20 sm_30 sm_50 sm_60 sm_70 sm_75 sm_80 sm_90 sm_100?    sm_35 sm_52 sm_61 sm_72  sm_86">
+  <meta name="description" content="Fermi† Kepler† Maxwell‡ Pascal Volta Turing Ampere Hopper* Lovelace     sm_20 sm_30 sm_50 sm_60 sm_70 sm_75 sm_80 sm_90 sm_100?    sm_35 sm_52 sm_61 sm_72  sm_86      sm_37 sm_53 sm_62   sm_87">
 <meta property="og:type" content="article">
 <meta property="og:title" content="不同架构下的CUDA Arch以及Gencode对应关系">
 <meta property="og:url" content="http://example.com/2022/05/07/%E4%B8%8D%E5%90%8C%E6%9E%B6%E6%9E%84%E4%B8%8B%E7%9A%84CUDA-Arch%E4%BB%A5%E5%8F%8AGencode%E5%AF%B9%E5%BA%94%E5%85%B3%E7%B3%BB/index.html">
 <meta property="og:site_name" content="Raggedy">
-<meta property="og:description" content="不同架构下的CUDA Arch以及Gencode对应关系    Fermi† Kepler† Maxwell‡ Pascal Volta Turing Ampere Hopper* Lovelace     sm_20 sm_30 sm_50 sm_60 sm_70 sm_75 sm_80 sm_90 sm_100?    sm_35 sm_52 sm_61 sm_72  sm_86">
+<meta property="og:description" content="Fermi† Kepler† Maxwell‡ Pascal Volta Turing Ampere Hopper* Lovelace     sm_20 sm_30 sm_50 sm_60 sm_70 sm_75 sm_80 sm_90 sm_100?    sm_35 sm_52 sm_61 sm_72  sm_86      sm_37 sm_53 sm_62   sm_87">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2022-05-07T03:55:24.000Z">
-<meta property="article:modified_time" content="2022-05-07T03:56:01.276Z">
+<meta property="article:modified_time" content="2022-05-15T07:40:15.247Z">
 <meta property="article:author" content="raggedy.man">
 <meta name="twitter:card" content="summary">
 
@@ -174,10 +174,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">Posted on</span>
-              
 
-              <time title="Created: 2022-05-07 11:55:24 / Modified: 11:56:01" itemprop="dateCreated datePublished" datetime="2022-05-07T11:55:24+08:00">2022-05-07</time>
+              <time title="Created: 2022-05-07 11:55:24" itemprop="dateCreated datePublished" datetime="2022-05-07T11:55:24+08:00">2022-05-07</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2022-05-15 15:40:15" itemprop="dateModified" datetime="2022-05-15T15:40:15+08:00">2022-05-15</time>
+              </span>
 
           
 
@@ -191,7 +197,6 @@
 
       
         <meta name="referrer" content="no-referrer" />
-<h1 id="不同架构下的cuda-arch以及gencode对应关系">不同架构下的CUDA Arch以及Gencode对应关系</h1>
 <table>
 <thead>
 <tr class="header">
@@ -248,40 +253,40 @@
 <ul>
 <li>Hopper is NVIDIA’s “tesla-next” series, with a 5nm process, replacing Ampere.</li>
 </ul>
-<h1 id="fermi-cards-cuda-3.2-until-cuda-8"><strong>Fermi cards (CUDA 3.2 until CUDA 8)</strong></h1>
+<h2 id="fermi-cards-cuda-3.2-until-cuda-8"><strong>Fermi cards (CUDA 3.2 until CUDA 8)</strong></h2>
 <p>Deprecated from CUDA 9, support completely dropped from CUDA 10.</p>
 <ul>
 <li><strong>SM20 or SM_20, compute_30</strong> –GeForce 400, 500, 600, GT-630.<strong><em>Completely dropped from CUDA 10 onwards.</em></strong></li>
 </ul>
-<h1 id="kepler-cards-cuda-5-until-cuda-10"><strong>Kepler cards (CUDA 5 until CUDA 10)</strong></h1>
+<h2 id="kepler-cards-cuda-5-until-cuda-10"><strong>Kepler cards (CUDA 5 until CUDA 10)</strong></h2>
 <p>Deprecated from CUDA 11.</p>
 <ul>
 <li><strong>SM30 or <code>SM_30, compute_30</code> –</strong>Kepler architecture (e.g. generic Kepler, GeForce 700, GT-730).Adds support for unified memory programming<em><strong>Completely dropped from CUDA 11 onwards</strong>.</em></li>
 <li><strong>SM35 or <code>SM_35, compute_35</code></strong> –Tesla K40.Adds support for dynamic parallelism.<strong>Deprecated from CUDA 11, will be dropped in future versions</strong>.</li>
 <li><strong>SM37 or <code>SM_37, compute_37</code></strong> –Tesla K80.Adds a few more registers.<strong><em>Deprecated from CUDA 11, will be dropped in future versions</em></strong>, strongly suggest replacing with a <a target="_blank" rel="noopener" href="https://www.amazon.com/gp/product/B07JVNHFFX/ref=as_li_tl?ie=UTF8&amp;camp=1789&amp;creative=9325&amp;creativeASIN=B07JVNHFFX&amp;linkCode=as2&amp;tag=arnonshimoni-20&amp;linkId=039f38074e50b581e71d500cd08bca85">32GB PCIe Tesla V100</a>.</li>
 </ul>
-<h1 id="maxwell-cards-cuda-6-until-cuda-11"><strong>Maxwell cards (CUDA 6 until CUDA 11)</strong></h1>
+<h2 id="maxwell-cards-cuda-6-until-cuda-11"><strong>Maxwell cards (CUDA 6 until CUDA 11)</strong></h2>
 <ul>
 <li><strong>SM50 or <code>SM_50, compute_50</code></strong> –Tesla/Quadro M series.<strong><em>Deprecated from CUDA 11, will be dropped in future versions</em></strong>, strongly suggest replacing with a <a target="_blank" rel="noopener" href="https://www.amazon.com/gp/product/B07P6CDHS5/ref=as_li_tl?ie=UTF8&amp;camp=1789&amp;creative=9325&amp;creativeASIN=B07P6CDHS5&amp;linkCode=as2&amp;tag=arnonshimoni-20&amp;linkId=fe1f6fa6ad408060f634a35bad4271ce">Quadro RTX 4000</a> or <a target="_blank" rel="noopener" href="https://www.amazon.com/PNY-VCNRTXA6000-PB-NVIDIA-RTX-A6000/dp/B09BDH8VZV?crid=3QY8KCKXO3FB8&amp;keywords=rtx+a6000&amp;qid=1647969665&amp;sprefix=rtx+a6000%2Caps%2C174&amp;sr=8-1&amp;linkCode=ll1&amp;tag=arnonshimoni-20&amp;linkId=d292ba4d995d2b034a27441321668ffb&amp;language=en_US&amp;ref_=as_li_ss_tl">A6000</a>.</li>
 <li><strong>SM52 or <code>SM_52, compute_52</code></strong> –Quadro M6000 , GeForce 900, GTX-970, GTX-980, GTX Titan X.</li>
 <li><strong>SM53 or <code>SM_53, compute_53</code></strong> –Tegra (Jetson) TX1 / Tegra X1, Drive CX, Drive PX, Jetson Nano.</li>
 </ul>
-<h1 id="pascal-cuda-8-and-later"><strong>Pascal (CUDA 8 and later)</strong></h1>
+<h2 id="pascal-cuda-8-and-later"><strong>Pascal (CUDA 8 and later)</strong></h2>
 <ul>
 <li><strong>SM60 or <code>SM_60, compute_60</code></strong> –Quadro GP100, Tesla P100, DGX-1 (Generic Pascal)</li>
 <li><strong>SM61 or <code>SM_61, compute_61</code></strong>–GTX 1080, GTX 1070, GTX 1060, GTX 1050, GTX 1030 (GP108), GT 1010 (GP108) Titan Xp, Tesla P40, Tesla P4, Discrete GPU on the NVIDIA Drive PX2</li>
 <li><strong>SM62 or <code>SM_62, compute_62</code></strong> – Integrated GPU on the NVIDIA Drive PX2, Tegra (Jetson) TX2</li>
 </ul>
-<h1 id="volta-cuda-9-and-later"><strong>Volta (CUDA 9 and later)</strong></h1>
+<h2 id="volta-cuda-9-and-later"><strong>Volta (CUDA 9 and later)</strong></h2>
 <ul>
 <li><strong>SM70 or <code>SM_70, compute_70</code></strong> –DGX-1 with Volta, Tesla V100, GTX 1180 (GV104), Titan V, Quadro GV100</li>
 <li><strong>SM72 or <code>SM_72, compute_72</code></strong> –Jetson AGX Xavier, Drive AGX Pegasus, Xavier NX</li>
 </ul>
-<h1 id="turing-cuda-10-and-later"><strong>Turing (CUDA 10 and later)</strong></h1>
+<h2 id="turing-cuda-10-and-later"><strong>Turing (CUDA 10 and later)</strong></h2>
 <ul>
 <li><strong>SM75 or <code>SM_75, compute_75</code></strong> –GTX/RTX Turing – GTX 1660 Ti, RTX 2060, <a target="_blank" rel="noopener" href="https://www.amazon.com/gp/product/B082P1BF7H/ref=as_li_tl?ie=UTF8&amp;camp=1789&amp;creative=9325&amp;creativeASIN=B082P1BF7H&amp;linkCode=as2&amp;tag=arnonshimoni-20&amp;linkId=68e78b128dd90f652eb7796404e2126f">RTX 2070</a>, RTX 2080, Titan RTX, Quadro RTX 4000, Quadro RTX 5000, Quadro RTX 6000, Quadro RTX 8000, Quadro T1000/T2000, Tesla T4</li>
 </ul>
-<h1 id="ampere-cuda-11.1-and-later"><strong>Ampere (CUDA 11.1 and later)</strong></h1>
+<h2 id="ampere-cuda-11.1-and-later"><strong>Ampere (CUDA 11.1 and later)</strong></h2>
 <ul>
 <li><strong>SM80 or <code>SM_80, compute_80</code></strong> –NVIDIA A100 (the name “Tesla” has been dropped – GA100), NVIDIA DGX-A100</li>
 <li><strong>SM86 or <code>SM_86, compute_86</code> –</strong> (from <a target="_blank" rel="noopener" href="https://docs.nvidia.com/cuda/ptx-compiler-api/index.html">CUDA 11.1 onwards</a>)Tesla GA10x cards, RTX Ampere – RTX 3080, GA102 – RTX 3090, RTX A2000, A3000, <a target="_blank" rel="noopener" href="https://www.amazon.com/PNY-NVIDIA-Quadro-A6000-Graphics/dp/B08NWGS4X1?msclkid=45987a9faa0411ec98c321cb30a0780e&amp;linkCode=ll1&amp;tag=arnonshimoni-20&amp;linkId=ccac0fed7c3cac61b4373d7dac6e7136&amp;language=en_US&amp;ref_=as_li_ss_tl">RTX A4000</a>, A5000, <a target="_blank" rel="noopener" href="https://www.amazon.com/PNY-VCNRTXA6000-PB-NVIDIA-RTX-A6000/dp/B09BDH8VZV?crid=3QY8KCKXO3FB8&amp;keywords=rtx+a6000&amp;qid=1647969665&amp;sprefix=rtx+a6000%2Caps%2C174&amp;sr=8-1&amp;linkCode=ll1&amp;tag=arnonshimoni-20&amp;linkId=d292ba4d995d2b034a27441321668ffb&amp;language=en_US&amp;ref_=as_li_ss_tl">A6000</a>, NVIDIA A40, GA106 – <a target="_blank" rel="noopener" href="https://www.amazon.com/gp/product/B08W8DGK3X/ref=as_li_qf_asin_il_tl?ie=UTF8&amp;tag=arnonshimoni-20&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=B08W8DGK3X&amp;linkId=5cb5bc6a11eb10aab6a98ad3f6c00cb9">RTX 3060</a>, GA104 – RTX 3070, GA107 – RTX 3050, RTX A10, RTX A16, RTX A40, A2 Tensor Core GPU</li>
@@ -291,11 +296,11 @@
 <p>“Devices of compute capability 8.6 have 2x more FP32 operations per cycle per SM than devices of compute capability 8.0. While a binary compiled for 8.0 will run as is on 8.6, it is recommended to compile explicitly for 8.6 to benefit from the increased FP32 throughput.“</p>
 <p><strong>https://docs.nvidia.com/cuda/ampere-tuning-guide/index.html#improved_fp32</strong></p>
 </blockquote>
-<h1 id="hopper-cuda-12-and-later"><strong>Hopper (CUDA 12 and later)</strong></h1>
+<h2 id="hopper-cuda-12-and-later"><strong>Hopper (CUDA 12 and later)</strong></h2>
 <ul>
 <li><strong>SM90 or <code>SM_90, compute_90</code></strong> –NVIDIA H100 (GH100)</li>
 </ul>
-<h1 id="市面上常见的商品与版本对应关系">市面上常见的商品与版本对应关系</h1>
+<h2 id="市面上常见的商品与版本对应关系">市面上常见的商品与版本对应关系</h2>
 <ul>
 <li>版本52：Quadro M6000 , GeForce 900, GTX-970, GTX-980, GTX Titan X</li>
 <li>版本53：Tegra (Jetson) TX1 / Tegra X1, Drive CX, Drive PX, Jetson Nano</li>
@@ -388,7 +393,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%8D%E5%90%8C%E6%9E%B6%E6%9E%84%E4%B8%8B%E7%9A%84cuda-arch%E4%BB%A5%E5%8F%8Agencode%E5%AF%B9%E5%BA%94%E5%85%B3%E7%B3%BB"><span class="nav-number">1.</span> <span class="nav-text">不同架构下的CUDA Arch以及Gencode对应关系</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#fermi-cards-cuda-3.2-until-cuda-8"><span class="nav-number">2.</span> <span class="nav-text">Fermi cards (CUDA 3.2 until CUDA 8)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#kepler-cards-cuda-5-until-cuda-10"><span class="nav-number">3.</span> <span class="nav-text">Kepler cards (CUDA 5 until CUDA 10)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#maxwell-cards-cuda-6-until-cuda-11"><span class="nav-number">4.</span> <span class="nav-text">Maxwell cards (CUDA 6 until CUDA 11)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#pascal-cuda-8-and-later"><span class="nav-number">5.</span> <span class="nav-text">Pascal (CUDA 8 and later)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#volta-cuda-9-and-later"><span class="nav-number">6.</span> <span class="nav-text">Volta (CUDA 9 and later)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#turing-cuda-10-and-later"><span class="nav-number">7.</span> <span class="nav-text">Turing (CUDA 10 and later)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ampere-cuda-11.1-and-later"><span class="nav-number">8.</span> <span class="nav-text">Ampere (CUDA 11.1 and later)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#hopper-cuda-12-and-later"><span class="nav-number">9.</span> <span class="nav-text">Hopper (CUDA 12 and later)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B8%82%E9%9D%A2%E4%B8%8A%E5%B8%B8%E8%A7%81%E7%9A%84%E5%95%86%E5%93%81%E4%B8%8E%E7%89%88%E6%9C%AC%E5%AF%B9%E5%BA%94%E5%85%B3%E7%B3%BB"><span class="nav-number">10.</span> <span class="nav-text">市面上常见的商品与版本对应关系</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#fermi-cards-cuda-3.2-until-cuda-8"><span class="nav-number">1.</span> <span class="nav-text">Fermi cards (CUDA 3.2 until CUDA 8)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#kepler-cards-cuda-5-until-cuda-10"><span class="nav-number">2.</span> <span class="nav-text">Kepler cards (CUDA 5 until CUDA 10)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#maxwell-cards-cuda-6-until-cuda-11"><span class="nav-number">3.</span> <span class="nav-text">Maxwell cards (CUDA 6 until CUDA 11)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#pascal-cuda-8-and-later"><span class="nav-number">4.</span> <span class="nav-text">Pascal (CUDA 8 and later)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#volta-cuda-9-and-later"><span class="nav-number">5.</span> <span class="nav-text">Volta (CUDA 9 and later)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#turing-cuda-10-and-later"><span class="nav-number">6.</span> <span class="nav-text">Turing (CUDA 10 and later)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ampere-cuda-11.1-and-later"><span class="nav-number">7.</span> <span class="nav-text">Ampere (CUDA 11.1 and later)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#hopper-cuda-12-and-later"><span class="nav-number">8.</span> <span class="nav-text">Hopper (CUDA 12 and later)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B8%82%E9%9D%A2%E4%B8%8A%E5%B8%B8%E8%A7%81%E7%9A%84%E5%95%86%E5%93%81%E4%B8%8E%E7%89%88%E6%9C%AC%E5%AF%B9%E5%BA%94%E5%85%B3%E7%B3%BB"><span class="nav-number">9.</span> <span class="nav-text">市面上常见的商品与版本对应关系</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
