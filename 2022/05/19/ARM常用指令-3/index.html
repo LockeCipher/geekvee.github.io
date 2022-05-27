@@ -20,17 +20,17 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="比较跳转指令 比较指令  cmn指令  与cmp指令类似，不同的是cmn指令是将一个数与另一个数的相反数进行比较，并且在汇编过程中等同于adds指令">
+  <meta name="description" content="col{     &#x2F;* width: 0 !important; *&#x2F;     max-width: 10% !important; }  比较跳转指令 比较指令  cmn指令  与cmp指令类似，不同的是cmn指令是将一个数与另一个数的相反数进行比较，并且在汇编过程中等同于adds指令">
 <meta property="og:type" content="article">
 <meta property="og:title" content="ARM常用指令(3)">
 <meta property="og:url" content="http://example.com/2022/05/19/ARM%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4-3/index.html">
 <meta property="og:site_name" content="Raggedy">
-<meta property="og:description" content="比较跳转指令 比较指令  cmn指令  与cmp指令类似，不同的是cmn指令是将一个数与另一个数的相反数进行比较，并且在汇编过程中等同于adds指令">
+<meta property="og:description" content="col{     &#x2F;* width: 0 !important; *&#x2F;     max-width: 10% !important; }  比较跳转指令 比较指令  cmn指令  与cmp指令类似，不同的是cmn指令是将一个数与另一个数的相反数进行比较，并且在汇编过程中等同于adds指令">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://s2.loli.net/2022/05/23/4w1xtTYNIyQXb7J.png">
 <meta property="og:image" content="https://s2.loli.net/2022/05/23/CxqeDOmPaLQ4hgN.png">
 <meta property="article:published_time" content="2022-05-19T07:22:34.000Z">
-<meta property="article:modified_time" content="2022-05-23T04:23:10.597Z">
+<meta property="article:modified_time" content="2022-05-27T07:28:31.983Z">
 <meta property="article:author" content="raggedy.man">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://s2.loli.net/2022/05/23/4w1xtTYNIyQXb7J.png">
@@ -184,7 +184,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2022-05-23 12:23:10" itemprop="dateModified" datetime="2022-05-23T12:23:10+08:00">2022-05-23</time>
+                <time title="Modified: 2022-05-27 15:28:31" itemprop="dateModified" datetime="2022-05-27T15:28:31+08:00">2022-05-27</time>
               </span>
 
           
@@ -199,6 +199,12 @@
 
       
         <meta name="referrer" content="no-referrer" />
+<style type="text/css" rel="stylesheet">
+col{
+    /* width: 0 !important; */
+    max-width: 10% !important;
+}
+</style>
 <h2 id="比较跳转指令">比较跳转指令</h2>
 <h3 id="比较指令">比较指令</h3>
 <ul>
@@ -289,7 +295,7 @@
 <p>调用子函数时，需要将X29和X30寄存器入栈，在主函数返回时，将X29和X30出栈，否则会出现主函数无法退出的情况。</p>
 <p>错误案例：</p>
 <p><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// main.cpp</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="string">&quot;C&quot;</span> <span class="function"><span class="keyword">void</span> <span class="title">test2</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="built_in">test2</span>();</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// main.s</span></span><br><span class="line">.arch armv8-a</span><br><span class="line">.text</span><br><span class="line">.align	<span class="number">3</span></span><br><span class="line"></span><br><span class="line">.global csel_test</span><br><span class="line">csel_test:</span><br><span class="line">    cmp x0, <span class="number">0</span></span><br><span class="line">    sub x2, x1, <span class="number">1</span></span><br><span class="line">    add x3, x1, <span class="number">2</span></span><br><span class="line">    csel x0, x3, x2, eq</span><br><span class="line">    ret</span><br><span class="line"></span><br><span class="line">.global	test2</span><br><span class="line">test2:</span><br><span class="line">    mov x0, <span class="number">1</span></span><br><span class="line">    mov x2, <span class="number">3</span></span><br><span class="line">    bl csel_test</span><br><span class="line">    ret</span><br></pre></td></tr></table></figure></p>
-<p>Linux主机编译支持debug的arm跨平台可执行文件方法，参照另一篇文章 <a target="_blank" rel="noopener" href="https://www.huziliang.com/2022/05/19/Android-Toolchain%E7%BC%96%E8%AF%91%E4%B8%8EGDB%E8%B0%83%E8%AF%95/">Android Toolchain编译与GDB调试</a></p>
+<p>Linux主机编译支持debug的arm跨平台可执行文件方法，参照另一篇文章《Android Toolchain编译与GDB调试》</p>
 <p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">./gdb <span class="comment"># 进入gdb程序</span></span><br><span class="line">b main <span class="comment"># 加断点</span></span><br><span class="line">n <span class="comment"># next 下一步，不进入函数 执行至test2();</span></span><br><span class="line">s <span class="comment"># step 下一步，进入test2函数内部</span></span><br><span class="line">n</span><br><span class="line">n</span><br><span class="line">info r <span class="comment"># info register 打印寄存器，可以查看lr寄存器为0x4030f0，pc寄存器为0x4031ac</span></span><br><span class="line">s <span class="comment"># step 下一步，进入csel_test函数内部</span></span><br><span class="line">info r <span class="comment"># info register 打印寄存器，可以查看lr寄存器为0x4031b0，pc寄存器为0x403190</span></span><br></pre></td></tr></table></figure></p>
 <p>以上过程可以看出，lr寄存器的值，在csel_test子函数执行时lr寄存器的值为上一步pc寄存器值+4，即0x4031ac + 4 = 0x4031b0</p>
 <p>当csel_test函数返回值test2时，lr寄存器的值为0x4031ac，此时test2函数只有按在lr寄存器的值为0x4030f0时才能正确返回，因此函数会卡住</p>
@@ -323,6 +329,71 @@
 <figure>
 <img src="https://s2.loli.net/2022/05/23/CxqeDOmPaLQ4hgN.png" alt="https://s2.loli.net/2022/05/23/CxqeDOmPaLQ4hgN.png" /><figcaption aria-hidden="true">https://s2.loli.net/2022/05/23/CxqeDOmPaLQ4hgN.png</figcaption>
 </figure>
+<ul>
+<li>adr和ldr伪指令的区别
+<ol type="1">
+<li>ldr伪指令加载的是绝对地址，adr加载的是当前pc的相对地址</li>
+<li>当运行地址和链接地址相同时，adr和ldr伪指令等效</li>
+<li>当运行地址和链接地址不同时，ldr伪指令加载label的链接地址，adr加载label物理地址</li>
+</ol></li>
+</ul>
+<h3 id="系统寄存器访问指令">系统寄存器访问指令</h3>
+<ul>
+<li>mrs指令</li>
+</ul>
+<p>读取系统寄存器的值到通用寄存器</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mrs x0, nzcv</span><br><span class="line">// 读取NZCV寄存器，查看标志位是否为1</span><br></pre></td></tr></table></figure>
+<ul>
+<li>msr指令</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mrs x0, nzcv</span><br><span class="line">// 更新NZCV寄存器的值</span><br></pre></td></tr></table></figure>
+<h3 id="内存屏障指令">内存屏障指令</h3>
+<table>
+<thead>
+<tr class="header">
+<th>
+DMB
+</th>
+<th>
+数据存储屏障，Data Memory Barrier，确保在执行新的存储器访问前所有的存储器访问都已经完成
+</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>
+DSB
+</td>
+<td>
+数据同步屏障，Data Synchronization Barrier，确保在下一个指令执行前所有的存储器访问都已经完成
+</td>
+</tr>
+<tr class="even">
+<td>
+ISB
+</td>
+<td>
+指令同步屏障，Instruction Synchronization Barrier，清空流水线，确保在执行新的指令前，之前所有的指令都已经完成
+</td>
+</tr>
+<tr class="odd">
+<td>
+LDAR
+</td>
+<td>
+加载-获取指令，Load-acquire，LDAR指令后面的读写内存指令必须在LDAR指令之后才能完成
+</td>
+</tr>
+<tr class="even">
+<td>
+STLR
+</td>
+<td>
+存储-释放指令，Store-release，所有加载和存储指令必须在STLR指令之前完成
+</td>
+</tr>
+</tbody>
+</table>
 
     </div>
 
@@ -400,7 +471,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%AF%94%E8%BE%83%E8%B7%B3%E8%BD%AC%E6%8C%87%E4%BB%A4"><span class="nav-number">1.</span> <span class="nav-text">比较跳转指令</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AF%94%E8%BE%83%E6%8C%87%E4%BB%A4"><span class="nav-number">1.1.</span> <span class="nav-text">比较指令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B7%B3%E8%BD%AC%E6%8C%87%E4%BB%A4"><span class="nav-number">1.2.</span> <span class="nav-text">跳转指令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#pc%E7%9B%B8%E5%AF%B9%E5%9C%B0%E5%9D%80%E5%8A%A0%E8%BD%BD%E6%8C%87%E4%BB%A4"><span class="nav-number">1.3.</span> <span class="nav-text">PC相对地址加载指令</span></a></li></ol></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%AF%94%E8%BE%83%E8%B7%B3%E8%BD%AC%E6%8C%87%E4%BB%A4"><span class="nav-number">1.</span> <span class="nav-text">比较跳转指令</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%AF%94%E8%BE%83%E6%8C%87%E4%BB%A4"><span class="nav-number">1.1.</span> <span class="nav-text">比较指令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B7%B3%E8%BD%AC%E6%8C%87%E4%BB%A4"><span class="nav-number">1.2.</span> <span class="nav-text">跳转指令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#pc%E7%9B%B8%E5%AF%B9%E5%9C%B0%E5%9D%80%E5%8A%A0%E8%BD%BD%E6%8C%87%E4%BB%A4"><span class="nav-number">1.3.</span> <span class="nav-text">PC相对地址加载指令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F%E5%AF%84%E5%AD%98%E5%99%A8%E8%AE%BF%E9%97%AE%E6%8C%87%E4%BB%A4"><span class="nav-number">1.4.</span> <span class="nav-text">系统寄存器访问指令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E5%B1%8F%E9%9A%9C%E6%8C%87%E4%BB%A4"><span class="nav-number">1.5.</span> <span class="nav-text">内存屏障指令</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
