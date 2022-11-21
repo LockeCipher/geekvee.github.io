@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
-<meta name="generator" content="Hexo 5.4.0">
+<meta name="generator" content="Hexo 5.4.2">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
@@ -24,14 +24,14 @@
 <meta property="og:type" content="article">
 <meta property="og:title" content="Sensor Noise Model Calibration">
 <meta property="og:url" content="http://example.com/2021/09/26/Sensor-Noise-Model-Calibration/index.html">
-<meta property="og:site_name" content="Raggedy">
+<meta property="og:site_name" content="Guvvos">
 <meta property="og:description" content="image-20210927104516396  图片来源：CMU Computational Photography, Fall 2020">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://s2.loli.net/2022/05/23/sroq9vQ7fJOWNC8.png">
 <meta property="og:image" content="https://s2.loli.net/2022/05/23/l3LasJfYkmROzWy.png">
 <meta property="article:published_time" content="2021-09-26T12:05:04.000Z">
-<meta property="article:modified_time" content="2022-05-23T06:10:53.643Z">
-<meta property="article:author" content="raggedy.man">
+<meta property="article:modified_time" content="2022-05-23T06:10:53.000Z">
+<meta property="article:author" content="Guvvos">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://s2.loli.net/2022/05/23/sroq9vQ7fJOWNC8.png">
 
@@ -48,7 +48,7 @@
   };
 </script>
 
-  <title>Sensor Noise Model Calibration | Raggedy</title>
+  <title>Sensor Noise Model Calibration | Guvvos</title>
   
 
 
@@ -99,10 +99,10 @@
 
     <a href="/" class="brand" rel="start">
       <span class="logo-line-before"><i></i></span>
-      <h1 class="site-title">Raggedy</h1>
+      <h1 class="site-title">Guvvos</h1>
       <span class="logo-line-after"><i></i></span>
     </a>
-      <p class="site-subtitle" itemprop="description">Raggedy.man Blog</p>
+      <p class="site-subtitle" itemprop="description">Guvvos Blog</p>
   </div>
 
   <div class="site-nav-right">
@@ -158,12 +158,12 @@
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="https://avatars1.githubusercontent.com/u/32269?v=3&s=460">
-      <meta itemprop="name" content="raggedy.man">
+      <meta itemprop="name" content="Guvvos">
       <meta itemprop="description" content="Just for record">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Raggedy">
+      <meta itemprop="name" content="Guvvos">
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
@@ -199,17 +199,27 @@
 
       
         <figure>
-<img src="https://s2.loli.net/2022/05/23/sroq9vQ7fJOWNC8.png" alt="image-20210927104516396" /><figcaption aria-hidden="true">image-20210927104516396</figcaption>
+<img src="https://s2.loli.net/2022/05/23/sroq9vQ7fJOWNC8.png"
+alt="image-20210927104516396" />
+<figcaption aria-hidden="true">image-20210927104516396</figcaption>
 </figure>
-<p>图片来源：<a target="_blank" rel="noopener" href="http://graphics.cs.cmu.edu/courses/15-463/2020_fall/lectures/lecture2.pdf">CMU Computational Photography, Fall 2020</a></p>
+<p>图片来源：<a
+target="_blank" rel="noopener" href="http://graphics.cs.cmu.edu/courses/15-463/2020_fall/lectures/lecture2.pdf">CMU
+Computational Photography, Fall 2020</a></p>
 <span id="more"></span>
 <p>Pipeline中绿色框部分会引入噪声，具体如下:</p>
 <figure>
-<img src="https://s2.loli.net/2022/05/23/l3LasJfYkmROzWy.png" alt="image-20210927105235305" /><figcaption aria-hidden="true">image-20210927105235305</figcaption>
+<img src="https://s2.loli.net/2022/05/23/l3LasJfYkmROzWy.png"
+alt="image-20210927105235305" />
+<figcaption aria-hidden="true">image-20210927105235305</figcaption>
 </figure>
-<p>图片来源：<a target="_blank" rel="noopener" href="http://graphics.cs.cmu.edu/courses/15-463/2020_fall/lectures/lecture2.pdf">CMU Computational Photography, Fall 2020</a> w 具体而言会有以下三种noise：</p>
+<p>图片来源：<a
+target="_blank" rel="noopener" href="http://graphics.cs.cmu.edu/courses/15-463/2020_fall/lectures/lecture2.pdf">CMU
+Computational Photography, Fall 2020</a> w
+具体而言会有以下三种noise：</p>
 <ol type="1">
-<li><p>Photon noise，也称Shot noise 光粒子到达的随机性，符合泊松分布</p></li>
+<li><p>Photon noise，也称Shot noise
+光粒子到达的随机性，符合泊松分布</p></li>
 <li><p>Dark noise</p>
 <p>暗电流的影响，即便没有光粒子到达，也会因为元器件本身的特性产生噪声，一般而言温度越高，噪声越大，符合均值0的高斯分布</p></li>
 <li><p>Read noise</p>
@@ -217,76 +227,113 @@
 </ol>
 <p>因此可以在Raw denoise的相关论文中找到以下noise model。</p>
 <blockquote>
-<p><a target="_blank" rel="noopener" href="https://openaccess.thecvf.com/content_cvpr_2018/papers/Mildenhall_Burst_Denoising_With_CVPR_2018_paper.pdf">Google: Burst Denoising with Kernel Prediction Networks</a></p>
+<p><a
+target="_blank" rel="noopener" href="https://openaccess.thecvf.com/content_cvpr_2018/papers/Mildenhall_Burst_Denoising_With_CVPR_2018_paper.pdf">Google:
+Burst Denoising with Kernel Prediction Networks</a></p>
 </blockquote>
 <p><span class="math display">\[
 x_p \sim N(y_p, \sigma_r^2 + \sigma_s y_p)
 \]</span></p>
 <blockquote>
-<p><a target="_blank" rel="noopener" href="https://arxiv.org/abs/1811.11127">Google: Unprocessing Images for Learned Raw Denoising</a></p>
+<p><a target="_blank" rel="noopener" href="https://arxiv.org/abs/1811.11127">Google: Unprocessing
+Images for Learned Raw Denoising</a></p>
 </blockquote>
 <p><span class="math display">\[
-y \sim N(\mu=x, \sigma^2=\lambda_{read} + \lambda_{shot} x) \to N(\mu=x,\sigma^2=g_d^2\sigma_r^2 + g_dg_ax)
+y \sim N(\mu=x, \sigma^2=\lambda_{read} + \lambda_{shot} x) \to
+N(\mu=x,\sigma^2=g_d^2\sigma_r^2 + g_dg_ax)
 \]</span></p>
-<p>其中digital gain $ g_d $， analog gain $ g_a <span class="math inline">\(，read noise的固定方差\)</span> ^2 $ <span class="math display">\[
+<p>其中digital gain $ g_d $， analog gain $ g_a <span
+class="math inline">\(，read noise的固定方差\)</span> ^2 $ <span
+class="math display">\[
 \lambda_{read}=g_d^2 \sigma_r^2, \ \lambda_{shot} = g_d g_a
 \]</span></p>
 <p>以下对上面的噪声联合分布进行推导。</p>
-<p>(Photon)Shot noise与环境照度，曝光有关。令环境照度$ $ ，光电转换效率$ $，曝光时间t,，暗电流强度D</p>
+<p>(Photon)Shot noise与环境照度，曝光有关。令环境照度$ $ ，光电转换效率$
+$，曝光时间t,，暗电流强度D</p>
 <p>Shot noise满足泊松分布 <span class="math display">\[
-n \sim Possion(\varphi, \alpha, t) = Possion(\varphi \cdot \alpha \cdot t)
-\]</span> Dark noise与曝光有关，曝光时间越长，元器件温度越高，暗电流影响越大，与环境光无关，满足泊松分布 <span class="math display">\[
+n \sim Possion(\varphi, \alpha, t) = Possion(\varphi \cdot \alpha \cdot
+t)
+\]</span> Dark
+noise与曝光有关，曝光时间越长，元器件温度越高，暗电流影响越大，与环境光无关，满足泊松分布
+<span class="math display">\[
 n \sim Possion(D \cdot t)
-\]</span> 那么电信号L满足泊松分布，Shot noise和Dark noise的联合分布 <span class="math display">\[
+\]</span> 那么电信号L满足泊松分布，Shot noise和Dark noise的联合分布
+<span class="math display">\[
 L \sim Possion(t \cdot (\alpha \cdot \varphi + D))
-\]</span> 信号放大过程中产生Read noise，模数转换过程中产生ADC noise，两种noise满足均值为0的高斯分布</p>
+\]</span> 信号放大过程中产生Read noise，模数转换过程中产生ADC
+noise，两种noise满足均值为0的高斯分布</p>
 <p><span class="math display">\[
 n_{read} \sim Normal(0, \sigma_{read})
 \]</span></p>
 <p><span class="math display">\[
 n_{ADC} \sim Normal(0, \sigma_{ADC})
 \]</span></p>
-<p>电信号L放大后表示为G，放大的增益g，g与ISO有关 <span class="math inline">\(g = k \cdot ISO\)</span>，<span class="math inline">\(G = L \cdot g + n_{read} \cdot g\)</span>，</p>
-<p>经过ADC后信号：<span class="math inline">\(I = G + n_{ADC}\)</span></p>
+<p>电信号L放大后表示为G，放大的增益g，g与ISO有关 <span
+class="math inline">\(g = k \cdot ISO\)</span>，<span
+class="math inline">\(G = L \cdot g + n_{read} \cdot g\)</span>，</p>
+<p>经过ADC后信号：<span class="math inline">\(I = G +
+n_{ADC}\)</span></p>
 <p>最终信号I表示为： <span class="math display">\[
 I = L \cdot g + n_{read} \cdot g + n_{ADC}
 \]</span> 计算信号的均值和方差 <span class="math display">\[
 E(I) = g \cdot E(L) + g \cdot E(n_{read}) + E(n_{ADC})
-\]</span> 由于read noise和ADC noise均符合均值为0的高斯分布，因此 <span class="math display">\[
+\]</span> 由于read noise和ADC noise均符合均值为0的高斯分布，因此 <span
+class="math display">\[
 E(I) = g \cdot E(L) = g \cdot t \cdot (\alpha \cdot \varphi + D)
 \]</span> 方差 <span class="math display">\[
 \begin{aligned}
-\sigma(I)^2 &amp;= \sigma(L \cdot g)^2 + \sigma(n_{read} \cdot g)^2 + \sigma(n_{ADC})^2 \\
-&amp;= g^2 \cdot t \cdot (\alpha \cdot \varphi + D) + g^2 \cdot \sigma(n_{read})^2 + \sigma(n_{ADC})^2
+\sigma(I)^2 &amp;= \sigma(L \cdot g)^2 + \sigma(n_{read} \cdot g)^2 +
+\sigma(n_{ADC})^2 \\
+&amp;= g^2 \cdot t \cdot (\alpha \cdot \varphi + D) + g^2 \cdot
+\sigma(n_{read})^2 + \sigma(n_{ADC})^2
 \end{aligned}
-\]</span> read noise和ADC noise都属于加性噪声，可以合并 <span class="math display">\[
+\]</span> read noise和ADC noise都属于加性噪声，可以合并 <span
+class="math display">\[
 I = L \cdot g + n_{read} + n_{ADC} = L \cdot g + n_{Add}
 \]</span></p>
 <p><span class="math display">\[
 n_{Add} = n_{read} \cdot g + n_{ADC}
 \]</span></p>
 <p>方差可以表示为： <span class="math display">\[
-\sigma(I)^2 = g^2 \cdot t \cdot (\alpha \cdot \varphi + D) + \sigma(n_{Add})^2
-\]</span> 一直暗电流，即：black level，那么可以消除暗电流D <span class="math display">\[
-E(I) = g \cdot t \cdot (\alpha \cdot \varphi + D) = g \cdot t \cdot (\alpha \cdot 0 + D) = g \cdot t \cdot D
-\]</span> 估计出暗电流的影响，可以将其从信号中减去，得到以下表达： <span class="math display">\[
+\sigma(I)^2 = g^2 \cdot t \cdot (\alpha \cdot \varphi + D) +
+\sigma(n_{Add})^2
+\]</span> 一直暗电流，即：black level，那么可以消除暗电流D <span
+class="math display">\[
+E(I) = g \cdot t \cdot (\alpha \cdot \varphi + D) = g \cdot t \cdot
+(\alpha \cdot 0 + D) = g \cdot t \cdot D
+\]</span> 估计出暗电流的影响，可以将其从信号中减去，得到以下表达： <span
+class="math display">\[
 E(I) = g \cdot t \cdot \alpha \cdot \varphi
 \]</span></p>
 <p><span class="math display">\[
 \begin{aligned}
-\sigma(I)^2 &amp;= g^2 \cdot t \cdot \alpha \cdot \varphi + \sigma(n_{Add})^2 \\
+\sigma(I)^2 &amp;= g^2 \cdot t \cdot \alpha \cdot \varphi +
+\sigma(n_{Add})^2 \\
 &amp;= g \cdot E(I) + \sigma(n_{Add})^2
 \end{aligned}
 \]</span></p>
 <p>因此可以看出联合分布的方差是一个线性关系，可与通过最小二乘法进行拟合。</p>
-<p>在实际的噪声估计中当做是 <span class="math inline">\(pixel \ value \to x\)</span>，最终得到开头的推导：<span class="math inline">\(g \to \lambda_{shot}, \sigma(n_{add})^2 \to \lambda_{read} \to g_d^2\sigma_r^2\)</span> <span class="math display">\[
+<p>在实际的噪声估计中当做是 <span class="math inline">\(pixel \ value
+\to x\)</span>，最终得到开头的推导：<span class="math inline">\(g \to
+\lambda_{shot}, \sigma(n_{add})^2 \to \lambda_{read} \to
+g_d^2\sigma_r^2\)</span> <span class="math display">\[
 y \sim N(\mu=x, \sigma^2=\lambda_{read} + \lambda_{shot} x)
 \]</span></p>
-<p>实际上，<span class="math inline">\(\lambda_{read}\)</span>和 <span class="math inline">\(\lambda_{shot}\)</span>都是与ISO强相关的，在噪声标定1.0版本，需要对ISO 100，300，500，800，1600，3200进行标定，得到RGB三通道<span class="math inline">\(\lambda_{read}\)</span>和<span class="math inline">\(\lambda_{shot}\)</span>共3*2*6=36组参数，在其它ISO值时，需要对齐进行插值。可能会引入不必要的误差，因此在噪声标定2.0版本中，将ISO作为参数引入标定过程。针对Sony sensor，有一个比较通用的公式：<span class="math inline">\(g_d \cdot g_a = \frac{ISO}{100}\)</span>，此时我们<span class="math inline">\(\lambda_{read}\)</span>和<span class="math inline">\(\lambda_{shot}\)</span>进行二次拟合，拟合的目标如下： <span class="math display">\[
+<p>实际上，<span class="math inline">\(\lambda_{read}\)</span>和 <span
+class="math inline">\(\lambda_{shot}\)</span>都是与ISO强相关的，在噪声标定1.0版本，需要对ISO
+100，300，500，800，1600，3200进行标定，得到RGB三通道<span
+class="math inline">\(\lambda_{read}\)</span>和<span
+class="math inline">\(\lambda_{shot}\)</span>共3*2*6=36组参数，在其它ISO值时，需要对齐进行插值。可能会引入不必要的误差，因此在噪声标定2.0版本中，将ISO作为参数引入标定过程。针对Sony
+sensor，有一个比较通用的公式：<span class="math inline">\(g_d \cdot g_a
+= \frac{ISO}{100}\)</span>，此时我们<span
+class="math inline">\(\lambda_{read}\)</span>和<span
+class="math inline">\(\lambda_{shot}\)</span>进行二次拟合，拟合的目标如下：
+<span class="math display">\[
 \lambda_{shot} = S \cdot g_d \cdot g_a = S \cdot \frac{ISO}{100}
 \]</span></p>
 <p><span class="math display">\[
-\lambda_{read} = R_0 \cdot (g_d \cdot g_a)^2 + R_1 = R_0 \cdot \frac{ISO}{100} + R_1
+\lambda_{read} = R_0 \cdot (g_d \cdot g_a)^2 + R_1 = R_0 \cdot
+\frac{ISO}{100} + R_1
 \]</span></p>
 <p>此时将ISO作为参数引入标定过程，未来在噪声估计时会更精准。</p>
 <p>总结不同噪声在不同场景下的主导地位：</p>
@@ -408,9 +455,9 @@ y \sim N(\mu=x, \sigma^2=\lambda_{read} + \lambda_{shot} x)
 
       <div class="site-overview-wrap sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
-    <img class="site-author-image" itemprop="image" alt="raggedy.man"
+    <img class="site-author-image" itemprop="image" alt="Guvvos"
       src="https://avatars1.githubusercontent.com/u/32269?v=3&s=460">
-  <p class="site-author-name" itemprop="name">raggedy.man</p>
+  <p class="site-author-name" itemprop="name">Guvvos</p>
   <div class="site-description" itemprop="description">Just for record</div>
 </div>
 <div class="site-state-wrap motion-element">
@@ -452,7 +499,7 @@ y \sim N(\mu=x, \sigma^2=\lambda_{read} + \lambda_{shot} x)
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
-  <span class="author" itemprop="copyrightHolder">raggedy.man</span>
+  <span class="author" itemprop="copyrightHolder">Guvvos</span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
   </div>

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
-<meta name="generator" content="Hexo 5.4.0">
+<meta name="generator" content="Hexo 5.4.2">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
@@ -24,12 +24,12 @@
 <meta property="og:type" content="article">
 <meta property="og:title" content="C++ Tips">
 <meta property="og:url" content="http://example.com/2022/05/05/C-Tips/index.html">
-<meta property="og:site_name" content="Raggedy">
+<meta property="og:site_name" content="Guvvos">
 <meta property="og:description" content="自定义class，存在析构函数，那么需要同时定义或者删除拷贝构造函数和拷贝赋值函数。原因是，在拷贝构造或者拷贝复制的过程中，为浅拷贝，当程序结束，析构函数介入时，可能存在析构两次的情况。">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2022-05-05T07:22:00.000Z">
-<meta property="article:modified_time" content="2022-05-15T07:40:23.833Z">
-<meta property="article:author" content="raggedy.man">
+<meta property="article:modified_time" content="2022-05-15T07:40:23.000Z">
+<meta property="article:author" content="Guvvos">
 <meta name="twitter:card" content="summary">
 
 <link rel="canonical" href="http://example.com/2022/05/05/C-Tips/">
@@ -45,7 +45,7 @@
   };
 </script>
 
-  <title>C++ Tips | Raggedy</title>
+  <title>C++ Tips | Guvvos</title>
   
 
 
@@ -96,10 +96,10 @@
 
     <a href="/" class="brand" rel="start">
       <span class="logo-line-before"><i></i></span>
-      <h1 class="site-title">Raggedy</h1>
+      <h1 class="site-title">Guvvos</h1>
       <span class="logo-line-after"><i></i></span>
     </a>
-      <p class="site-subtitle" itemprop="description">Raggedy.man Blog</p>
+      <p class="site-subtitle" itemprop="description">Guvvos Blog</p>
   </div>
 
   <div class="site-nav-right">
@@ -155,12 +155,12 @@
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="https://avatars1.githubusercontent.com/u/32269?v=3&s=460">
-      <meta itemprop="name" content="raggedy.man">
+      <meta itemprop="name" content="Guvvos">
       <meta itemprop="description" content="Just for record">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Raggedy">
+      <meta itemprop="name" content="Guvvos">
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
@@ -201,13 +201,18 @@
 <span id="more"></span>
 <ol start="2" type="1">
 <li><p>右值，int &amp;&amp;可以自动转换为int const &amp;。</p></li>
-<li><p>__restrict关键字，告诉编译器，指针不存在重叠的情况，编译器可以进行优化，所有的非const指针都可以加上__restrict关键字，如：int * __restrict a。对于vector容器，__restrict关键字不生效，可以尝试#pragma omp simd或者#pragma GCC ivdep</p></li>
+<li><p>__restrict关键字，告诉编译器，指针不存在重叠的情况，编译器可以进行优化，所有的非const指针都可以加上__restrict关键字，如：int
+* __restrict a。对于vector容器，__restrict关键字不生效，可以尝试#pragma
+omp simd或者#pragma GCC ivdep</p></li>
 <li><p>关于malloc和new</p>
 <p><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> *a = <span class="keyword">new</span> <span class="keyword">int</span>[<span class="number">102400</span>];</span><br><span class="line"></span><br><span class="line"><span class="keyword">int</span> *a = (<span class="keyword">int</span> *)<span class="built_in">malloc</span>(<span class="number">102400</span> * <span class="built_in"><span class="keyword">sizeof</span></span>(<span class="keyword">int</span>));</span><br></pre></td></tr></table></figure></p>
-<p>以上申请内存的两种语句，在实际生产环境，执行时并不会真正的分配内存，而是将这一段内存标记为不可用，即：invalid。待需要用到a数组：赋值或者其他操作时，会触发缺页中断，page fault。此时进入内核，查询此段内存是否之前malloc过，如果查询到，那么内存标记为可用，此时程序正常运行，如果未查询到malloc记录，那么触发段错误，segmentation fault。</p>
+<p>以上申请内存的两种语句，在实际生产环境，执行时并不会真正的分配内存，而是将这一段内存标记为不可用，即：invalid。待需要用到a数组：赋值或者其他操作时，会触发缺页中断，page
+fault。此时进入内核，查询此段内存是否之前malloc过，如果查询到，那么内存标记为可用，此时程序正常运行，如果未查询到malloc记录，那么触发段错误，segmentation
+fault。</p>
 <p>以上两种申请内存的语句，不会进行置零操作，初始化数组时，内存被写入，此时操作系统才进行实际的内存分配，因此测试两次内存赋值操作会发现时间不同。对于new操作符有一个简便方法</p>
 <p><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> *a = <span class="keyword">new</span> <span class="keyword">int</span>[<span class="number">102400</span>]&#123;&#125;;</span><br></pre></td></tr></table></figure></p>
-<p>常见的自定义String类中，无参数构造函数也可以进行以下简单的定义：注意new char[1]后面的一对大括号</p>
+<p>常见的自定义String类中，无参数构造函数也可以进行以下简单的定义：注意new
+char[1]后面的一对大括号</p>
 <p><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">String::<span class="built_in">String</span>() : m_length&#123;<span class="number">0</span>&#125;, m_string&#123;<span class="keyword">new</span> <span class="keyword">char</span>[<span class="number">1</span>]&#123;&#125;&#125;&#123;&#125;</span><br></pre></td></tr></table></figure></p></li>
 <li><p>原子操作</p>
 <p><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">type __sync_fetch_and_add (type *ptr, type value, ...) <span class="comment">// 将value加到*ptr上，结果更新到*ptr，并返回操作之前*ptr的值</span></span><br><span class="line">type __sync_fetch_and_sub (type *ptr, type value, ...) <span class="comment">// 从*ptr减去value，结果更新到*ptr，并返回操作之前*ptr的值</span></span><br><span class="line">type __sync_fetch_and_or (type *ptr, type value, ...) <span class="comment">// 将*ptr与value相或，结果更新到*ptr， 并返回操作之前*ptr的值</span></span><br><span class="line">type __sync_fetch_and_and (type *ptr, type value, ...) <span class="comment">// 将*ptr与value相与，结果更新到*ptr，并返回操作之前*ptr的值</span></span><br><span class="line">type __sync_fetch_and_xor (type *ptr, type value, ...) <span class="comment">// 将*ptr与value异或，结果更新到*ptr，并返回操作之前*ptr的值</span></span><br><span class="line">type __sync_fetch_and_nand (type *ptr, type value, ...) <span class="comment">// 将*ptr取反后，与value相与，结果更新到*ptr，并返回操作之前*ptr的值</span></span><br><span class="line">type __sync_add_and_fetch (type *ptr, type value, ...) <span class="comment">// 将value加到*ptr上，结果更新到*ptr，并返回操作之后新*ptr的值</span></span><br><span class="line">type __sync_sub_and_fetch (type *ptr, type value, ...) <span class="comment">// 从*ptr减去value，结果更新到*ptr，并返回操作之后新*ptr的值</span></span><br><span class="line">type __sync_or_and_fetch (type *ptr, type value, ...) <span class="comment">// 将*ptr与value相或， 结果更新到*ptr，并返回操作之后新*ptr的值</span></span><br><span class="line">type __sync_and_and_fetch (type *ptr, type value, ...) <span class="comment">// 将*ptr与value相与，结果更新到*ptr，并返回操作之后新*ptr的值</span></span><br><span class="line">type __sync_xor_and_fetch (type *ptr, type value, ...) <span class="comment">// 将*ptr与value异或，结果更新到*ptr，并返回操作之后新*ptr的值</span></span><br><span class="line">type __sync_nand_and_fetch (type *ptr, type value, ...) <span class="comment">// 将*ptr取反后，与value相与，结果更新到*ptr，并返回操作之后新*ptr的值</span></span><br><span class="line"><span class="keyword">bool</span> __sync_bool_compare_and_swap (type *ptr, type oldval type newval, ...) <span class="comment">// 比较*ptr与oldval的值，如果两者相等，则将newval更新到*ptr并返回true</span></span><br><span class="line">type __sync_val_compare_and_swap (type *ptr, type oldval type newval, ...) <span class="comment">// 比较*ptr与oldval的值，如果两者相等，则将newval更新到*ptr并返回操作之前*ptr的值</span></span><br><span class="line">__sync_synchronize (...) <span class="comment">// 发出完整内存栅栏，内存屏障</span></span><br><span class="line">type __sync_lock_test_and_set (type *ptr, type value, ...) <span class="comment">// 将value写入*ptr，对*ptr加锁，并返回操作之前*ptr的值</span></span><br><span class="line"><span class="keyword">void</span> __sync_lock_release (type *ptr, ...) <span class="comment">// 将0写入到*ptr，（类似对*ptr解锁）</span></span><br></pre></td></tr></table></figure></p>
@@ -306,9 +311,9 @@
 
       <div class="site-overview-wrap sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
-    <img class="site-author-image" itemprop="image" alt="raggedy.man"
+    <img class="site-author-image" itemprop="image" alt="Guvvos"
       src="https://avatars1.githubusercontent.com/u/32269?v=3&s=460">
-  <p class="site-author-name" itemprop="name">raggedy.man</p>
+  <p class="site-author-name" itemprop="name">Guvvos</p>
   <div class="site-description" itemprop="description">Just for record</div>
 </div>
 <div class="site-state-wrap motion-element">
@@ -350,7 +355,7 @@
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
-  <span class="author" itemprop="copyrightHolder">raggedy.man</span>
+  <span class="author" itemprop="copyrightHolder">Guvvos</span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
   </div>

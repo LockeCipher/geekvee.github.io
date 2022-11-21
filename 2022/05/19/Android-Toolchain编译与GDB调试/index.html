@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
-<meta name="generator" content="Hexo 5.4.0">
+<meta name="generator" content="Hexo 5.4.2">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
@@ -24,12 +24,12 @@
 <meta property="og:type" content="article">
 <meta property="og:title" content="Android Toolchain编译与GDB调试">
 <meta property="og:url" content="http://example.com/2022/05/19/Android-Toolchain%E7%BC%96%E8%AF%91%E4%B8%8EGDB%E8%B0%83%E8%AF%95/index.html">
-<meta property="og:site_name" content="Raggedy">
+<meta property="og:site_name" content="Guvvos">
 <meta property="og:description" content="在进行linux主机上进行arm跨平台进行pure c++开发时，可能混有Neon intrinsic或者ARM assembly代码，此时进行代码编译和调试，可以使用standalone toolchain进行编译，使用gdb+gdbserver进行调试。">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2022-05-19T07:21:05.000Z">
-<meta property="article:modified_time" content="2022-05-19T07:21:25.635Z">
-<meta property="article:author" content="raggedy.man">
+<meta property="article:modified_time" content="2022-05-19T07:21:25.000Z">
+<meta property="article:author" content="Guvvos">
 <meta name="twitter:card" content="summary">
 
 <link rel="canonical" href="http://example.com/2022/05/19/Android-Toolchain%E7%BC%96%E8%AF%91%E4%B8%8EGDB%E8%B0%83%E8%AF%95/">
@@ -45,7 +45,7 @@
   };
 </script>
 
-  <title>Android Toolchain编译与GDB调试 | Raggedy</title>
+  <title>Android Toolchain编译与GDB调试 | Guvvos</title>
   
 
 
@@ -96,10 +96,10 @@
 
     <a href="/" class="brand" rel="start">
       <span class="logo-line-before"><i></i></span>
-      <h1 class="site-title">Raggedy</h1>
+      <h1 class="site-title">Guvvos</h1>
       <span class="logo-line-after"><i></i></span>
     </a>
-      <p class="site-subtitle" itemprop="description">Raggedy.man Blog</p>
+      <p class="site-subtitle" itemprop="description">Guvvos Blog</p>
   </div>
 
   <div class="site-nav-right">
@@ -155,12 +155,12 @@
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="https://avatars1.githubusercontent.com/u/32269?v=3&s=460">
-      <meta itemprop="name" content="raggedy.man">
+      <meta itemprop="name" content="Guvvos">
       <meta itemprop="description" content="Just for record">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Raggedy">
+      <meta itemprop="name" content="Guvvos">
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
@@ -190,13 +190,19 @@
 
       
         <meta name="referrer" content="no-referrer" />
-<p>在进行linux主机上进行arm跨平台进行pure c++开发时，可能混有Neon intrinsic或者ARM assembly代码，此时进行代码编译和调试，可以使用standalone toolchain进行编译，使用gdb+gdbserver进行调试。</p>
+<p>在进行linux主机上进行arm跨平台进行pure c++开发时，可能混有Neon
+intrinsic或者ARM
+assembly代码，此时进行代码编译和调试，可以使用standalone
+toolchain进行编译，使用gdb+gdbserver进行调试。</p>
 <span id="more"></span>
-<p>首先需要在NDK website上下载一个NDK工具包并解压，本人使用的是r14b版本，链接：<a target="_blank" rel="noopener" href="https://dl.google.com/android/repository/android-ndk-r14b-linux-x86_64.zip">https://dl.google.com/android/repository/android-ndk-r14b-linux-x86_64.zip</a></p>
+<p>首先需要在NDK
+website上下载一个NDK工具包并解压，本人使用的是r14b版本，链接：<a
+target="_blank" rel="noopener" href="https://dl.google.com/android/repository/android-ndk-r14b-linux-x86_64.zip">https://dl.google.com/android/repository/android-ndk-r14b-linux-x86_64.zip</a></p>
 <ul>
 <li><p>Standalone Toolchain的编译</p>
 <p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> android-ndk-r14b/build/tools/</span><br><span class="line">./make-standalone-toolchain.sh --platform=android-21 --install-dir=./android-aarch64 --arch=arm64</span><br><span class="line">./make-standalone-toolchain.sh --platform=android-21 --install-dir=./android-armv7 --arch=arm</span><br></pre></td></tr></table></figure></p>
-<p>通过以上命令，会生成android-aarch64，android-armv7两个目录，可以将生成的standalone toolchain拷贝至固定目录</p>
+<p>通过以上命令，会生成android-aarch64，android-armv7两个目录，可以将生成的standalone
+toolchain拷贝至固定目录</p>
 <p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo cp -r android-ndk-r14b/build/tools/android-aarch64 /opt</span><br><span class="line">sudo cp -r android-ndk-r14b/build/tools/android-armv7 /opt</span><br></pre></td></tr></table></figure></p>
 <p>以上完成standalone toolchain生成</p></li>
 <li><p>Linux主机编译arm跨平台pure c++程序</p>
@@ -317,9 +323,9 @@
 
       <div class="site-overview-wrap sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
-    <img class="site-author-image" itemprop="image" alt="raggedy.man"
+    <img class="site-author-image" itemprop="image" alt="Guvvos"
       src="https://avatars1.githubusercontent.com/u/32269?v=3&s=460">
-  <p class="site-author-name" itemprop="name">raggedy.man</p>
+  <p class="site-author-name" itemprop="name">Guvvos</p>
   <div class="site-description" itemprop="description">Just for record</div>
 </div>
 <div class="site-state-wrap motion-element">
@@ -361,7 +367,7 @@
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
-  <span class="author" itemprop="copyrightHolder">raggedy.man</span>
+  <span class="author" itemprop="copyrightHolder">Guvvos</span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
   </div>

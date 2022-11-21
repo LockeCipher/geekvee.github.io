@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
-<meta name="generator" content="Hexo 5.4.0">
+<meta name="generator" content="Hexo 5.4.2">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
@@ -24,7 +24,7 @@
 <meta property="og:type" content="article">
 <meta property="og:title" content="Nvidia CUDA Architecture">
 <meta property="og:url" content="http://example.com/2021/12/24/Nvidia-CUDA-Architecture/index.html">
-<meta property="og:site_name" content="Raggedy">
+<meta property="og:site_name" content="Guvvos">
 <meta property="og:description" content="Fermi Architecture">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://s2.loli.net/2022/05/23/lCSuMscTkdenIt1.png">
@@ -42,7 +42,7 @@
 <meta property="og:image" content="https://s2.loli.net/2022/05/23/LPzeIAdm2DMgbpc.png">
 <meta property="article:published_time" content="2021-12-24T07:10:49.000Z">
 <meta property="article:modified_time" content="2022-05-23T04:19:07.000Z">
-<meta property="article:author" content="raggedy.man">
+<meta property="article:author" content="Guvvos">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://s2.loli.net/2022/05/23/lCSuMscTkdenIt1.png">
 
@@ -59,7 +59,7 @@
   };
 </script>
 
-  <title>Nvidia CUDA Architecture | Raggedy</title>
+  <title>Nvidia CUDA Architecture | Guvvos</title>
   
 
 
@@ -110,10 +110,10 @@
 
     <a href="/" class="brand" rel="start">
       <span class="logo-line-before"><i></i></span>
-      <h1 class="site-title">Raggedy</h1>
+      <h1 class="site-title">Guvvos</h1>
       <span class="logo-line-after"><i></i></span>
     </a>
-      <p class="site-subtitle" itemprop="description">Raggedy.man Blog</p>
+      <p class="site-subtitle" itemprop="description">Guvvos Blog</p>
   </div>
 
   <div class="site-nav-right">
@@ -169,12 +169,12 @@
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="https://avatars1.githubusercontent.com/u/32269?v=3&s=460">
-      <meta itemprop="name" content="raggedy.man">
+      <meta itemprop="name" content="Guvvos">
       <meta itemprop="description" content="Just for record">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Raggedy">
+      <meta itemprop="name" content="Guvvos">
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
@@ -211,6 +211,10 @@
       
         <h2 id="fermi-architecture">Fermi Architecture</h2>
 <table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
 <thead>
 <tr class="header">
 <th><img src="https://s2.loli.net/2022/05/23/lCSuMscTkdenIt1.png" alt="img" style="zoom:50%;" /></th>
@@ -224,11 +228,19 @@
 <ul>
 <li>Host Interface： GPU，CPU，Memory通信的接口</li>
 <li>Giga Thread Engine：任务管理器，管理所有正在进行的工作</li>
-<li>Fermi架构拥有16个SM，SM属于硬件实体。每一个SM拥有21个CUDA core，每一个CUDA core拥有一个INT和一个FP计算单元；一个SM有16个LOAD/STORE单元，可以提供16线程同时读取/存储数据的能力；4个SFU单元，SFU：Special Function Unit，特殊函数计算单元，包括sin，cos函数。</li>
+<li>Fermi架构拥有16个SM，SM属于硬件实体。每一个SM拥有21个CUDA
+core，每一个CUDA
+core拥有一个INT和一个FP计算单元；一个SM有16个LOAD/STORE单元，可以提供16线程同时读取/存储数据的能力；4个SFU单元，SFU：Special
+Function Unit，特殊函数计算单元，包括sin，cos函数。</li>
 </ul>
 <h2 id="kepler-architecture">Kepler Architecture</h2>
-<p>Kepler架构将SM重命名为SMX，其中大致结构并未改变，最明显的是增加了CUDA Core的数量。一个SMX中有192个CUDA Core。</p>
+<p>Kepler架构将SM重命名为SMX，其中大致结构并未改变，最明显的是增加了CUDA
+Core的数量。一个SMX中有192个CUDA Core。</p>
 <table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
 <thead>
 <tr class="header">
 <th><img src="https://s2.loli.net/2022/05/23/GtSyW7B8RVEPcN4.png" alt="img" style="zoom:50%;" /></th>
@@ -241,6 +253,10 @@
 <h2 id="maxwell-architecture">Maxwell Architecture</h2>
 <p>SMM变得更多了，架构变化不大。</p>
 <table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
 <thead>
 <tr class="header">
 <th><img src="https://s2.loli.net/2022/05/23/U8NDAZhOJ9fQTRq.png" alt="img" style="zoom:75%;" /></th>
@@ -253,9 +269,14 @@
 <h2 id="pascal-architecture">Pascal Architecture</h2>
 <p>第一个加入Deep Learning相关硬件设置的架构，即：DP Unit。</p>
 <table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
 <thead>
 <tr class="header">
-<th><img src="https://s2.loli.net/2022/05/23/8akQquFoem1RWPs.png" alt="img" /></th>
+<th><img src="https://s2.loli.net/2022/05/23/8akQquFoem1RWPs.png"
+alt="img" /></th>
 <th><img src="https://s2.loli.net/2022/05/23/w163XcyputQokvg.jpg" style="zoom:50%;" /></th>
 </tr>
 </thead>
@@ -263,10 +284,15 @@
 </tbody>
 </table>
 <h2 id="volta-architecture">Volta Architecture</h2>
-<p>第一个以Deep Learning为主的GPU架构。原本的CUDA Core变成FP64，INT，FP32，TENSOR Core。</p>
+<p>第一个以Deep Learning为主的GPU架构。原本的CUDA
+Core变成FP64，INT，FP32，TENSOR Core。</p>
 <p><img src="https://s2.loli.net/2022/05/23/WTDqRt1fboANn4S.png" alt="image-20211224165854516" style="zoom:50%;" /></p>
 <h2 id="turing-architecture">Turing Architecture</h2>
 <table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
 <thead>
 <tr class="header">
 <th><img src="https://s2.loli.net/2022/05/23/MZvAIWFncLpNsyj.png" style="zoom:50%;" /></th>
@@ -278,6 +304,10 @@
 </table>
 <h2 id="empere-architecture">Empere Architecture</h2>
 <table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
 <thead>
 <tr class="header">
 <th><img src="https://s2.loli.net/2022/05/23/8akQquFoem1RWPs.png" style="zoom:50%;" /></th>
@@ -373,9 +403,9 @@
 
       <div class="site-overview-wrap sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
-    <img class="site-author-image" itemprop="image" alt="raggedy.man"
+    <img class="site-author-image" itemprop="image" alt="Guvvos"
       src="https://avatars1.githubusercontent.com/u/32269?v=3&s=460">
-  <p class="site-author-name" itemprop="name">raggedy.man</p>
+  <p class="site-author-name" itemprop="name">Guvvos</p>
   <div class="site-description" itemprop="description">Just for record</div>
 </div>
 <div class="site-state-wrap motion-element">
@@ -417,7 +447,7 @@
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
-  <span class="author" itemprop="copyrightHolder">raggedy.man</span>
+  <span class="author" itemprop="copyrightHolder">Guvvos</span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a>
   </div>
