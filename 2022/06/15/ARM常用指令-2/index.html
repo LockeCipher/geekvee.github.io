@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/computer-chip_gray.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/computer-chip_gray.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/computer-chip_gray.svg">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="算术与移位指令 加减法指令  add指令   立即数加法指令 ARM文档描述如下  ADD Wd|WSP, Wn|WSP, #imm{, shift} ; 32-bit   ADD Xd|SP, Xn|SP, #imm{, shift} ; 64-bit">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ARM常用指令(2)">
+<meta property="og:url" content="http://example.com/2022/06/15/ARM%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4-2/index.html">
+<meta property="og:site_name" content="Allen Hu">
+<meta property="og:description" content="算术与移位指令 加减法指令  add指令   立即数加法指令 ARM文档描述如下  ADD Wd|WSP, Wn|WSP, #imm{, shift} ; 32-bit   ADD Xd|SP, Xn|SP, #imm{, shift} ; 64-bit">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://s2.loli.net/2022/05/23/tPV4XZDEi3wkaAU.png">
+<meta property="og:image" content="https://s2.loli.net/2022/05/23/TGHaNA9PEgOQj83.png">
+<meta property="article:published_time" content="2022-06-15T13:53:33.000Z">
+<meta property="article:modified_time" content="2023-10-19T12:08:58.187Z">
+<meta property="article:author" content="Allen Hu">
+<meta property="article:tag" content="ARM">
+<meta property="article:tag" content="汇编">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s2.loli.net/2022/05/23/tPV4XZDEi3wkaAU.png">
+
+<link rel="canonical" href="http://example.com/2022/06/15/ARM%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4-2/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'en'
+  };
+</script>
+
+  <title>ARM常用指令(2) | Allen Hu</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Allen Hu</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Internet Coding Monkey</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>Archives</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2022/06/15/ARM%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4-2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/computer-chip_gray.svg">
+      <meta itemprop="name" content="Allen Hu">
+      <meta itemprop="description" content="Just for record">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Allen Hu">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          ARM常用指令(2)
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2022-06-15 21:53:33" itemprop="dateCreated datePublished" datetime="2022-06-15T21:53:33+08:00">2022-06-15</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-10-19 20:08:58" itemprop="dateModified" datetime="2023-10-19T20:08:58+08:00">2023-10-19</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <!-- <meta name="referrer" content="no-referrer" /> -->
+<h2 id="算术与移位指令">算术与移位指令</h2>
+<h3 id="加减法指令">加减法指令</h3>
+<ul>
+<li>add指令</li>
+</ul>
+<ol type="1">
+<li><p>立即数加法指令</p>
+<p>ARM文档描述如下</p>
+<blockquote>
+<p>ADD <em>Wd|WSP</em>, <em>Wn|WSP</em>, #<em>imm</em>{, <em>shift</em>}
+; 32-bit</p>
+</blockquote>
+<blockquote>
+<p>ADD <em>Xd|SP</em>, <em>Xn|SP</em>, #<em>imm</em>{, <em>shift</em>} ;
+64-bit</p>
+</blockquote>
+<p><span id="more"></span></p>
+<p>这里要注意的是立即数的范围是0~4095，但是在实际过程中，写出这种语句编译运行也不会报错:
+<span class="math inline">\(add \enspace x0, \enspace x0, \enspace
+4096\)</span></p>
+<p>使用汇编与反汇编来看看编译器如何处理的，具体的汇编反汇编命令，可以查看<a
+target="_blank" rel="noopener" href="https://www.huziliang.com/2022/05/12/ARM%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4/">ARM常用指令（1）</a>
+中MOV指令讲解。</p>
+<p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">.arch armv8-a</span><br><span class="line">.text</span><br><span class="line">.align	3</span><br><span class="line"></span><br><span class="line">.global	test2</span><br><span class="line">test2:</span><br><span class="line"></span><br><span class="line">    add x0, x0, <span class="comment">#4095</span></span><br><span class="line">    add x2, x2, <span class="comment">#4096</span></span><br><span class="line"></span><br><span class="line">    ret</span><br></pre></td></tr></table></figure></p>
+<p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">main.o:     file format elf64-littleaarch64</span><br><span class="line"></span><br><span class="line">Contents of section .text:</span><br><span class="line"> 0000 e10300aa 204040f8 220440f9 00fc3f91  .... @@.<span class="string">&quot;.@...?.</span></span><br><span class="line"><span class="string"> 0010 42044091 c0035fd6                    B.@..._.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">Disassembly of section .text:</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">0000000000000000 &lt;test2&gt;:</span></span><br><span class="line"><span class="string">   0:   aa0003e1        orr     x1, xzr, x0</span></span><br><span class="line"><span class="string">   4:   f8404020        ldur    x0, [x1,#4]</span></span><br><span class="line"><span class="string">   8:   f9400422        ldr     x2, [x1,#8]</span></span><br><span class="line"><span class="string">   c:   913ffc00        add     x0, x0, #0xfff</span></span><br><span class="line"><span class="string">  10:   91400442        add     x2, x2, #0x1, lsl #12</span></span><br><span class="line"><span class="string">  14:   d65f03c0        ret</span></span><br></pre></td></tr></table></figure></p>
+<p>add x0, x0, #4095 实际上为 add x0, x0, #0xfff</p>
+<p>add x2, x2, #4096 实际上为 add x2, x2, #0x1, lsl #12</p>
+<p>但是如果写成 add x0, x0, #4097编译就会报错 immediate out of
+range</p></li>
+<li><p>寄存器加法指令</p>
+<ul>
+<li>加法指令</li>
+</ul>
+<p><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">add x0, x1, x2, UXTB</span><br><span class="line"><span class="comment">// 类似的extend还有UXTB, UXTH, UXTW, UXTX, SXTB, SXTH, SXTW or SXTX.</span></span><br></pre></td></tr></table></figure></p>
+<p><img src="https://s2.loli.net/2022/05/23/tPV4XZDEi3wkaAU.png" /></p>
+<p>UXT*：零扩展</p>
+<p>SXT*：有符号扩展</p>
+<p>例如：</p>
+<p><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">mov x1, #<span class="number">1</span></span><br><span class="line">mov x2, #<span class="number">0x108a</span></span><br><span class="line">add x0, x1, x2, UXTB       <span class="comment">//(1)</span></span><br><span class="line">add x0, x1, x2, SXTB       <span class="comment">//(2)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// (1)式结果为0x8B，UXTB取x2寄存器低字节8A做零扩展，与x1寄存器立即数1相加，结果为8B</span></span><br><span class="line"><span class="comment">// (2)式结果为0xFFFFFF8B，SXTB取x2寄存器低字节8A做有符号扩展，与x1寄存器立即数1相加，结果为FFFFFF8B</span></span><br></pre></td></tr></table></figure></p>
+<ul>
+<li>移位加法指令</li>
+</ul>
+<p><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">add x0, x1, x2, LSL <span class="number">2</span></span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>32bit寄存器移位操作数范围为0~31</p>
+</blockquote>
+<blockquote>
+<p>64bit寄存器移位操作数范围为0~63</p>
+</blockquote></li>
+</ol>
+<ul>
+<li><p>减法指令</p>
+<p>减法指令与加法指令类似，也分为立即数减法指令，寄存器减法指令。</p></li>
+</ul>
+<h3 id="cmp指令">cmp指令</h3>
+<p>cmp指令内部调用subs指令实现</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">cmp x1, x2</span><br><span class="line"></span><br><span class="line">=&gt;</span><br><span class="line"></span><br><span class="line">subs    xzr, x1, x2</span><br></pre></td></tr></table></figure>
+<h3 id="移位指令">移位指令</h3>
+<ul>
+<li>LSL：逻辑左移，最高位丢弃，最低位补0</li>
+<li>LSR：逻辑右移，最低位丢弃，最高位补0</li>
+<li>ASR：算术右移，最高位符号扩展，最低位丢弃</li>
+<li>ROR：循环右移，最低位移动到最高位</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">ldr w1, =<span class="number">0x8000008a</span></span><br><span class="line"><span class="comment">// w1 二进制表示：0b10000000000000000000000010001010</span></span><br><span class="line"></span><br><span class="line">asr w2, w1, <span class="number">1</span></span><br><span class="line"><span class="comment">// 算术右移1位，高位按照有符号补充，低位丢弃</span></span><br><span class="line"><span class="comment">// w2 二进制表示：0b11000000000000000000000001000101，16进制表示为0xC0000045</span></span><br><span class="line"></span><br><span class="line">lsr w3, w1, <span class="number">1</span></span><br><span class="line"><span class="comment">// 逻辑右移1位，最低位丢弃，最高位补0</span></span><br><span class="line"><span class="comment">// w3 二进制表示为：0b01000000000000000000000001000101，16进制表示为0x40000045</span></span><br><span class="line"></span><br><span class="line">lsl w4, w1, <span class="number">1</span></span><br><span class="line"><span class="comment">// 逻辑左移1位，最高位丢弃，最低位补0</span></span><br><span class="line"><span class="comment">// w4 二进制表示为：0b00000000000000000000000100010100，16进制表示为0x114</span></span><br><span class="line"></span><br><span class="line">ror w5, w1, <span class="number">2</span></span><br><span class="line"><span class="comment">// 循环右移1位，最低位移动到最高位</span></span><br><span class="line"><span class="comment">// w4 二进制表示为：0b10100000000000000000000000100010，16进制表示为0xA0000022</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h3 id="位操作指令">位操作指令</h3>
+<ul>
+<li>与操作</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">and</span> x0, x1, x2  <span class="comment">// x1 = 6, x2 = 1 =&gt; x0 = 0</span></span><br><span class="line"></span><br><span class="line">ands x0, x1, x2 <span class="comment">// 影响pstate状态位，x1 = 6, x2 = 1 =&gt; x0 = 0</span></span><br><span class="line">mrs x0, nzcv <span class="comment">// x0 = 0x40000，表示z位置为1，说明ands置pstate中z位置为1</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>或操作</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">orr x0, x1, x2  <span class="comment">// x1 = 6, x2 = 1 =&gt; x0 = 7</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>异或操作</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">eor x0, x1, x2  <span class="comment">// x1 = 4, x2 = 1 =&gt; x0 = 5</span></span><br></pre></td></tr></table></figure>
+<p>异或操作真值表</p>
+<table>
+<thead>
+<tr class="header">
+<th>0 ^ 0</th>
+<th>0</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0 ^ 1</td>
+<td>1</td>
+</tr>
+<tr class="even">
+<td>1 ^ 0</td>
+<td>1</td>
+</tr>
+<tr class="odd">
+<td>1 ^ 1</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<ol type="1">
+<li>0异或任何数为任何数本身</li>
+<li>1异或任何数为任何数取反</li>
+<li>任何数异或自己为0</li>
+</ol>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 1. 实现位翻转</span></span><br><span class="line"><span class="comment">// 翻转0b10100001，第2、3位</span></span><br><span class="line"><span class="number">10100001</span> ^ <span class="number">00000110</span> = <span class="number">10100111</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 2. 交换两数</span></span><br><span class="line"><span class="comment">// 交换 a = 10100001和b = 00000110</span></span><br><span class="line">a = a^b <span class="comment">// a = 10100111</span></span><br><span class="line">b = b^a <span class="comment">// b = 10100001</span></span><br><span class="line">a = a^b <span class="comment">// a = 00000110</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 3. 变量设置为0</span></span><br><span class="line">eor x1, x1</span><br><span class="line"></span><br><span class="line"><span class="comment">// 4. 判断变量相等</span></span><br><span class="line">(a ^ b) == <span class="number">0</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>位清除</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 清除x0中第0、1和3位，保持其余的不变</span></span><br><span class="line">mov x0, #<span class="number">0x1111</span></span><br><span class="line">mov x1, #<span class="number">0x1011</span></span><br><span class="line">bic x0, x0, x1 <span class="comment">// x0 = 0x0100</span></span><br></pre></td></tr></table></figure>
+<p>以下为三个目前用的不多的指令</p>
+<ul>
+<li>CLZ指令</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 统计最高位1之前还有几个0</span></span><br><span class="line">ldr x1, =<span class="number">0x1100000034578000</span> <span class="comment">// x1 二进制为：0b0001000100000000000000000000000000110100010101111000000000000000</span></span><br><span class="line">clz x0, x1</span><br><span class="line"><span class="comment">// x1 最高位为1是第60位，前面还有三个0，因此x0为3</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>BFI指令</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 用作bit位插入</span></span><br><span class="line"></span><br><span class="line">mov x0, #<span class="number">0</span></span><br><span class="line">mov x1, #<span class="number">0x05</span></span><br><span class="line">bfi x0, x1, #<span class="number">4</span>, #<span class="number">4</span> <span class="comment">//将x0 BIT[4:4+(4-1)]替换为x1[0:0+(4-1)]</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 实际上BFI会被替换成BFM，上述语句等价于下：</span></span><br><span class="line">movz    x0, #<span class="number">0x0</span></span><br><span class="line">movz    x1, #<span class="number">0x5</span></span><br><span class="line">bfm     x0, x1, #<span class="number">60</span>, #<span class="number">3</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 可用来将部分比特位清零</span></span><br><span class="line">bfi x0, XZR, #<span class="number">0</span>, #<span class="number">3</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>UBFX</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 位提取指令</span></span><br><span class="line"><span class="comment">// UBFX 提取后无符号扩展</span></span><br><span class="line"><span class="comment">// SBFX  提取后有符号扩展</span></span><br><span class="line"></span><br><span class="line">mov x1, <span class="number">0x8a</span>   <span class="comment">//  x1 : 10001010</span></span><br><span class="line">ubfx x0, x1, #<span class="number">4</span>, #<span class="number">4</span>   <span class="comment">// x0 : 00001000</span></span><br><span class="line">sbfx x0, x1, #<span class="number">4</span>, #<span class="number">4</span>   <span class="comment">// x0 : 11111000</span></span><br></pre></td></tr></table></figure>
+<p><img src="https://s2.loli.net/2022/05/23/TGHaNA9PEgOQj83.png" /></p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/ARM/" rel="tag"># ARM</a>
+              <a href="/tags/%E6%B1%87%E7%BC%96/" rel="tag"># 汇编</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2022/05/12/ARM%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4/" rel="prev" title="ARM常用指令(1)">
+      <i class="fa fa-chevron-left"></i> ARM常用指令(1)
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2022/07/27/ARM%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4-3/" rel="next" title="ARM常用指令(3)">
+      ARM常用指令(3) <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%AE%97%E6%9C%AF%E4%B8%8E%E7%A7%BB%E4%BD%8D%E6%8C%87%E4%BB%A4"><span class="nav-number">1.</span> <span class="nav-text">算术与移位指令</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8A%A0%E5%87%8F%E6%B3%95%E6%8C%87%E4%BB%A4"><span class="nav-number">1.1.</span> <span class="nav-text">加减法指令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#cmp%E6%8C%87%E4%BB%A4"><span class="nav-number">1.2.</span> <span class="nav-text">cmp指令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A7%BB%E4%BD%8D%E6%8C%87%E4%BB%A4"><span class="nav-number">1.3.</span> <span class="nav-text">移位指令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%8D%E6%93%8D%E4%BD%9C%E6%8C%87%E4%BB%A4"><span class="nav-number">1.4.</span> <span class="nav-text">位操作指令</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Allen Hu"
+      src="/images/computer-chip_gray.svg">
+  <p class="site-author-name" itemprop="name">Allen Hu</p>
+  <div class="site-description" itemprop="description">Just for record</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">13</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">粤ICP备17055045号 </a>
+  </div>
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Allen Hu</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>

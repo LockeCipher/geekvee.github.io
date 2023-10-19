@@ -20,34 +20,20 @@
     var CONFIG = {"hostname":"example.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="Fermi Architecture">
+  <meta name="description" content="Here&#39;s something encrypted, password is required to continue reading.">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Nvidia CUDA Architecture">
-<meta property="og:url" content="http://example.com/2021/12/24/Nvidia-CUDA-Architecture/index.html">
+<meta property="og:title" content="ISP尝试解决高Gain下暗部发紫问题">
+<meta property="og:url" content="http://example.com/2023/03/17/ISP%E5%B0%9D%E8%AF%95%E8%A7%A3%E5%86%B3%E9%AB%98Gain%E4%B8%8B%E6%9A%97%E9%83%A8%E5%8F%91%E7%B4%AB%E9%97%AE%E9%A2%98/index.html">
 <meta property="og:site_name" content="Allen Hu">
-<meta property="og:description" content="Fermi Architecture">
+<meta property="og:description" content="Here&#39;s something encrypted, password is required to continue reading.">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="https://s2.loli.net/2022/05/23/lCSuMscTkdenIt1.png">
-<meta property="og:image" content="https://s2.loli.net/2022/05/23/muGjTriYMNvIFPe.png">
-<meta property="og:image" content="https://s2.loli.net/2022/05/23/GtSyW7B8RVEPcN4.png">
-<meta property="og:image" content="https://s2.loli.net/2022/05/23/vMbaX2oyzldWhEk.png">
-<meta property="og:image" content="https://s2.loli.net/2022/05/23/U8NDAZhOJ9fQTRq.png">
-<meta property="og:image" content="https://s2.loli.net/2022/05/23/PH2Xez4AhUSacwG.png">
-<meta property="og:image" content="https://s2.loli.net/2022/05/23/8akQquFoem1RWPs.png">
-<meta property="og:image" content="https://s2.loli.net/2022/05/23/w163XcyputQokvg.jpg">
-<meta property="og:image" content="https://s2.loli.net/2022/05/23/WTDqRt1fboANn4S.png">
-<meta property="og:image" content="https://s2.loli.net/2022/05/23/MZvAIWFncLpNsyj.png">
-<meta property="og:image" content="https://s2.loli.net/2022/05/23/x8V5nFwOqokc46p.png">
-<meta property="og:image" content="https://s2.loli.net/2022/05/23/8akQquFoem1RWPs.png">
-<meta property="og:image" content="https://s2.loli.net/2022/05/23/LPzeIAdm2DMgbpc.png">
-<meta property="article:published_time" content="2021-12-24T07:10:49.000Z">
-<meta property="article:modified_time" content="2023-10-18T11:35:31.061Z">
+<meta property="article:published_time" content="2023-03-17T01:20:55.000Z">
+<meta property="article:modified_time" content="2023-10-19T12:09:58.203Z">
 <meta property="article:author" content="Allen Hu">
-<meta property="article:tag" content="CUDA">
+<meta property="article:tag" content="ISP">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://s2.loli.net/2022/05/23/lCSuMscTkdenIt1.png">
 
-<link rel="canonical" href="http://example.com/2021/12/24/Nvidia-CUDA-Architecture/">
+<link rel="canonical" href="http://example.com/2023/03/17/ISP%E5%B0%9D%E8%AF%95%E8%A7%A3%E5%86%B3%E9%AB%98Gain%E4%B8%8B%E6%9A%97%E9%83%A8%E5%8F%91%E7%B4%AB%E9%97%AE%E9%A2%98/">
 
 
 <script id="page-configurations">
@@ -60,7 +46,7 @@
   };
 </script>
 
-  <title>Nvidia CUDA Architecture | Allen Hu</title>
+  <title>ISP尝试解决高Gain下暗部发紫问题 | Allen Hu</title>
   
 
 
@@ -171,7 +157,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2021/12/24/Nvidia-CUDA-Architecture/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/03/17/ISP%E5%B0%9D%E8%AF%95%E8%A7%A3%E5%86%B3%E9%AB%98Gain%E4%B8%8B%E6%9A%97%E9%83%A8%E5%8F%91%E7%B4%AB%E9%97%AE%E9%A2%98/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/computer-chip_gray.svg">
@@ -184,7 +170,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          Nvidia CUDA Architecture
+          ISP尝试解决高Gain下暗部发紫问题
         </h1>
 
         <div class="post-meta">
@@ -194,14 +180,14 @@
               </span>
               <span class="post-meta-item-text">Posted on</span>
 
-              <time title="Created: 2021-12-24 15:10:49" itemprop="dateCreated datePublished" datetime="2021-12-24T15:10:49+08:00">2021-12-24</time>
+              <time title="Created: 2023-03-17 09:20:55" itemprop="dateCreated datePublished" datetime="2023-03-17T09:20:55+08:00">2023-03-17</time>
             </span>
               <span class="post-meta-item">
                 <span class="post-meta-item-icon">
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2023-10-18 19:35:31" itemprop="dateModified" datetime="2023-10-18T19:35:31+08:00">2023-10-18</time>
+                <time title="Modified: 2023-10-19 20:09:58" itemprop="dateModified" datetime="2023-10-19T20:09:58+08:00">2023-10-19</time>
               </span>
 
           
@@ -215,115 +201,18 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h2 id="fermi-architecture">Fermi Architecture</h2>
-<table>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th><img src="https://s2.loli.net/2022/05/23/lCSuMscTkdenIt1.png" alt="img" style="zoom:50%;" /></th>
-<th><img src="https://s2.loli.net/2022/05/23/muGjTriYMNvIFPe.png" alt="image-20211224153019867" style="zoom:45%;" /></th>
-</tr>
-</thead>
-<tbody>
-</tbody>
-</table>
-<span id="more"></span>
-<ul>
-<li>Host Interface： GPU，CPU，Memory通信的接口</li>
-<li>Giga Thread Engine：任务管理器，管理所有正在进行的工作</li>
-<li>Fermi架构拥有16个SM，SM属于硬件实体。每一个SM拥有21个CUDA
-core，每一个CUDA
-core拥有一个INT和一个FP计算单元；一个SM有16个LOAD/STORE单元，可以提供16线程同时读取/存储数据的能力；4个SFU单元，SFU：Special
-Function Unit，特殊函数计算单元，包括sin，cos函数。</li>
-</ul>
-<h2 id="kepler-architecture">Kepler Architecture</h2>
-<p>Kepler架构将SM重命名为SMX，其中大致结构并未改变，最明显的是增加了CUDA
-Core的数量。一个SMX中有192个CUDA Core。</p>
-<table>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th><img src="https://s2.loli.net/2022/05/23/GtSyW7B8RVEPcN4.png" alt="img" style="zoom:50%;" /></th>
-<th><img src="https://s2.loli.net/2022/05/23/vMbaX2oyzldWhEk.png" alt="img" style="zoom: 50%;" /></th>
-</tr>
-</thead>
-<tbody>
-</tbody>
-</table>
-<h2 id="maxwell-architecture">Maxwell Architecture</h2>
-<p>SMM变得更多了，架构变化不大。</p>
-<table>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th><img src="https://s2.loli.net/2022/05/23/U8NDAZhOJ9fQTRq.png" alt="img" style="zoom:75%;" /></th>
-<th><img src="https://s2.loli.net/2022/05/23/PH2Xez4AhUSacwG.png" alt="image-20211224161723378" style="zoom:50%;" /></th>
-</tr>
-</thead>
-<tbody>
-</tbody>
-</table>
-<h2 id="pascal-architecture">Pascal Architecture</h2>
-<p>第一个加入Deep Learning相关硬件设置的架构，即：DP Unit。</p>
-<table>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th><img src="https://s2.loli.net/2022/05/23/8akQquFoem1RWPs.png"
-alt="img" /></th>
-<th><img src="https://s2.loli.net/2022/05/23/w163XcyputQokvg.jpg" style="zoom:50%;" /></th>
-</tr>
-</thead>
-<tbody>
-</tbody>
-</table>
-<h2 id="volta-architecture">Volta Architecture</h2>
-<p>第一个以Deep Learning为主的GPU架构。原本的CUDA
-Core变成FP64，INT，FP32，TENSOR Core。</p>
-<p><img src="https://s2.loli.net/2022/05/23/WTDqRt1fboANn4S.png" alt="image-20211224165854516" style="zoom:50%;" /></p>
-<h2 id="turing-architecture">Turing Architecture</h2>
-<table>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th><img src="https://s2.loli.net/2022/05/23/MZvAIWFncLpNsyj.png" style="zoom:50%;" /></th>
-<th><img src="https://s2.loli.net/2022/05/23/x8V5nFwOqokc46p.png" style="zoom:50%;" /></th>
-</tr>
-</thead>
-<tbody>
-</tbody>
-</table>
-<h2 id="empere-architecture">Empere Architecture</h2>
-<table>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th><img src="https://s2.loli.net/2022/05/23/8akQquFoem1RWPs.png" style="zoom:50%;" /></th>
-<th><img src="https://s2.loli.net/2022/05/23/LPzeIAdm2DMgbpc.png" style="zoom:50%;" /></th>
-</tr>
-</thead>
-<tbody>
-</tbody>
-</table>
-
+        <div class="hbe hbe-container" id="hexo-blog-encrypt" data-wpm="Oh, this is an invalid password. Check and try again, please." data-whm="OOPS, these decrypted content may changed, but you can still have a look.">
+  <script id="hbeData" type="hbeData" data-hmacdigest="1cea3fbca16f260f3098fbb0b2633877df2c31239822c03f9ed6045e0137cbb5">68036766acfc1da8ae32adcb6da431294e97773dc586559ee7dc9dd6f0903db2a9b0a7964b9dbfdca1574eb71ef8681c2da495c23549c72cf0470a97f7dac7aff47ed59f9d106d79b9a2b1b6093a250e383affd1f30d01f4566d3baf2d761d8eacb34d9b4763d9852408de251209ca1c896d7d5c00ad01b1d03abdbe5c2f80dfa68708c24a17af06e70cf87291f269612d59d94fe4cde2acd8f1f77b21e850d4973274810035820de743ebe08ad452824367b50863c4806824befe8c656fdbbc19c542b33a1d9ccfc14bc93b535bb6f8697e1e239d520d27122a683e9971b18b299cd0a8668af4f6bce2f5b9e691f37d254ba743028b1799ad726ab2e4b4066c3792136c481b437eb75c098e4ffa1e85d2d0e0d9a8c2e9bc90e22545593da91efabc980dd33a9fd4286e1e2529c01e296cfe2caab94effc901d064bb22eb1b395b7f14115c695e14315aca1a098f05d16232439c1027184d2fed0a4a96f635c9ba79cb9f71686577d7ed2935162e9b8979f59e0dbfebbc485de9ba7089b1a6089cc04a3ec3bb7bf239423198af3ee74050e4407e12b4b989c61c14027a9ce537fa490e45c4cb28d67ff06b695c473db5bde698c785304140a3a5a1af3d96fa888f7f2bc884446bb9fb4f1c648f81ca0fba8a7125029c6968c944b7533d69efcc7791499f0fc105b18a35653dfd4b573518c98666d1660de6fd228e2f0616e614b490b901d6d2597978b9fe065b98ded1c0398e106cad6af91334571257d97f0e9eb55970f6779012db9ab22192f814dab112cce62a960fe881c4a887b5cf59a62dccaff6606056256a70ae22e001cbf8b40080fa826ae0e4d36c09ede258e534584365bfaeffaa1ceb5c6004a453bdb510b2ef3fc9395db63d2c0b0c39dea70347a8103f87ad1b1d7f4b11bf2c7e99e8a327ab24eaca01917de785370bc9a3feab55d62ffbd07e38b42e261798bdabf9f1b094074a537f9f8a4a8049d5b321034f96bf450f5b0405d1b581d6b6b881bc2c681602d1298463839e5859415cea187c1c68506588e1c5d81aab4c8cab7e3322b64d072b46513e51a52d348c6568665b6b39828ec977db15b5bacfec45afc64162483bfb79c2a9d5f4a62fe5d41703a6e1f8c3851ddbcf2ee753ec96b2192129c96d818c8e7e3d7ea124eb80fb7b19e7acb4754a6111f68850233277a94ad25750b527cb57ef16c1302318fd61482a47f4617012e1e815165804a726375e4c5758ffa59d22ccaa4d54c4922b1a69bf9c85af6efe6bf48e606773be5c2f3a7ecb8856e9bfe06c0dfa2c09c0208bec3c7de12b5ddbbc96f9312a19343dd89fd40409d06448b92eae45b02eb0f76f2726d31a42cc94b035383f20267d0873ce8803dc1c5818485e967ecc35b2d68ae53a9ce3d0d30d0244056e166b4b50aa6b2779bb0d34e91df7505c6f6fa3701462b84d527d9c938dc00f70845fb782e828faef7128ad100bb1bb89844f3f6c3ce99b44444dce5182d510b7139a885831ccfd15d1ed0481b1a05a4370e8902020e578bebebc2e600a81bd414660962d1bed5ee4eab11f5c13d72ae0c4b8c4685a4edcc0d2256248fd01c64a709694c64e5a025f30dee0753c426569e5b6d42249578a0c01e8fddce6a65102e9d3566523140e53923635d23bc53fdb54a1e0132faa1aa568ae92ebd34f131f95b28278cddf7934d06535e37939b18a1d1bdfe69dfcc5e8ce864457e04de59bc0affcc44f6d69ef26700a44d63f01dfdd5fb10af955ccb8df2fb1aa3bbb5ce14750e2808ffd2cb1bbf9cccf8d50dbbd7f595ee0734a9e6781fe60e8a9d66297fdbfb2123c79b964c68600686ddce84c4cf5dc235ec14aa28feb1ded0f4d23a8cdf76ee94192c77d06092ab9735f7686beb3fb6e1f1ef82354e91536b669c06ae14b2a6075f1981b807102c4523fb8999947700e435e68d1394834dbca671e8eab9e29dd2d631f2c5562f8712de2547a0c79c3e66442b71adc8ebbe193386a134dd72f725658ac107bd20fc7927224ea4778e2a317506ce5cafb29fd5e7e98bce7be33db35a3ddb1166f15892010627a13e682c299322e2f188dc2920a1050ec4ab05b67d67dbece89955be28a84badf1d2a1cc56e0abb3cf4c60f6e0d5c83615972c7220098d48112a32aacd6ba7dd59a7c275cc7ebb6069e1bfd3273f99397e903e5b948a4016048d27fc95a6f6d8214d4d7ee26b7a11c392d1a1f80f6d5ac713e5ddd936118d3ebc9cd22c2e31a32cfda723039651bda0510c7f75abf6cd0a0bc7ab93d663d2fde0041eafc775e8c34a8c8ec116414508858bc8abf91d739ae03892c6924175379e7c3dfb9c33cbcacf69a979db0d7b5125505ca23002d6b8990231c6e836beb9a2325d0b017d32d84e0e9b15d093cdc971d9eb8576f90841b182d0f81d21c3b8977c387742c6d7642141da565967eb213eece41a221521a6e1e34d3b161514752d87402908eec1d1ed1fbfeae1c0c4c2fca1cadb15bf9159056396ed33dddb14225c57a4df30ab1354c1bb7e2315dbf13460e5a38f3ba5eca8b7d3fe5d63964ae2679c1ed11420e389055e0b380d34e3e7d9722cd3688d46b7111004b52236d2c18bdfafa9734d31b76ffc089746484d82c9e8dc64b7d0a0d66d1f12205852cd6f77cd93074fea16299b879ebc44c0c0db8952acf6b0a438bf0a5fb5e168e836eafc79da3b1d302d73b7ad5377e8d0aee89ce6849b0a465bea2684b7539ca7e55ba0792852b8714331d2f84126ba3480e3c4f952ba09cb8db2150205e478102fede147eeb675462ec92b0d3f9a9e510edd11e74fa9bd97b3e492eb99696009aa5e5a3870e703a5f7e2382fd8721850d7ca29f62e5ff4463f0dc0365e0051e9239c90b80eb1034b4be7fba20ab0ccc22613f182d47d9c512015c2bdeb0c501dcdf7b0edff7a60df208ed459968970e3f37d808db9bf20e763171a75215007e02c5a74d1494ec0a5e12017cfafec1421bc15605511b438ec5a02010b81fba1e075b163bdfa99bf50d3bda96aba5c4f31f4a3ffb5437bcb7975cb3a873c14d8eca2c1d326ea0cf54ef7c4d33e1a66b2110e7f468051d3d4be5ee0496294f44f2a0f92375ab1639c96df715ccbcd95b7a87ba05f4bc152e9d628342c66f2a2cb32af3a2ba55d3150407332ce6577675fa5d54f03b07fedd13f6f4d9a0e77e64788a09109c60303664176991cca1ed41af7779db7be64f380058257f34926b575b3a65fa79b417f3a5052b63572bdabc42655db6dc6a212c0e2bf6355a1833e638d417a78f9f2626a64d898419a3383c663bd3e808de1533af2f74009acff3e2cc12cbbe599836de2b68d84c21c0abe35040b3efe4033cf797e8698a818d0f9ca4f65068d39e012b003f3b3eb321adbffa74f33916bfddd7232a43021e1697604e9661062d54d2d804c04c24f53fef7da54b51b9e1fc79214663d618f43268b9cae7d0abaa287e36d5f4cc9a9d871880f6e3f2bc1a3a6f21aa97e82bb9c0f75f8205f99ab48ea211aab47440c22c9e0934f7408a40175e757aff134318e594f2538a3b94c71ae594341cd1c3d6b09203bcd746b014fc443f45d566bcf55826042184d165de9f13c2d07a482ecc27512ae84e6b86c063700a66976ec7511899c3eac3755bf900bfacd14e633a45bfefbe73c425c5a16cd5898ac525adc277e24d111e918e40d44443e7a66c3a6623303adeb639a36f2a8be2a07e6a572f0a89442f795bd4457d270d58caaf7c18df410dcb78a0d0d578a0bce40121b42bc35b7329eb345922c356597cc6d7ba96953e615f0fa4b18e0c3b1deb1f5e63134e0f0a03f98ec311c73d38c42b29598819d6efc46817f7de4975a709a1c85c6728bf4ae873c32e38e11e606cedfe0ddb89ed82bc850aba61579624c943aefcb3e1fdf64ae526ede484e8a7483d21e159c361f4220ac82a676483780bd38ed69296950c1c632048732eda3571d66869321243426db2102e88cedc2d04df1e44a3c19521f73423970aff2395a532c675defac243a696ac1562afa4b5d5001ea903721e94744782839f00f9aa4c46891e33a622f15ca17961235b285bfe1b16647ce8b2cd696fd88d868787793a9bf4bda0c1ca12484c338d7201bd7bea47c321cb524ca3f3000d3ebe8cee32d36c6101f667232f0219745319a7b7eda6982479f4e5e05a39b454858fe905cf36af10ab9fc37ec95e6d7405389e7adc90fb2040a5d0795651569ff874c29bc03bed9267c2b31c49e0925a7ee80d1a20942c39ac86b0b213c77e9c537e5413470058e742c824bfaed657fcddf376aea292bb5bbfd6a9fa446de604dab6b121938283bb9ec304cab889be25bb04ba0e7a243496f836cb04a2b3ee9b133b4f6dfdfa4509feb4751c0a8c3c51c5a2728e04fdad19d4b9713658cc1fc98aa90a6a9376cfd1313429fa84835f7b181c3a91e7530ff4c5c4a2b35e4b06cc88766ff617609bfcd5bb68945608a367030eab8b63b2953d61afa79fd7634d66f39d4aadf7527fcdba4277023f92d037e360dcc426210d47643d85b1c86e6c23da2ec13485dc6044bde11d6d8e5a700a25f0063675aa8ca8f6d393365a93ca6d50fa5a811df69318d321d786a41c44add546bfdb35a1970f49ddbf9139c514a46f9bb4aed9ab90fca1b8584a438eea2541dc64064427cd076c147f3049fe19f4bd2bcda9ce04296a36f0f65272fd5345808abb2a7c069e99c261b067f74bdb9e3f613895b8497a42eabd8bce438d6f851636593e1c9df17f0f7dc8bdded5c9a74fcc0dce505d59c2c8d53ecd1309acac118e5b0ec01ec63a7f6adfaddf78f2279847885de7d78869e345ac28852d703ab0aedd9d96896db08618c2ef9b48e088b179ac4bb6adcaac78eb59c06ad7b64623d4c712f322e668cfd1faf14a93e9321aeda819d9577a8f80cb1a536a95376c62092dda0ec55e08bd41a0d64573a6141eadc130c36da4e8978c4af41d13569e11756b83a54f9f6625a2d9890cf289c4c40436093b148613bd72d484a2cd666f2d9f950ad295da0fed0548bc33f5ca3abeb8b36a667961f5b1e94b1411109aa8cd775a9928de520bf09b17a7204d4275ba1e3afae40a64ccec408ed8048f6571b9dde21b17b8842fae21d6cde4c70a73d717b984d538e5fea05e47b63747608ccc7c00a923f3daf324aa08103229837e107759a82edb3ac8501d6ce3e07982c8b0e2f25f627f968581a1c96781e58ab4a56bc2a09e9aa14019fade3609ebe7034941c4fa2afb893e13544d9aeba863836a96707ce0240093c3b47d8487ca82081c65542000e4c1f8e3eebf445962d65749db4a9fd2dd02fb197db3daae3708576d0e203179c7c6efe3393fd7b041bbb27701c31a03354092047bf5df5208cbe1f3607743f828dd2d24e21361c99ffe981d7a8dfd2a3c6af69c4f89be7c11e00d22d103f96c76a63574c27b8195f6841617b1b46af6db3a63853372a6a705a9437d894d285207b52e4e5fdf36dd90a317faee7566b28c9eab40c9348ab76c8614c21718c2bf7ae1a814d2f5246936ae50814fd78fa1306bd0d8bddcef1edaa267ba2a97aaa2ba800047f02364158ae1f8c2a9c7a1f4b7bc69c3a1628f927fd9b20fb34e6bc73b6c7dcba22de887d5ad2cc31588f9fd19d897ad59abe29720be311fc218797a7216cb9ee7a5cceff36efe2a02281d463fd1af26c23f649911795f800d434375e5c17882562ee446771f016c280e1ffb0ab89d5cb28015c7778a31ba9efa78d7e0fbdf613cdb41b4de1aeca42266acf43184a2ba32f7bdba80</script>
+  <div class="hbe hbe-content">
+    <div class="hbe hbe-input hbe-input-default">
+      <input class="hbe hbe-input-field hbe-input-field-default" type="password" id="hbePass">
+      <label class="hbe hbe-input-label hbe-input-label-default" for="hbePass">
+        <span class="hbe hbe-input-label-content hbe-input-label-content-default">Hey, password is required here.</span>
+      </label>
+    </div>
+  </div>
+</div>
+<script data-pjax src="/lib/hbe.js"></script><link href="/css/hbe.style.css" rel="stylesheet" type="text/css">
     </div>
 
     
@@ -332,7 +221,7 @@ Core变成FP64，INT，FP32，TENSOR Core。</p>
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/CUDA/" rel="tag"># CUDA</a>
+              <a href="/tags/ISP/" rel="tag"># ISP</a>
           </div>
 
         
@@ -341,12 +230,12 @@ Core变成FP64，INT，FP32，TENSOR Core。</p>
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2021/10/13/Guided-Filter/" rel="prev" title="Guided Filter">
-      <i class="fa fa-chevron-left"></i> Guided Filter
+    <a href="/2022/08/26/Android-Toolchain%E7%BC%96%E8%AF%91%E4%B8%8EGDB%E8%B0%83%E8%AF%95/" rel="prev" title="Android Toolchain编译与GDB调试">
+      <i class="fa fa-chevron-left"></i> Android Toolchain编译与GDB调试
     </a></div>
       <div class="post-nav-item">
-    <a href="/2022/03/05/C-Tips/" rel="next" title="C++ Tips">
-      C++ Tips <i class="fa fa-chevron-right"></i>
+    <a href="/2023/05/19/%E8%B6%85%E5%88%86%E8%BE%A8%E7%8E%87Loss%E8%AE%BE%E8%AE%A1%E8%AE%B0%E5%BD%95-1/" rel="next" title="超分辨率Loss设计记录(1)">
+      超分辨率Loss设计记录(1) <i class="fa fa-chevron-right"></i>
     </a></div>
     </div>
       </footer>
@@ -406,7 +295,6 @@ Core变成FP64，INT，FP32，TENSOR Core。</p>
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#fermi-architecture"><span class="nav-number">1.</span> <span class="nav-text">Fermi Architecture</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#kepler-architecture"><span class="nav-number">2.</span> <span class="nav-text">Kepler Architecture</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#maxwell-architecture"><span class="nav-number">3.</span> <span class="nav-text">Maxwell Architecture</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#pascal-architecture"><span class="nav-number">4.</span> <span class="nav-text">Pascal Architecture</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#volta-architecture"><span class="nav-number">5.</span> <span class="nav-text">Volta Architecture</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#turing-architecture"><span class="nav-number">6.</span> <span class="nav-text">Turing Architecture</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#empere-architecture"><span class="nav-number">7.</span> <span class="nav-text">Empere Architecture</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
