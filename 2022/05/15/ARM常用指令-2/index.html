@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
-<meta name="generator" content="Hexo 5.4.2">
+<meta name="generator" content="Hexo 5.4.0">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/computer-chip_gray.svg">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/computer-chip_gray.svg">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/computer-chip_gray.svg">
@@ -24,14 +24,16 @@
 <meta property="og:type" content="article">
 <meta property="og:title" content="ARM常用指令(2)">
 <meta property="og:url" content="http://example.com/2022/05/15/ARM%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4-2/index.html">
-<meta property="og:site_name" content="Allen Wood">
+<meta property="og:site_name" content="Allen Hu">
 <meta property="og:description" content="算术与移位指令 加减法指令  add指令   立即数加法指令 ARM文档描述如下  ADD Wd|WSP, Wn|WSP, #imm{, shift} ; 32-bit   ADD Xd|SP, Xn|SP, #imm{, shift} ; 64-bit">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://s2.loli.net/2022/05/23/tPV4XZDEi3wkaAU.png">
 <meta property="og:image" content="https://s2.loli.net/2022/05/23/TGHaNA9PEgOQj83.png">
 <meta property="article:published_time" content="2022-05-15T13:53:33.000Z">
-<meta property="article:modified_time" content="2022-05-23T04:10:41.302Z">
-<meta property="article:author" content="Allen Wood">
+<meta property="article:modified_time" content="2023-10-18T12:26:51.457Z">
+<meta property="article:author" content="Allen Hu">
+<meta property="article:tag" content="ARM">
+<meta property="article:tag" content="汇编">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="https://s2.loli.net/2022/05/23/tPV4XZDEi3wkaAU.png">
 
@@ -48,7 +50,7 @@
   };
 </script>
 
-  <title>ARM常用指令(2) | Allen Wood</title>
+  <title>ARM常用指令(2) | Allen Hu</title>
   
 
 
@@ -99,10 +101,10 @@
 
     <a href="/" class="brand" rel="start">
       <span class="logo-line-before"><i></i></span>
-      <h1 class="site-title">Allen Wood</h1>
+      <h1 class="site-title">Allen Hu</h1>
       <span class="logo-line-after"><i></i></span>
     </a>
-      <p class="site-subtitle" itemprop="description">Internet Code Monkey</p>
+      <p class="site-subtitle" itemprop="description">Internet Coding Monkey</p>
   </div>
 
   <div class="site-nav-right">
@@ -119,6 +121,11 @@
         <li class="menu-item menu-item-home">
 
     <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
 
   </li>
         <li class="menu-item menu-item-archives">
@@ -158,12 +165,12 @@
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/computer-chip_gray.svg">
-      <meta itemprop="name" content="Allen Wood">
+      <meta itemprop="name" content="Allen Hu">
       <meta itemprop="description" content="Just for record">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Allen Wood">
+      <meta itemprop="name" content="Allen Hu">
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
@@ -184,7 +191,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2022-05-23 12:10:41" itemprop="dateModified" datetime="2022-05-23T12:10:41+08:00">2022-05-23</time>
+                <time title="Modified: 2023-10-18 20:26:51" itemprop="dateModified" datetime="2023-10-18T20:26:51+08:00">2023-10-18</time>
               </span>
 
           
@@ -332,6 +339,10 @@ range</p></li>
     
 
       <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/ARM/" rel="tag"># ARM</a>
+              <a href="/tags/%E6%B1%87%E7%BC%96/" rel="tag"># 汇编</a>
+          </div>
 
         
 
@@ -410,9 +421,9 @@ range</p></li>
 
       <div class="site-overview-wrap sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
-    <img class="site-author-image" itemprop="image" alt="Allen Wood"
+    <img class="site-author-image" itemprop="image" alt="Allen Hu"
       src="/images/computer-chip_gray.svg">
-  <p class="site-author-name" itemprop="name">Allen Wood</p>
+  <p class="site-author-name" itemprop="name">Allen Hu</p>
   <div class="site-description" itemprop="description">Just for record</div>
 </div>
 <div class="site-state-wrap motion-element">
@@ -420,13 +431,15 @@ range</p></li>
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">11</span>
+          <span class="site-state-item-count">12</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">1</span>
-        <span class="site-state-item-name">tags</span>
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
 </div>
@@ -458,7 +471,7 @@ range</p></li>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
-  <span class="author" itemprop="copyrightHolder">Allen Wood</span>
+  <span class="author" itemprop="copyrightHolder">Allen Hu</span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
   </div>

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
 <meta name="theme-color" content="#222">
-<meta name="generator" content="Hexo 5.4.2">
+<meta name="generator" content="Hexo 5.4.0">
   <link rel="apple-touch-icon" sizes="180x180" href="/images/computer-chip_gray.svg">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/computer-chip_gray.svg">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/computer-chip_gray.svg">
@@ -22,12 +22,12 @@
 
   <meta name="description" content="Just for record">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Allen Wood">
+<meta property="og:title" content="Allen Hu">
 <meta property="og:url" content="http://example.com/page/2/index.html">
-<meta property="og:site_name" content="Allen Wood">
+<meta property="og:site_name" content="Allen Hu">
 <meta property="og:description" content="Just for record">
 <meta property="og:locale" content="en_US">
-<meta property="article:author" content="Allen Wood">
+<meta property="article:author" content="Allen Hu">
 <meta name="twitter:card" content="summary">
 
 <link rel="canonical" href="http://example.com/page/2/">
@@ -43,7 +43,7 @@
   };
 </script>
 
-  <title>Allen Wood</title>
+  <title>Allen Hu</title>
   
 
 
@@ -94,10 +94,10 @@
 
     <a href="/" class="brand" rel="start">
       <span class="logo-line-before"><i></i></span>
-      <h1 class="site-title">Allen Wood</h1>
+      <h1 class="site-title">Allen Hu</h1>
       <span class="logo-line-after"><i></i></span>
     </a>
-      <p class="site-subtitle" itemprop="description">Internet Code Monkey</p>
+      <p class="site-subtitle" itemprop="description">Internet Coding Monkey</p>
   </div>
 
   <div class="site-nav-right">
@@ -114,6 +114,11 @@
         <li class="menu-item menu-item-home">
 
     <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a>
 
   </li>
         <li class="menu-item menu-item-archives">
@@ -148,16 +153,93 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2021/09/26/Sensor-Noise-Model-Calibration/">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/10/13/Guided-Filter/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/computer-chip_gray.svg">
-      <meta itemprop="name" content="Allen Wood">
+      <meta itemprop="name" content="Allen Hu">
       <meta itemprop="description" content="Just for record">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Allen Wood">
+      <meta itemprop="name" content="Allen Hu">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2021/10/13/Guided-Filter/" class="post-title-link" itemprop="url">Guided Filter</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">Posted on</span>
+
+              <time title="Created: 2021-10-13 10:53:40" itemprop="dateCreated datePublished" datetime="2021-10-13T10:53:40+08:00">2021-10-13</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">Edited on</span>
+                <time title="Modified: 2023-10-18 19:35:22" itemprop="dateModified" datetime="2023-10-18T19:35:22+08:00">2023-10-18</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>输入图p，导向图I， 输出图q，<span class="math inline">\(\Rightarrow
+q_i = \sum_jW_{ij}(I)p_j\)</span>，其中i，j为pixel index，<span
+class="math inline">\(W_{ij}\)</span>是导向图I的一个函数，与输入图p独立。</p>
+<p>假设输出图q在一个窗口<span
+class="math inline">\(w_i\)</span>中是导向图I的相信变换，即：<span
+class="math inline">\(q_i = a_kI_i + b_k, \forall i \in w_k\)</span></p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2021/10/13/Guided-Filter/#more" rel="contents">
+                Read more &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="en">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2021/09/26/Sensor-Noise-Model-Calibration/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/computer-chip_gray.svg">
+      <meta itemprop="name" content="Allen Hu">
+      <meta itemprop="description" content="Just for record">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Allen Hu">
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
@@ -179,7 +261,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">Edited on</span>
-                <time title="Modified: 2022-11-22 00:31:28" itemprop="dateModified" datetime="2022-11-22T00:31:28+08:00">2022-11-22</time>
+                <time title="Modified: 2023-10-18 19:35:41" itemprop="dateModified" datetime="2023-10-18T19:35:41+08:00">2023-10-18</time>
               </span>
 
           
@@ -284,9 +366,9 @@ Computational Photography, Fall 2020</a></p>
 
       <div class="site-overview-wrap sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
-    <img class="site-author-image" itemprop="image" alt="Allen Wood"
+    <img class="site-author-image" itemprop="image" alt="Allen Hu"
       src="/images/computer-chip_gray.svg">
-  <p class="site-author-name" itemprop="name">Allen Wood</p>
+  <p class="site-author-name" itemprop="name">Allen Hu</p>
   <div class="site-description" itemprop="description">Just for record</div>
 </div>
 <div class="site-state-wrap motion-element">
@@ -294,13 +376,15 @@ Computational Photography, Fall 2020</a></p>
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">11</span>
+          <span class="site-state-item-count">12</span>
           <span class="site-state-item-name">posts</span>
         </a>
       </div>
       <div class="site-state-item site-state-tags">
-        <span class="site-state-item-count">1</span>
-        <span class="site-state-item-name">tags</span>
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">16</span>
+        <span class="site-state-item-name">tags</span></a>
       </div>
   </nav>
 </div>
@@ -332,7 +416,7 @@ Computational Photography, Fall 2020</a></p>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
-  <span class="author" itemprop="copyrightHolder">Allen Wood</span>
+  <span class="author" itemprop="copyrightHolder">Allen Hu</span>
 </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a>
   </div>
