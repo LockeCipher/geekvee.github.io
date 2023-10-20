@@ -1,0 +1,1591 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  <entry>
+    <title>ARM常用指令(2)</title>
+    <url>/2022/06/15/ARM%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4-2/</url>
+    <content><![CDATA[<!-- <meta name="referrer" content="no-referrer" /> -->
+<h2 id="算术与移位指令">算术与移位指令</h2>
+<h3 id="加减法指令">加减法指令</h3>
+<ul>
+<li>add指令</li>
+</ul>
+<ol type="1">
+<li><p>立即数加法指令</p>
+<p>ARM文档描述如下</p>
+<blockquote>
+<p>ADD <em>Wd|WSP</em>, <em>Wn|WSP</em>, #<em>imm</em>{, <em>shift</em>}
+; 32-bit</p>
+</blockquote>
+<blockquote>
+<p>ADD <em>Xd|SP</em>, <em>Xn|SP</em>, #<em>imm</em>{, <em>shift</em>} ;
+64-bit</p>
+</blockquote>
+<p><span id="more"></span></p>
+<p>这里要注意的是立即数的范围是0~4095，但是在实际过程中，写出这种语句编译运行也不会报错:
+<span class="math inline">\(add \enspace x0, \enspace x0, \enspace
+4096\)</span></p>
+<p>使用汇编与反汇编来看看编译器如何处理的，具体的汇编反汇编命令，可以查看<a
+href="https://www.huziliang.com/2022/05/12/ARM%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4/">ARM常用指令（1）</a>
+中MOV指令讲解。</p>
+<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">.arch armv8-a</span><br><span class="line">.text</span><br><span class="line">.align	3</span><br><span class="line"></span><br><span class="line">.global	test2</span><br><span class="line">test2:</span><br><span class="line"></span><br><span class="line">    add x0, x0, <span class="comment">#4095</span></span><br><span class="line">    add x2, x2, <span class="comment">#4096</span></span><br><span class="line"></span><br><span class="line">    ret</span><br></pre></td></tr></table></figure></p>
+<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">main.o:     file format elf64-littleaarch64</span><br><span class="line"></span><br><span class="line">Contents of section .text:</span><br><span class="line"> 0000 e10300aa 204040f8 220440f9 00fc3f91  .... @@.<span class="string">&quot;.@...?.</span></span><br><span class="line"><span class="string"> 0010 42044091 c0035fd6                    B.@..._.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">Disassembly of section .text:</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">0000000000000000 &lt;test2&gt;:</span></span><br><span class="line"><span class="string">   0:   aa0003e1        orr     x1, xzr, x0</span></span><br><span class="line"><span class="string">   4:   f8404020        ldur    x0, [x1,#4]</span></span><br><span class="line"><span class="string">   8:   f9400422        ldr     x2, [x1,#8]</span></span><br><span class="line"><span class="string">   c:   913ffc00        add     x0, x0, #0xfff</span></span><br><span class="line"><span class="string">  10:   91400442        add     x2, x2, #0x1, lsl #12</span></span><br><span class="line"><span class="string">  14:   d65f03c0        ret</span></span><br></pre></td></tr></table></figure></p>
+<p>add x0, x0, #4095 实际上为 add x0, x0, #0xfff</p>
+<p>add x2, x2, #4096 实际上为 add x2, x2, #0x1, lsl #12</p>
+<p>但是如果写成 add x0, x0, #4097编译就会报错 immediate out of
+range</p></li>
+<li><p>寄存器加法指令</p>
+<ul>
+<li>加法指令</li>
+</ul>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">add x0, x1, x2, UXTB</span><br><span class="line"><span class="comment">// 类似的extend还有UXTB, UXTH, UXTW, UXTX, SXTB, SXTH, SXTW or SXTX.</span></span><br></pre></td></tr></table></figure></p>
+<p><img src="https://s2.loli.net/2022/05/23/tPV4XZDEi3wkaAU.png" /></p>
+<p>UXT*：零扩展</p>
+<p>SXT*：有符号扩展</p>
+<p>例如：</p>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">mov x1, #<span class="number">1</span></span><br><span class="line">mov x2, #<span class="number">0x108a</span></span><br><span class="line">add x0, x1, x2, UXTB       <span class="comment">//(1)</span></span><br><span class="line">add x0, x1, x2, SXTB       <span class="comment">//(2)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// (1)式结果为0x8B，UXTB取x2寄存器低字节8A做零扩展，与x1寄存器立即数1相加，结果为8B</span></span><br><span class="line"><span class="comment">// (2)式结果为0xFFFFFF8B，SXTB取x2寄存器低字节8A做有符号扩展，与x1寄存器立即数1相加，结果为FFFFFF8B</span></span><br></pre></td></tr></table></figure></p>
+<ul>
+<li>移位加法指令</li>
+</ul>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">add x0, x1, x2, LSL <span class="number">2</span></span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>32bit寄存器移位操作数范围为0~31</p>
+</blockquote>
+<blockquote>
+<p>64bit寄存器移位操作数范围为0~63</p>
+</blockquote></li>
+</ol>
+<ul>
+<li><p>减法指令</p>
+<p>减法指令与加法指令类似，也分为立即数减法指令，寄存器减法指令。</p></li>
+</ul>
+<h3 id="cmp指令">cmp指令</h3>
+<p>cmp指令内部调用subs指令实现</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">cmp x1, x2</span><br><span class="line"></span><br><span class="line">=&gt;</span><br><span class="line"></span><br><span class="line">subs    xzr, x1, x2</span><br></pre></td></tr></table></figure>
+<h3 id="移位指令">移位指令</h3>
+<ul>
+<li>LSL：逻辑左移，最高位丢弃，最低位补0</li>
+<li>LSR：逻辑右移，最低位丢弃，最高位补0</li>
+<li>ASR：算术右移，最高位符号扩展，最低位丢弃</li>
+<li>ROR：循环右移，最低位移动到最高位</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">ldr w1, =<span class="number">0x8000008a</span></span><br><span class="line"><span class="comment">// w1 二进制表示：0b10000000000000000000000010001010</span></span><br><span class="line"></span><br><span class="line">asr w2, w1, <span class="number">1</span></span><br><span class="line"><span class="comment">// 算术右移1位，高位按照有符号补充，低位丢弃</span></span><br><span class="line"><span class="comment">// w2 二进制表示：0b11000000000000000000000001000101，16进制表示为0xC0000045</span></span><br><span class="line"></span><br><span class="line">lsr w3, w1, <span class="number">1</span></span><br><span class="line"><span class="comment">// 逻辑右移1位，最低位丢弃，最高位补0</span></span><br><span class="line"><span class="comment">// w3 二进制表示为：0b01000000000000000000000001000101，16进制表示为0x40000045</span></span><br><span class="line"></span><br><span class="line">lsl w4, w1, <span class="number">1</span></span><br><span class="line"><span class="comment">// 逻辑左移1位，最高位丢弃，最低位补0</span></span><br><span class="line"><span class="comment">// w4 二进制表示为：0b00000000000000000000000100010100，16进制表示为0x114</span></span><br><span class="line"></span><br><span class="line">ror w5, w1, <span class="number">2</span></span><br><span class="line"><span class="comment">// 循环右移1位，最低位移动到最高位</span></span><br><span class="line"><span class="comment">// w4 二进制表示为：0b10100000000000000000000000100010，16进制表示为0xA0000022</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h3 id="位操作指令">位操作指令</h3>
+<ul>
+<li>与操作</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">and</span> x0, x1, x2  <span class="comment">// x1 = 6, x2 = 1 =&gt; x0 = 0</span></span><br><span class="line"></span><br><span class="line">ands x0, x1, x2 <span class="comment">// 影响pstate状态位，x1 = 6, x2 = 1 =&gt; x0 = 0</span></span><br><span class="line">mrs x0, nzcv <span class="comment">// x0 = 0x40000，表示z位置为1，说明ands置pstate中z位置为1</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>或操作</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">orr x0, x1, x2  <span class="comment">// x1 = 6, x2 = 1 =&gt; x0 = 7</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>异或操作</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">eor x0, x1, x2  <span class="comment">// x1 = 4, x2 = 1 =&gt; x0 = 5</span></span><br></pre></td></tr></table></figure>
+<p>异或操作真值表</p>
+<table>
+<thead>
+<tr class="header">
+<th>0 ^ 0</th>
+<th>0</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0 ^ 1</td>
+<td>1</td>
+</tr>
+<tr class="even">
+<td>1 ^ 0</td>
+<td>1</td>
+</tr>
+<tr class="odd">
+<td>1 ^ 1</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<ol type="1">
+<li>0异或任何数为任何数本身</li>
+<li>1异或任何数为任何数取反</li>
+<li>任何数异或自己为0</li>
+</ol>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 1. 实现位翻转</span></span><br><span class="line"><span class="comment">// 翻转0b10100001，第2、3位</span></span><br><span class="line"><span class="number">10100001</span> ^ <span class="number">00000110</span> = <span class="number">10100111</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 2. 交换两数</span></span><br><span class="line"><span class="comment">// 交换 a = 10100001和b = 00000110</span></span><br><span class="line">a = a^b <span class="comment">// a = 10100111</span></span><br><span class="line">b = b^a <span class="comment">// b = 10100001</span></span><br><span class="line">a = a^b <span class="comment">// a = 00000110</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 3. 变量设置为0</span></span><br><span class="line">eor x1, x1</span><br><span class="line"></span><br><span class="line"><span class="comment">// 4. 判断变量相等</span></span><br><span class="line">(a ^ b) == <span class="number">0</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>位清除</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 清除x0中第0、1和3位，保持其余的不变</span></span><br><span class="line">mov x0, #<span class="number">0x1111</span></span><br><span class="line">mov x1, #<span class="number">0x1011</span></span><br><span class="line">bic x0, x0, x1 <span class="comment">// x0 = 0x0100</span></span><br></pre></td></tr></table></figure>
+<p>以下为三个目前用的不多的指令</p>
+<ul>
+<li>CLZ指令</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 统计最高位1之前还有几个0</span></span><br><span class="line">ldr x1, =<span class="number">0x1100000034578000</span> <span class="comment">// x1 二进制为：0b0001000100000000000000000000000000110100010101111000000000000000</span></span><br><span class="line">clz x0, x1</span><br><span class="line"><span class="comment">// x1 最高位为1是第60位，前面还有三个0，因此x0为3</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>BFI指令</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 用作bit位插入</span></span><br><span class="line"></span><br><span class="line">mov x0, #<span class="number">0</span></span><br><span class="line">mov x1, #<span class="number">0x05</span></span><br><span class="line">bfi x0, x1, #<span class="number">4</span>, #<span class="number">4</span> <span class="comment">//将x0 BIT[4:4+(4-1)]替换为x1[0:0+(4-1)]</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 实际上BFI会被替换成BFM，上述语句等价于下：</span></span><br><span class="line">movz    x0, #<span class="number">0x0</span></span><br><span class="line">movz    x1, #<span class="number">0x5</span></span><br><span class="line">bfm     x0, x1, #<span class="number">60</span>, #<span class="number">3</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 可用来将部分比特位清零</span></span><br><span class="line">bfi x0, XZR, #<span class="number">0</span>, #<span class="number">3</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>UBFX</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 位提取指令</span></span><br><span class="line"><span class="comment">// UBFX 提取后无符号扩展</span></span><br><span class="line"><span class="comment">// SBFX  提取后有符号扩展</span></span><br><span class="line"></span><br><span class="line">mov x1, <span class="number">0x8a</span>   <span class="comment">//  x1 : 10001010</span></span><br><span class="line">ubfx x0, x1, #<span class="number">4</span>, #<span class="number">4</span>   <span class="comment">// x0 : 00001000</span></span><br><span class="line">sbfx x0, x1, #<span class="number">4</span>, #<span class="number">4</span>   <span class="comment">// x0 : 11111000</span></span><br></pre></td></tr></table></figure>
+<p><img src="https://s2.loli.net/2022/05/23/TGHaNA9PEgOQj83.png" /></p>
+]]></content>
+      <tags>
+        <tag>ARM</tag>
+        <tag>汇编</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>ARM常用指令(3)</title>
+    <url>/2022/07/27/ARM%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4-3/</url>
+    <content><![CDATA[<meta name="referrer" content="no-referrer" />
+<style type="text/css" rel="stylesheet">
+col{
+    /* width: 0 !important; */
+    max-width: 10% !important;
+}
+</style>
+<h2 id="比较跳转指令">比较跳转指令</h2>
+<h3 id="比较指令">比较指令</h3>
+<ul>
+<li>cmn指令</li>
+</ul>
+<p>与cmp指令类似，不同的是cmn指令是将一个数与另一个数的相反数进行比较，并且在汇编过程中等同于adds指令</p>
+<span id="more"></span>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">cmn x1, x2</span><br><span class="line">=&gt;</span><br><span class="line">adds xzr, x1, x2</span><br></pre></td></tr></table></figure>
+<ul>
+<li>csel指令</li>
+</ul>
+<blockquote>
+<p>CSEL <em>Wd</em>, <em>Wn</em>, <em>Wm</em>, <em>cond</em> ;
+32-bit</p>
+</blockquote>
+<blockquote>
+<p>CSEL <em>Xd</em>, <em>Xn</em>, <em>Xm</em>, <em>cond</em> ;
+64-bit</p>
+</blockquote>
+<p>判断cond是否为真，为真返回Xn/Wn，为假返回Xm/Wm，返回值存放于Xd/Wd寄存器</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">mov x1, #<span class="number">3</span></span><br><span class="line">mov x2, #<span class="number">4</span></span><br><span class="line"></span><br><span class="line">cmp x1, x2</span><br><span class="line">csel x0, x1, x2, ge  <span class="comment">// x0 = 4</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>cset指令</li>
+</ul>
+<blockquote>
+<p>CSET <em>Wd</em>, <em>cond</em> ; 32-bit</p>
+</blockquote>
+<blockquote>
+<p>CSET <em>Xd</em>, <em>cond</em> ; 64-bit</p>
+</blockquote>
+<p>判断cond是否为真，为真设置Xd/Wd为1，否则设置为0</p>
+<ul>
+<li>csinc指令</li>
+</ul>
+<p>类似于csel，不过当cond为假是，返回Xm/Wm + 1</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">mov x1, #<span class="number">3</span></span><br><span class="line">mov x2, #<span class="number">4</span></span><br><span class="line"></span><br><span class="line">cmp x1, x2</span><br><span class="line">csinc x0, x1, x2, ge <span class="comment">// x0 = 5</span></span><br></pre></td></tr></table></figure>
+<h3 id="跳转指令">跳转指令</h3>
+<ul>
+<li><p>普通跳转指令</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>B</th>
+<th>B label 当前PC偏移量±128MB范围</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>B.cond</td>
+<td>B.cond label 当前PC偏移量±1MB范围</td>
+</tr>
+<tr class="even">
+<td>BL</td>
+<td>BL label
+将返回值保存至X30寄存器，保存的值等于调用BL指令的当前PC值加4</td>
+</tr>
+<tr class="odd">
+<td>BR</td>
+<td>BR Xn 跳转到寄存器指定地址</td>
+</tr>
+<tr class="even">
+<td>BLR</td>
+<td>BLR Xn 跳转到寄存器指定地址，并将返回地址保存在X30寄存器</td>
+</tr>
+</tbody>
+</table></li>
+<li><p>比较跳转指令</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>CBZ</th>
+<th>cbz Xt, label Xt == 0，跳转至label，跳转范围是当前PC地址±1MB</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>CBNZ</td>
+<td>cbnz Xt, label Xt != 0，跳转至label，跳转范围是当前PC地址±1MB</td>
+</tr>
+<tr class="even">
+<td>TBZ</td>
+<td>tbz R<t>, #imm, label
+Rt寄存器第imm位为0，跳转至label，跳转范围是当前PC地址±32KB</td>
+</tr>
+<tr class="odd">
+<td>TBNZ</td>
+<td>tbnz R<t>, #imm, label
+Rt寄存器第imm位不为0，跳转至label，跳转范围是当前PC地址±32KB</td>
+</tr>
+</tbody>
+</table></li>
+<li><p>X29和X30寄存器的使用</p>
+<p>调用子函数时，需要将X29和X30寄存器入栈，在主函数返回时，将X29和X30出栈，否则会出现主函数无法退出的情况。</p>
+<p>错误案例：</p>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">// main.cpp</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="string">&quot;C&quot;</span> <span class="function"><span class="keyword">void</span> <span class="title">test2</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="built_in">test2</span>();</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// main.s</span></span><br><span class="line">.arch armv8-a</span><br><span class="line">.text</span><br><span class="line">.align	<span class="number">3</span></span><br><span class="line"></span><br><span class="line">.global csel_test</span><br><span class="line">csel_test:</span><br><span class="line">    cmp x0, <span class="number">0</span></span><br><span class="line">    sub x2, x1, <span class="number">1</span></span><br><span class="line">    add x3, x1, <span class="number">2</span></span><br><span class="line">    csel x0, x3, x2, eq</span><br><span class="line">    ret</span><br><span class="line"></span><br><span class="line">.global	test2</span><br><span class="line">test2:</span><br><span class="line">    mov x0, <span class="number">1</span></span><br><span class="line">    mov x2, <span class="number">3</span></span><br><span class="line">    bl csel_test</span><br><span class="line">    ret</span><br></pre></td></tr></table></figure></p>
+<p>Linux主机编译支持debug的arm跨平台可执行文件方法，参照另一篇文章《Android
+Toolchain编译与GDB调试》</p>
+<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">./gdb <span class="comment"># 进入gdb程序</span></span><br><span class="line">b main <span class="comment"># 加断点</span></span><br><span class="line">n <span class="comment"># next 下一步，不进入函数 执行至test2();</span></span><br><span class="line">s <span class="comment"># step 下一步，进入test2函数内部</span></span><br><span class="line">n</span><br><span class="line">n</span><br><span class="line">info r <span class="comment"># info register 打印寄存器，可以查看lr寄存器为0x4030f0，pc寄存器为0x4031ac</span></span><br><span class="line">s <span class="comment"># step 下一步，进入csel_test函数内部</span></span><br><span class="line">info r <span class="comment"># info register 打印寄存器，可以查看lr寄存器为0x4031b0，pc寄存器为0x403190</span></span><br></pre></td></tr></table></figure></p>
+<p>以上过程可以看出，lr寄存器的值，在csel_test子函数执行时lr寄存器的值为上一步pc寄存器值+4，即0x4031ac
++ 4 = 0x4031b0</p>
+<p>当csel_test函数返回值test2时，lr寄存器的值为0x4031ac，此时test2函数只有按在lr寄存器的值为0x4030f0时才能正确返回，因此函数会卡住</p>
+<p>正确案例：</p>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">.arch armv8-a</span><br><span class="line">.text</span><br><span class="line">.align	<span class="number">3</span></span><br><span class="line"></span><br><span class="line">.global csel_test</span><br><span class="line">csel_test:</span><br><span class="line">    cmp x0, <span class="number">0</span></span><br><span class="line">    sub x2, x1, <span class="number">1</span></span><br><span class="line">    add x3, x1, <span class="number">2</span></span><br><span class="line">    csel x0, x3, x2, eq</span><br><span class="line">    ret</span><br><span class="line"></span><br><span class="line">.global	main</span><br><span class="line">main:</span><br><span class="line">		stp x29, x30, [sp, <span class="number">-16</span>]!</span><br><span class="line">    mov x0, <span class="number">1</span></span><br><span class="line">    mov x2, <span class="number">3</span></span><br><span class="line">		ldp x29, x30, [sp], #<span class="number">16</span></span><br><span class="line">    bl csel_test</span><br><span class="line">    ret</span><br></pre></td></tr></table></figure></p>
+<p>重复上述gdb步骤，查看lr，pc寄存器的值</p>
+<p>test2，lr寄存器的值为0x4030f0，pc寄存器的值为0x4031b0</p>
+<p>csel_test，lr寄存器的值为0x4031b4，pc寄存器的值为0x4031a0</p>
+<p>返回test2函数后，lr寄存器的值为0x4030f0，pc寄存器的值为0x4031b8</p>
+<p>test2调用子函数前后lr寄存器的值保持不变，test2函数正常结束</p></li>
+</ul>
+<h3 id="pc相对地址加载指令">PC相对地址加载指令</h3>
+<ul>
+<li>ADR指令</li>
+</ul>
+<p>加载当前PC值±1MB范围内的label地址到目的寄存器</p>
+<ul>
+<li>ADRP指令</li>
+</ul>
+<p>加载当前PC值±4GB范围内的label 4KB对齐的地址到目的寄存器</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">.arch armv8-a</span><br><span class="line">.text</span><br><span class="line">.align	3</span><br><span class="line"></span><br><span class="line">my_data1:</span><br><span class="line"> .dword 0x8a</span><br><span class="line"></span><br><span class="line">.global	test2</span><br><span class="line">test2:</span><br><span class="line">    adr x0, my_data1</span><br><span class="line">    ldr x1, [x0]</span><br><span class="line"></span><br><span class="line">    adrp x2, my_data1</span><br><span class="line">    ldr x3, [x2]</span><br><span class="line">    ret</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>可以通过gdb -tui进行界面模式，然后通过layout
+reg切换至寄存器显示模式</p>
+</blockquote>
+<p>通过GDB查看，x0地址为0x403190，x2地址为0x403000，前者为my_data1的地址，否则为my_data1地址按照4KB对齐后的地址，因此x1寄存器的值为0x8a，与定义相同，x3寄存器的值错误。</p>
+<figure>
+<img src="https://s2.loli.net/2022/05/23/4w1xtTYNIyQXb7J.png"
+alt="https://s2.loli.net/2022/05/23/4w1xtTYNIyQXb7J.png" />
+<figcaption
+aria-hidden="true">https://s2.loli.net/2022/05/23/4w1xtTYNIyQXb7J.png</figcaption>
+</figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">adrp x2, my_data1</span><br><span class="line">add x2, x2, <span class="comment">#:lo12:my_data1</span></span><br><span class="line">ldr x3, [x2]</span><br></pre></td></tr></table></figure>
+<p>“#:lo12:”，表示4KB大小的偏移量，再通过GDB查看，结果正确。</p>
+<figure>
+<img src="https://s2.loli.net/2022/05/23/CxqeDOmPaLQ4hgN.png"
+alt="https://s2.loli.net/2022/05/23/CxqeDOmPaLQ4hgN.png" />
+<figcaption
+aria-hidden="true">https://s2.loli.net/2022/05/23/CxqeDOmPaLQ4hgN.png</figcaption>
+</figure>
+<ul>
+<li>adr和ldr伪指令的区别
+<ol type="1">
+<li>ldr伪指令加载的是绝对地址，adr加载的是当前pc的相对地址</li>
+<li>当运行地址和链接地址相同时，adr和ldr伪指令等效</li>
+<li>当运行地址和链接地址不同时，ldr伪指令加载label的链接地址，adr加载label物理地址</li>
+</ol></li>
+</ul>
+<h3 id="系统寄存器访问指令">系统寄存器访问指令</h3>
+<ul>
+<li>mrs指令</li>
+</ul>
+<p>读取系统寄存器的值到通用寄存器</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mrs x0, nzcv</span><br><span class="line">// 读取NZCV寄存器，查看标志位是否为1</span><br></pre></td></tr></table></figure>
+<ul>
+<li>msr指令</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mrs x0, nzcv</span><br><span class="line">// 更新NZCV寄存器的值</span><br></pre></td></tr></table></figure>
+<h3 id="内存屏障指令">内存屏障指令</h3>
+<table>
+<thead>
+<tr class="header">
+<th>
+DMB
+</th>
+<th>
+数据存储屏障，Data Memory
+Barrier，确保在执行新的存储器访问前所有的存储器访问都已经完成
+</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>
+DSB
+</td>
+<td>
+数据同步屏障，Data Synchronization
+Barrier，确保在下一个指令执行前所有的存储器访问都已经完成
+</td>
+</tr>
+<tr class="even">
+<td>
+ISB
+</td>
+<td>
+指令同步屏障，Instruction Synchronization
+Barrier，清空流水线，确保在执行新的指令前，之前所有的指令都已经完成
+</td>
+</tr>
+<tr class="odd">
+<td>
+LDAR
+</td>
+<td>
+加载-获取指令，Load-acquire，LDAR指令后面的读写内存指令必须在LDAR指令之后才能完成
+</td>
+</tr>
+<tr class="even">
+<td>
+STLR
+</td>
+<td>
+存储-释放指令，Store-release，所有加载和存储指令必须在STLR指令之前完成
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="伪指令">伪指令</h3>
+<ul>
+<li><p>对齐伪指令</p>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">.align <span class="number">2</span>  # 四字节对齐</span><br><span class="line">.align <span class="number">5</span>, <span class="number">0</span>, <span class="number">100</span>  # <span class="number">32</span>字节对齐，最多跳过字节数为<span class="number">100</span>，填充<span class="number">0</span></span><br></pre></td></tr></table></figure></p></li>
+<li><p>数据定义伪指令</p>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">.byte	          将<span class="number">8</span>位数作为数据插入汇编代码</span><br><span class="line">.hword/.<span class="keyword">short</span>	  将<span class="number">16</span>位数作为数据插入汇编代码</span><br><span class="line">.<span class="keyword">long</span>/.<span class="keyword">int</span>	    将<span class="number">32</span>位数作为数据插入汇编代码</span><br><span class="line">.word	          将<span class="number">32</span>位数作为数据插入汇编代码</span><br><span class="line">.quad	          将<span class="number">64</span>位数作为数据插入汇编代码</span><br><span class="line">.<span class="keyword">float</span>	        将浮点数作为数据插入汇编代码</span><br><span class="line">.ascii/.string	将字符串作为数据插入汇编代码</span><br><span class="line">.asciz	        将字符串作为数据插入汇编代码，自动插入结尾字符”\<span class="number">0</span>”</span><br><span class="line">.rept/.endr   	重复执行操作</span><br><span class="line">  .rept <span class="number">3</span></span><br><span class="line">  .<span class="keyword">long</span> <span class="number">0</span></span><br><span class="line">  .endr</span><br><span class="line">.equ	          符号赋值操作</span><br><span class="line">	.equ my_data, <span class="number">100</span></span><br></pre></td></tr></table></figure></p></li>
+<li><p>函数相关伪指令</p>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">.global                 全局函数符号，或者全局变量符号</span><br><span class="line">.include                引用头文件</span><br><span class="line">.<span class="keyword">if</span> .<span class="keyword">else</span> .endif        条件判断</span><br><span class="line">.ifdef/.ifndef symbol   判断符号是否定义</span><br><span class="line">.ifc/.ifeqs             判断两字符串是否相等</span><br><span class="line">.ifeq/.ifge/.ifle/.ifne 判断值是否为<span class="number">0</span>/大于等于/小于等于<span class="number">0</span>/不等于<span class="number">0</span></span><br></pre></td></tr></table></figure></p></li>
+<li><p>宏伪指令</p>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">.macro add p1 p2</span><br><span class="line">add x0, \p1, \p2</span><br><span class="line">.endm</span><br></pre></td></tr></table></figure></p></li>
+</ul>
+]]></content>
+      <tags>
+        <tag>ARM</tag>
+        <tag>汇编</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>ARM常用指令(1)</title>
+    <url>/2022/05/12/ARM%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4/</url>
+    <content><![CDATA[<meta name="referrer" content="no-referrer" />
+<h2 id="加载与存储指令">加载与存储指令</h2>
+<h3 id="基于基地址的寻址模式">基于基地址的寻址模式</h3>
+<ul>
+<li>基地址寻址</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">ldr x0, [x1]</span><br></pre></td></tr></table></figure>
+<span id="more"></span>
+<ul>
+<li>基地址偏移量寻址</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">ldr x0, [x1, #<span class="number">4</span>]</span><br></pre></td></tr></table></figure>
+<ul>
+<li>基地址扩张寻址</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">ldr x0, [x1, x2]</span><br><span class="line">ldr x0, [x1, x2, LSL #<span class="number">3</span>]</span><br><span class="line">ldr x0, [x1, x2, UXTW]</span><br><span class="line">ldr x0, [x1, w2, UXTW #<span class="number">3</span>]</span><br></pre></td></tr></table></figure>
+<p>UXTW表示从寄存器中提取32位数据，高位补0，无符号数。相同的extend还包括UXTB，UXTH。</p>
+<p>SXTW表示从寄存器中提取32位数据，高位补0，有符号数。相同的extend还包括SXTB，SXTH。</p>
+<h3 id="变基寻址模式">变基寻址模式</h3>
+<ul>
+<li>前变基模式</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">ldr x0, [x1, #<span class="number">4</span>]!</span><br></pre></td></tr></table></figure>
+<ul>
+<li>后变基模式</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">ldr x0, [x1], #<span class="number">4</span></span><br></pre></td></tr></table></figure>
+<h3 id="ldr伪指令">LDR伪指令</h3>
+<p>ldr既可以是普通的加载指令，也可以在第二个参数前加上“=”后，表示大范围加载地址的伪指令。注：无str伪指令</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">ldr x0, =label <span class="comment">// 此时x0中即为label的值</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>‘[]’方括号表示从括号中参数的内存地址中读取或者存储数据，‘!’感叹号表示更新存放地址的寄存器，也即写回和更新寄存器</p>
+</blockquote>
+<h3 id="ldr和str的变种">ldr和str的变种</h3>
+<table>
+<thead>
+<tr class="header">
+<th>指令</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>ldr</td>
+<td>普通数据加载指令，4字节与8字节数据，以W或者X寄存器区分</td>
+</tr>
+<tr class="even">
+<td>ldrsw</td>
+<td>有符号数据加载指令，word</td>
+</tr>
+<tr class="odd">
+<td>ldrb</td>
+<td>数据加载指令，byte</td>
+</tr>
+<tr class="even">
+<td>ldrsb</td>
+<td>有符号数据加载指令，byte</td>
+</tr>
+<tr class="odd">
+<td>ldrh</td>
+<td>数据加载指令，half-word</td>
+</tr>
+<tr class="even">
+<td>ldrsh</td>
+<td>有符号数据加载指令，half-word</td>
+</tr>
+<tr class="odd">
+<td>strb</td>
+<td>数据存储指令，byte</td>
+</tr>
+<tr class="even">
+<td>strh</td>
+<td>数据存储指令，halfword</td>
+</tr>
+</tbody>
+</table>
+<h3 id="多字节加载与存储指令">多字节加载与存储指令</h3>
+<p>在A32中通常使用LDM，STM指令实现多字节内存加载和存储，但是在A64架构中取消了LDM和STM指令，取而代之的是LDP(Load
+Pair)和STP(Store
+Pair)指令。LDP和STP支持基地址偏移量寻址、前变基模式和后变基模式三种寻址方式。</p>
+<ol type="1">
+<li><p>基地址偏移量寻址</p>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">ldp x0, x1, [x2]</span><br><span class="line">stp x0, x1, [x2]</span><br></pre></td></tr></table></figure></p></li>
+<li><p>前变基寻址</p>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">ldp x0, x1, [x2, #<span class="number">4</span>]！</span><br><span class="line">stp x0, x1, [x2]</span><br></pre></td></tr></table></figure></p></li>
+<li><p>后编辑寻址</p>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">ldp x0, x1, [x2], #<span class="number">4</span></span><br><span class="line">stp x0, x1, [x2], #<span class="number">4</span></span><br></pre></td></tr></table></figure></p></li>
+</ol>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 以上常用指令简易测试汇编代码如下</span></span><br><span class="line">.arch armv8-a</span><br><span class="line">.text</span><br><span class="line">.align	<span class="number">3</span></span><br><span class="line"></span><br><span class="line">my_data:</span><br><span class="line">    .word <span class="number">0x40</span></span><br><span class="line"></span><br><span class="line">.equ MY_LABEL, <span class="number">0x20</span></span><br><span class="line"></span><br><span class="line">.global	test2</span><br><span class="line">test2:</span><br><span class="line"></span><br><span class="line">    <span class="comment">// int a[10]&#123;1, 2, 3, 4, 5, 6, 7, 8, 9, 10&#125;;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// x1保存了数组首地址</span></span><br><span class="line">    mov x1, x0</span><br><span class="line">    <span class="comment">// 立即数</span></span><br><span class="line">    mov x3, #<span class="number">1</span></span><br><span class="line">    mov w4, #<span class="number">1</span></span><br><span class="line">    mov w5, #<span class="number">4</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 1. 基地址模式</span></span><br><span class="line">    ldr x0, [x1] <span class="comment">//x0 = 1</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 2. 基地址+偏移量模式</span></span><br><span class="line">    ldr x0, [x1, #<span class="number">4</span>] <span class="comment">// x0 = 2</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 3. 基地址扩展模式</span></span><br><span class="line">    ldr x0, [x1, x3, lsl #<span class="number">3</span>] <span class="comment">// x0 = 3</span></span><br><span class="line">    ldr x0, [x1, w5, SXTW] <span class="comment">// x0 = 2</span></span><br><span class="line">    ldr x0, [x1, w4, SXTW #<span class="number">3</span>] <span class="comment">// x0 = 3</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 4. 变基模式</span></span><br><span class="line">    ldr x0, [x1, #<span class="number">4</span>]! <span class="comment">// 前变基模式 x0 = 2</span></span><br><span class="line">    ldr x0, [x1] <span class="comment">// 前变基模式后x1自动加4 此时x0 = 2</span></span><br><span class="line">    ldr x0, [x1], #<span class="number">4</span> <span class="comment">// 后变基模式 x0 = 2,</span></span><br><span class="line">    ldr x0, [x1] <span class="comment">// x0 = 3</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// 基地址寻址</span></span><br><span class="line">    ldp w6, w7, [x1, #<span class="number">4</span>]!</span><br><span class="line">    mov w0, w6 <span class="comment">// w0 = 6</span></span><br><span class="line">    mov w0, w7 <span class="comment">// w0 = 7</span></span><br><span class="line">    ret</span><br></pre></td></tr></table></figure>
+<h3 id="入栈与出栈">入栈与出栈</h3>
+<p>在程序中栈通常有以下用途：</p>
+<ul>
+<li>临时存储数据，如临时变量等</li>
+<li>传递参数。ArmV8平台，如果函数参数不超过8个，那么将使用x0~x7通用寄存器传递参数，当传递参数超过8个时，就需要用到栈了。</li>
+</ul>
+<p>一般情况，栈是从高地址向低地址生长的数据结构，起始地址称为栈底，最后一个入栈元素地址称之为栈顶，指向栈顶的指针称之为栈指针，SP(Stack
+Point)。</p>
+<p>A32提供了push和pop指令进行入栈出栈操作，在A64指令集中移除了push和pop，使用ldp和stp取代。</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">.arch armv8-a</span><br><span class="line">.text</span><br><span class="line">.align	<span class="number">3</span></span><br><span class="line"></span><br><span class="line">.global	test2</span><br><span class="line">test2:</span><br><span class="line"></span><br><span class="line">    mov x1, x0</span><br><span class="line">    ldp x2, x3, [x1] <span class="comment">// x2 = 1, x3 = 2</span></span><br><span class="line">		<span class="comment">// 栈向下扩展16字节</span></span><br><span class="line">    stp x2, x3, [sp, #<span class="number">-16</span>]!</span><br><span class="line">		<span class="comment">// 出栈，并使用后变基恢复sp位置</span></span><br><span class="line">    ldp x2, x3, [sp], #<span class="number">16</span></span><br><span class="line"></span><br><span class="line">    mov x0, x3 <span class="comment">// x2 = 1, x3 = 2</span></span><br><span class="line"></span><br><span class="line">    ret</span><br></pre></td></tr></table></figure>
+<h3 id="mov指令">MOV指令</h3>
+<p>mov指令通常用于寄存器之间的搬移和立即数搬移。</p>
+<p>而能搬运的立即数只有以下两种：</p>
+<ol type="1">
+<li>16位立即数</li>
+<li>16位立即数左移16位、32位或者48位的立即数</li>
+</ol>
+<p>此时mov指令等同于movz指令</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">movz x0, <span class="number">0x12bc</span>, LSL #<span class="number">16</span></span><br></pre></td></tr></table></figure>
+<p>mov指令还可以用来搬运bitmask，此时等同orr指令</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">orr x0, XZR, #<span class="number">0xffff0000ffff</span></span><br></pre></td></tr></table></figure>
+<p>可以通过反汇编验证以上结论：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">main.s:</span><br><span class="line"></span><br><span class="line">.arch armv8-a</span><br><span class="line">.text</span><br><span class="line">.align    <span class="number">3</span></span><br><span class="line"></span><br><span class="line">.global    test2</span><br><span class="line">test2:</span><br><span class="line">	mov x0, <span class="number">0x12bc0000</span></span><br><span class="line">	mov x1, <span class="number">0xffff0000ffff</span></span><br><span class="line">	ret</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>通常一个cpp文件要变成熟悉的可执行文件a.out，需要经过以下四个步骤</p>
+</blockquote>
+<p><img src="https://s2.loli.net/2022/05/23/TuZB4nx3HyjrA9F.png" /></p>
+<p>调用aarch64-linux-android-g++对main.s进行汇编过程：</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">aarch64-linux-android-g++ -c main.s -o main.o</span><br></pre></td></tr></table></figure>
+<p>调用aarch64-linux-android-objdump -s -d -M no-aliases
+test.o对main.o进行反汇编</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">aarch64-linux-android-objdump -s -d -M no-aliases main.o</span><br><span class="line"></span><br><span class="line"><span class="comment"># shell会打印出反汇编结果：</span></span><br><span class="line">main.o:     file format elf64-littleaarch64</span><br><span class="line"></span><br><span class="line">Contents of section .text:</span><br><span class="line"> 0000 8057a2d2 e13f00b2 c0035fd6 1f2003d5  .W...?...._.. ..</span><br><span class="line"></span><br><span class="line">Disassembly of section .text:</span><br><span class="line"></span><br><span class="line">0000000000000000 &lt;test2&gt;:</span><br><span class="line">   0:	d2a25780 	movz	x0, <span class="comment">#0x12bc, lsl #16</span></span><br><span class="line">   4:	b2003fe1 	orr	x1, xzr, <span class="comment">#0xffff0000ffff</span></span><br><span class="line">   8:	d65f03c0 	ret</span><br><span class="line">   c:	d503201f 	hint	<span class="comment">#0x0</span></span><br></pre></td></tr></table></figure>
+<p>可以看到mov指令变成了movz和orr指令</p>
+]]></content>
+      <tags>
+        <tag>ARM</tag>
+        <tag>汇编</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Android Toolchain编译与GDB调试</title>
+    <url>/2022/08/26/Android-Toolchain%E7%BC%96%E8%AF%91%E4%B8%8EGDB%E8%B0%83%E8%AF%95/</url>
+    <content><![CDATA[<meta name="referrer" content="no-referrer" />
+<p>在进行linux主机上进行arm跨平台进行pure c++开发时，可能混有Neon
+intrinsic或者ARM
+assembly代码，此时进行代码编译和调试，可以使用standalone
+toolchain进行编译，使用gdb+gdbserver进行调试。</p>
+<span id="more"></span>
+<p>首先需要在NDK
+website上下载一个NDK工具包并解压，本人使用的是r14b版本，链接：<a
+href="https://dl.google.com/android/repository/android-ndk-r14b-linux-x86_64.zip">https://dl.google.com/android/repository/android-ndk-r14b-linux-x86_64.zip</a></p>
+<ul>
+<li><p>Standalone Toolchain的编译</p>
+<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> android-ndk-r14b/build/tools/</span><br><span class="line">./make-standalone-toolchain.sh --platform=android-21 --install-dir=./android-aarch64 --arch=arm64</span><br><span class="line">./make-standalone-toolchain.sh --platform=android-21 --install-dir=./android-armv7 --arch=arm</span><br></pre></td></tr></table></figure></p>
+<p>通过以上命令，会生成android-aarch64，android-armv7两个目录，可以将生成的standalone
+toolchain拷贝至固定目录</p>
+<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sudo cp -r android-ndk-r14b/build/tools/android-aarch64 /opt</span><br><span class="line">sudo cp -r android-ndk-r14b/build/tools/android-armv7 /opt</span><br></pre></td></tr></table></figure></p>
+<p>以上完成standalone toolchain生成</p></li>
+<li><p>Linux主机编译arm跨平台pure c++程序</p>
+<ol type="1">
+<li>在Linux主机上准备main.cpp源代码文件</li>
+</ol>
+<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment">#include &lt;iostream&gt;</span></span><br><span class="line"></span><br><span class="line">int <span class="function"><span class="title">main</span></span>() &#123;</span><br><span class="line">		std::cout &lt;&lt; <span class="string">&quot;hello world&quot;</span> &lt;&lt; <span class="string">std::endl;</span></span><br><span class="line"><span class="string">    return 0;</span></span><br><span class="line"><span class="string">&#125;</span></span><br></pre></td></tr></table></figure></p>
+<ol type="1">
+<li>编写CMakeLists.txt文件</li>
+</ol>
+<p><figure class="highlight makefile"><table><tr><td class="code"><pre><span class="line">cmake_minimum_required(VERSION 3.17)</span><br><span class="line"></span><br><span class="line">project(ARM)</span><br><span class="line"></span><br><span class="line">enable_language(ASM)</span><br><span class="line"></span><br><span class="line">set(CMAKE_CXX_STANDARD 11)</span><br><span class="line">set(CMAKE_CXX_STANDARD_REQUIRED ON)</span><br><span class="line">add_definitions(-w)</span><br><span class="line">SET(CMAKE_BUILD_TYPE <span class="string">&quot;Debug&quot;</span>)</span><br><span class="line">SET(CMAKE_CXX_FLAGS_DEBUG <span class="string">&quot;$ENV&#123;CXXFLAGS&#125; -O0 -Wall -g2 -ggdb&quot;</span>)</span><br><span class="line">SET(CMAKE_CXX_FLAGS_RELEASE <span class="string">&quot;$ENV&#123;CXXFLAGS&#125; -O3 -Wall&quot;</span>)</span><br><span class="line"></span><br><span class="line">set(TARGET_CPU aarch64)</span><br><span class="line"></span><br><span class="line">set(CMAKE_CXX_FLAGS <span class="string">&quot;$&#123;CMAKE_CXX_FLAGS&#125; -static -fPIE -flax-vector-conversions&quot;</span>)</span><br><span class="line">if(TARGET_CPU STREQUAL <span class="string">&quot;aarch64&quot;</span>)</span><br><span class="line">    include_directories(/opt/android-ndk-r14b/android-aarch64/lib64/clang/7.0.2/<span class="keyword">include</span>)</span><br><span class="line"><span class="keyword">else</span>()</span><br><span class="line">    set(CMAKE_CXX_FLAGS <span class="string">&quot;$&#123;CMAKE_CXX_FLAGS&#125; -mfloat-abi=softfp -mfpu=neon&quot;</span>)</span><br><span class="line">    include_directories(/opt/android-ndk-r14b/android-armv7/lib64/clang/7.0.2/<span class="keyword">include</span>)</span><br><span class="line"><span class="keyword">endif</span>()</span><br><span class="line"></span><br><span class="line">set(SOURCES</span><br><span class="line">    main.cpp</span><br><span class="line">    <span class="comment"># main.s</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">add_executable(main $&#123;SOURCES&#125;)</span><br></pre></td></tr></table></figure></p>
+<ol type="1">
+<li>编译ARM平台可执行文件</li>
+</ol>
+<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">CXX_COMPILER=/opt/android-ndk-r14b/android-aarch64/bin/aarch64-linux-android-g++</span><br><span class="line">CC_COMPILER=/opt/android-ndk-r14b/android-aarch64/bin/aarch64-linux-android-gcc</span><br><span class="line"><span class="built_in">cd</span> cmake-build-debug</span><br><span class="line">cmake .. -DCMAKE_C_COMPILER=<span class="variable">$CC_COMPILER</span> -DCMAKE_CXX_COMPILER=<span class="variable">$CXX_COMPILER</span></span><br></pre></td></tr></table></figure></p>
+<ol type="1">
+<li>ARM平台程序的执行</li>
+</ol>
+<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">adb push main /data/<span class="built_in">local</span>/tmp</span><br><span class="line">adb shell ./data/<span class="built_in">local</span>/tmp/main</span><br></pre></td></tr></table></figure></p></li>
+<li><p>GDB+GDBServer调试</p>
+<ol type="1">
+<li>准备GDBServer</li>
+</ol>
+<p>测试手机一般出厂不会自带gdbserver，可以将NDK工具包中对应平台gdbserver推入手机</p>
+<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">adb push android-ndk-r14b/prebuilt/android-arm64/gdbserver/gdbserver /data/<span class="built_in">local</span>/tmp</span><br></pre></td></tr></table></figure></p>
+<ol type="1">
+<li>启动GDBServer</li>
+</ol>
+<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">adb shell <span class="comment"># 进入手机shell命令行</span></span><br><span class="line"><span class="built_in">cd</span> /data/<span class="built_in">local</span>/tmp</span><br><span class="line">./gdbserver tcp:9090 main</span><br><span class="line"></span><br><span class="line"><span class="comment"># 正常输出如下：</span></span><br><span class="line">Process main created; pid = 7201</span><br><span class="line">gdbserver: Unable to determine the number of hardware watchpoints available.</span><br><span class="line">gdbserver: Unable to determine the number of hardware breakpoints available.</span><br><span class="line">Listening on port 9090</span><br></pre></td></tr></table></figure></p>
+<ol type="1">
+<li>在主机平台启动gdb调试程序</li>
+</ol>
+<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> android-ndk-r14b/prebuilt/linux-x86_64/bin <span class="comment"># 进入ndk gdb程序目录</span></span><br><span class="line">adb forward tcp:9090 tcp:9090 <span class="comment"># 端口转发</span></span><br><span class="line">./gdb <span class="comment"># 进入gdb程序</span></span><br><span class="line">target remote localhost:9090 <span class="comment"># 开始获取信息并开始调试</span></span><br><span class="line">b main <span class="comment"># 设置断点</span></span><br><span class="line"><span class="comment"># 后续与普通GDB调试相同</span></span><br></pre></td></tr></table></figure></p>
+<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">n  <span class="comment"># 下一步，不进入函数内部</span></span><br><span class="line">s  <span class="comment"># 下一步，进入函数内部</span></span><br><span class="line">l  <span class="comment"># 代码列表</span></span><br><span class="line">info r    <span class="comment"># 查看寄存器</span></span><br></pre></td></tr></table></figure></p></li>
+</ul>
+]]></content>
+      <tags>
+        <tag>Android</tag>
+        <tag>Toolchain</tag>
+        <tag>GDB</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>C++ Tips</title>
+    <url>/2022/03/05/C-Tips/</url>
+    <content><![CDATA[<ol type="1">
+<li>自定义class，存在析构函数，那么需要同时定义或者删除拷贝构造函数和拷贝赋值函数。原因是，在拷贝构造或者拷贝复制的过程中，为浅拷贝，当程序结束，析构函数介入时，可能存在析构两次的情况。</li>
+</ol>
+<span id="more"></span>
+<ol start="2" type="1">
+<li><p>右值，int &amp;&amp;可以自动转换为int const &amp;。</p></li>
+<li><p>__restrict关键字，告诉编译器，指针不存在重叠的情况，编译器可以进行优化，所有的非const指针都可以加上__restrict关键字，如：int
+* __restrict a。对于vector容器，__restrict关键字不生效，可以尝试#pragma
+omp simd或者#pragma GCC ivdep</p></li>
+<li><p>关于malloc和new</p>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">int</span> *a = <span class="keyword">new</span> <span class="keyword">int</span>[<span class="number">102400</span>];</span><br><span class="line"></span><br><span class="line"><span class="keyword">int</span> *a = (<span class="keyword">int</span> *)<span class="built_in">malloc</span>(<span class="number">102400</span> * <span class="built_in"><span class="keyword">sizeof</span></span>(<span class="keyword">int</span>));</span><br></pre></td></tr></table></figure></p>
+<p>以上申请内存的两种语句，在实际生产环境，执行时并不会真正的分配内存，而是将这一段内存标记为不可用，即：invalid。待需要用到a数组：赋值或者其他操作时，会触发缺页中断，page
+fault。此时进入内核，查询此段内存是否之前malloc过，如果查询到，那么内存标记为可用，此时程序正常运行，如果未查询到malloc记录，那么触发段错误，segmentation
+fault。</p>
+<p>以上两种申请内存的语句，不会进行置零操作，初始化数组时，内存被写入，此时操作系统才进行实际的内存分配，因此测试两次内存赋值操作会发现时间不同。对于new操作符有一个简便方法</p>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">int</span> *a = <span class="keyword">new</span> <span class="keyword">int</span>[<span class="number">102400</span>]&#123;&#125;;</span><br></pre></td></tr></table></figure></p>
+<p>常见的自定义String类中，无参数构造函数也可以进行以下简单的定义：注意new
+char[1]后面的一对大括号</p>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">String::<span class="built_in">String</span>() : m_length&#123;<span class="number">0</span>&#125;, m_string&#123;<span class="keyword">new</span> <span class="keyword">char</span>[<span class="number">1</span>]&#123;&#125;&#125;&#123;&#125;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>原子操作</p>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">type __sync_fetch_and_add (type *ptr, type value, ...) <span class="comment">// 将value加到*ptr上，结果更新到*ptr，并返回操作之前*ptr的值</span></span><br><span class="line">type __sync_fetch_and_sub (type *ptr, type value, ...) <span class="comment">// 从*ptr减去value，结果更新到*ptr，并返回操作之前*ptr的值</span></span><br><span class="line">type __sync_fetch_and_or (type *ptr, type value, ...) <span class="comment">// 将*ptr与value相或，结果更新到*ptr， 并返回操作之前*ptr的值</span></span><br><span class="line">type __sync_fetch_and_and (type *ptr, type value, ...) <span class="comment">// 将*ptr与value相与，结果更新到*ptr，并返回操作之前*ptr的值</span></span><br><span class="line">type __sync_fetch_and_xor (type *ptr, type value, ...) <span class="comment">// 将*ptr与value异或，结果更新到*ptr，并返回操作之前*ptr的值</span></span><br><span class="line">type __sync_fetch_and_nand (type *ptr, type value, ...) <span class="comment">// 将*ptr取反后，与value相与，结果更新到*ptr，并返回操作之前*ptr的值</span></span><br><span class="line">type __sync_add_and_fetch (type *ptr, type value, ...) <span class="comment">// 将value加到*ptr上，结果更新到*ptr，并返回操作之后新*ptr的值</span></span><br><span class="line">type __sync_sub_and_fetch (type *ptr, type value, ...) <span class="comment">// 从*ptr减去value，结果更新到*ptr，并返回操作之后新*ptr的值</span></span><br><span class="line">type __sync_or_and_fetch (type *ptr, type value, ...) <span class="comment">// 将*ptr与value相或， 结果更新到*ptr，并返回操作之后新*ptr的值</span></span><br><span class="line">type __sync_and_and_fetch (type *ptr, type value, ...) <span class="comment">// 将*ptr与value相与，结果更新到*ptr，并返回操作之后新*ptr的值</span></span><br><span class="line">type __sync_xor_and_fetch (type *ptr, type value, ...) <span class="comment">// 将*ptr与value异或，结果更新到*ptr，并返回操作之后新*ptr的值</span></span><br><span class="line">type __sync_nand_and_fetch (type *ptr, type value, ...) <span class="comment">// 将*ptr取反后，与value相与，结果更新到*ptr，并返回操作之后新*ptr的值</span></span><br><span class="line"><span class="keyword">bool</span> __sync_bool_compare_and_swap (type *ptr, type oldval type newval, ...) <span class="comment">// 比较*ptr与oldval的值，如果两者相等，则将newval更新到*ptr并返回true</span></span><br><span class="line">type __sync_val_compare_and_swap (type *ptr, type oldval type newval, ...) <span class="comment">// 比较*ptr与oldval的值，如果两者相等，则将newval更新到*ptr并返回操作之前*ptr的值</span></span><br><span class="line">__sync_synchronize (...) <span class="comment">// 发出完整内存栅栏，内存屏障</span></span><br><span class="line">type __sync_lock_test_and_set (type *ptr, type value, ...) <span class="comment">// 将value写入*ptr，对*ptr加锁，并返回操作之前*ptr的值</span></span><br><span class="line"><span class="keyword">void</span> __sync_lock_release (type *ptr, ...) <span class="comment">// 将0写入到*ptr，（类似对*ptr解锁）</span></span><br></pre></td></tr></table></figure></p>
+<p>c++11中atomic</p>
+<ol type="1">
+<li>atomic_flag</li>
+</ol>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">std::atomic_flag LOCK = ATOMIC_FLAG_INIT; <span class="comment">// 原子布尔类型</span></span><br><span class="line">LOCK.<span class="built_in">test_and_set</span>(); <span class="comment">//被设置，则返回true; 否则，返回false</span></span><br><span class="line">LOCK.<span class="built_in">clear</span>(); <span class="comment">// 清除atomic_flag对象</span></span><br></pre></td></tr></table></figure></p>
+<ol type="1">
+<li>atomic对int, char, bool等数据结构进行原子性封装</li>
+</ol>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function">std::atomic&lt;<span class="keyword">int</span>&gt; <span class="title">counter</span><span class="params">(<span class="number">2</span>)</span></span>; <span class="comment">// 等同于counter.load(2);</span></span><br><span class="line"><span class="keyword">int</span> old = counter.<span class="built_in">fetch_add</span>(<span class="number">2</span>); <span class="comment">// 等同于counter+=2; 注意：counter = counter + 1;并不是原子操作; fetch_add会返回旧值</span></span><br><span class="line">counter.<span class="built_in">load</span>(); <span class="comment">// 读取，等同于std::cout &lt;&lt; counter &lt;&lt; std::endl;</span></span><br><span class="line"><span class="keyword">int</span> old = counter.<span class="built_in">exchange</span>(<span class="number">3</span>); <span class="comment">// 交换并返回旧值，old = 2</span></span><br><span class="line"><span class="keyword">bool</span> equal = counter.<span class="built_in">compare_exchange_strong</span>(old, <span class="keyword">new</span>); <span class="comment">// equal with old, counter = new, 返回true, 此处的old为引用，不能直接传入右值2</span></span><br></pre></td></tr></table></figure></p></li>
+</ol>
+]]></content>
+      <tags>
+        <tag>C++</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>CUDA原子操作</title>
+    <url>/2022/08/08/CUDA%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C/</url>
+    <content><![CDATA[<meta name="referrer" content="no-referrer" />
+<ol type="1">
+<li><p>atomicAdd(dst, src)：*dst += src</p></li>
+<li><p>atomicSub(dst, src)：*dst -= src</p></li>
+<li><p>atomicOr(dst, src)：*dst |= src</p></li>
+</ol>
+<span id="more"></span>
+<ol start="4" type="1">
+<li><p>atomicAnd(dst, src)：*dst &amp;= src</p></li>
+<li><p>atomicXor(dst, src)：*dst ^= src</p></li>
+<li><p>atomicMax(dst, src)：<em>dst = std::max(</em>dst, src)</p></li>
+<li><p>atomicMin(dst, src)：<em>dst = std::min(</em>dst, src)</p></li>
+</ol>
+<p>以上原子操作均会返回旧值。</p>
+<ol type="1">
+<li><p>old = atomicExch(dst, src) ：old = <em>dst; </em>dst = src;
+不返回旧值，对标std::atomic的exchange函数</p></li>
+<li><p>atomicCAS：判断是否相等，相等则写入，并读取旧值</p>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">old = <span class="built_in">atomicCAS</span>(dst, cmp, src)</span><br><span class="line"></span><br><span class="line">Like below:</span><br><span class="line"></span><br><span class="line">old = *dst;</span><br><span class="line"><span class="keyword">if</span> (old == cmp)</span><br><span class="line">  *dst = src;</span><br></pre></td></tr></table></figure></p>
+<p>通过atomicCAS可以实现一些CUDA并未原生提供的原子操作，例如：读-修改-写回，乘</p>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">old = <span class="built_in">atomicCAS</span>(dst, expect, expect + src);</span><br><span class="line"></span><br><span class="line">old = <span class="built_in">atomicCAS</span>(dst, expect, expect * src);</span><br></pre></td></tr></table></figure></p></li>
+</ol>
+]]></content>
+      <tags>
+        <tag>CUDA</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>ISP尝试解决高Gain下暗部发紫问题</title>
+    <url>/2022/09/23/ISP%E5%B0%9D%E8%AF%95%E8%A7%A3%E5%86%B3%E9%AB%98Gain%E4%B8%8B%E6%9A%97%E9%83%A8%E5%8F%91%E7%B4%AB%E9%97%AE%E9%A2%98/</url>
+    <content><![CDATA[<div class="hbe hbe-container" id="hexo-blog-encrypt" data-wpm="Oh, this is an invalid password. Check and try again, please." data-whm="OOPS, these decrypted content may changed, but you can still have a look.">
+  <script id="hbeData" type="hbeData" data-hmacdigest="1cea3fbca16f260f3098fbb0b2633877df2c31239822c03f9ed6045e0137cbb5">68036766acfc1da8ae32adcb6da431294e97773dc586559ee7dc9dd6f0903db2a9b0a7964b9dbfdca1574eb71ef8681c2da495c23549c72cf0470a97f7dac7aff47ed59f9d106d79b9a2b1b6093a250e383affd1f30d01f4566d3baf2d761d8eacb34d9b4763d9852408de251209ca1c896d7d5c00ad01b1d03abdbe5c2f80dfa68708c24a17af06e70cf87291f269612d59d94fe4cde2acd8f1f77b21e850d4973274810035820de743ebe08ad452824367b50863c4806824befe8c656fdbbc19c542b33a1d9ccfc14bc93b535bb6f8697e1e239d520d27122a683e9971b18b299cd0a8668af4f6bce2f5b9e691f37d254ba743028b1799ad726ab2e4b4066c3792136c481b437eb75c098e4ffa1e85d2d0e0d9a8c2e9bc90e22545593da91efabc980dd33a9fd4286e1e2529c01e296cfe2caab94effc901d064bb22eb1b395b7f14115c695e14315aca1a098f05d16232439c1027184d2fed0a4a96f635c9ba79cb9f71686577d7ed2935162e9b8979f59e0dbfebbc485de9ba7089b1a6089cc04a3ec3bb7bf239423198af3ee74050e4407e12b4b989c61c14027a9ce537fa490e45c4cb28d67ff06b695c473db5bde698c785304140a3a5a1af3d96fa888f7f2bc884446bb9fb4f1c648f81ca0fba8a7125029c6968c944b7533d69efcc7791499f0fc105b18a35653dfd4b573518c98666d1660de6fd228e2f0616e614b490b901d6d2597978b9fe065b98ded1c0398e106cad6af91334571257d97f0e9eb55970f6779012db9ab22192f814dab112cce62a960fe881c4a887b5cf59a62dccaff6606056256a70ae22e001cbf8b40080fa826ae0e4d36c09ede258e534584365bfaeffaa1ceb5c6004a453bdb510b2ef3fc9395db63d2c0b0c39dea70347a8103f87ad1b1d7f4b11bf2c7e99e8a327ab24eaca01917de785370bc9a3feab55d62ffbd07e38b42e261798bdabf9f1b094074a537f9f8a4a8049d5b321034f96bf450f5b0405d1b581d6b6b881bc2c681602d1298463839e5859415cea187c1c68506588e1c5d81aab4c8cab7e3322b64d072b46513e51a52d348c6568665b6b39828ec977db15b5bacfec45afc64162483bfb79c2a9d5f4a62fe5d41703a6e1f8c3851ddbcf2ee753ec96b2192129c96d818c8e7e3d7ea124eb80fb7b19e7acb4754a6111f68850233277a94ad25750b527cb57ef16c1302318fd61482a47f4617012e1e815165804a726375e4c5758ffa59d22ccaa4d54c4922b1a69bf9c85af6efe6bf48e606773be5c2f3a7ecb8856e9bfe06c0dfa2c09c0208bec3c7de12b5ddbbc96f9312a19343dd89fd40409d06448b92eae45b02eb0f76f2726d31a42cc94b035383f20267d0873ce8803dc1c5818485e967ecc35b2d68ae53a9ce3d0d30d0244056e166b4b50aa6b2779bb0d34e91df7505c6f6fa3701462b84d527d9c938dc00f70845fb782e828faef7128ad100bb1bb89844f3f6c3ce99b44444dce5182d510b7139a885831ccfd15d1ed0481b1a05a4370e8902020e578bebebc2e600a81bd414660962d1bed5ee4eab11f5c13d72ae0c4b8c4685a4edcc0d2256248fd01c64a709694c64e5a025f30dee0753c426569e5b6d42249578a0c01e8fddce6a65102e9d3566523140e53923635d23bc53fdb54a1e0132faa1aa568ae92ebd34f131f95b28278cddf7934d06535e37939b18a1d1bdfe69dfcc5e8ce864457e04de59bc0affcc44f6d69ef26700a44d63f01dfdd5fb10af955ccb8df2fb1aa3bbb5ce14750e2808ffd2cb1bbf9cccf8d50dbbd7f595ee0734a9e6781fe60e8a9d66297fdbfb2123c79b964c68600686ddce84c4cf5dc235ec14aa28feb1ded0f4d23a8cdf76ee94192c77d06092ab9735f7686beb3fb6e1f1ef82354e91536b669c06ae14b2a6075f1981b807102c4523fb8999947700e435e68d1394834dbca671e8eab9e29dd2d631f2c5562f8712de2547a0c79c3e66442b71adc8ebbe193386a134dd72f725658ac107bd20fc7927224ea4778e2a317506ce5cafb29fd5e7e98bce7be33db35a3ddb1166f15892010627a13e682c299322e2f188dc2920a1050ec4ab05b67d67dbece89955be28a84badf1d2a1cc56e0abb3cf4c60f6e0d5c83615972c7220098d48112a32aacd6ba7dd59a7c275cc7ebb6069e1bfd3273f99397e903e5b948a4016048d27fc95a6f6d8214d4d7ee26b7a11c392d1a1f80f6d5ac713e5ddd936118d3ebc9cd22c2e31a32cfda723039651bda0510c7f75abf6cd0a0bc7ab93d663d2fde0041eafc775e8c34a8c8ec116414508858bc8abf91d739ae03892c6924175379e7c3dfb9c33cbcacf69a979db0d7b5125505ca23002d6b8990231c6e836beb9a2325d0b017d32d84e0e9b15d093cdc971d9eb8576f90841b182d0f81d21c3b8977c387742c6d7642141da565967eb213eece41a221521a6e1e34d3b161514752d87402908eec1d1ed1fbfeae1c0c4c2fca1cadb15bf9159056396ed33dddb14225c57a4df30ab1354c1bb7e2315dbf13460e5a38f3ba5eca8b7d3fe5d63964ae2679c1ed11420e389055e0b380d34e3e7d9722cd3688d46b7111004b52236d2c18bdfafa9734d31b76ffc089746484d82c9e8dc64b7d0a0d66d1f12205852cd6f77cd93074fea16299b879ebc44c0c0db8952acf6b0a438bf0a5fb5e168e836eafc79da3b1d302d73b7ad5377e8d0aee89ce6849b0a465bea2684b7539ca7e55ba0792852b8714331d2f84126ba3480e3c4f952ba09cb8db2150205e478102fede147eeb675462ec92b0d3f9a9e510edd11e74fa9bd97b3e492eb99696009aa5e5a3870e703a5f7e2382fd8721850d7ca29f62e5ff4463f0dc0365e0051e9239c90b80eb1034b4be7fba20ab0ccc22613f182d47d9c512015c2bdeb0c501dcdf7b0edff7a60df208ed459968970e3f37d808db9bf20e763171a75215007e02c5a74d1494ec0a5e12017cfafec1421bc15605511b438ec5a02010b81fba1e075b163bdfa99bf50d3bda96aba5c4f31f4a3ffb5437bcb7975cb3a873c14d8eca2c1d326ea0cf54ef7c4d33e1a66b2110e7f468051d3d4be5ee0496294f44f2a0f92375ab1639c96df715ccbcd95b7a87ba05f4bc152e9d628342c66f2a2cb32af3a2ba55d3150407332ce6577675fa5d54f03b07fedd13f6f4d9a0e77e64788a09109c60303664176991cca1ed41af7779db7be64f380058257f34926b575b3a65fa79b417f3a5052b63572bdabc42655db6dc6a212c0e2bf6355a1833e638d417a78f9f2626a64d898419a3383c663bd3e808de1533af2f74009acff3e2cc12cbbe599836de2b68d84c21c0abe35040b3efe4033cf797e8698a818d0f9ca4f65068d39e012b003f3b3eb321adbffa74f33916bfddd7232a43021e1697604e9661062d54d2d804c04c24f53fef7da54b51b9e1fc79214663d618f43268b9cae7d0abaa287e36d5f4cc9a9d871880f6e3f2bc1a3a6f21aa97e82bb9c0f75f8205f99ab48ea211aab47440c22c9e0934f7408a40175e757aff134318e594f2538a3b94c71ae594341cd1c3d6b09203bcd746b014fc443f45d566bcf55826042184d165de9f13c2d07a482ecc27512ae84e6b86c063700a66976ec7511899c3eac3755bf900bfacd14e633a45bfefbe73c425c5a16cd5898ac525adc277e24d111e918e40d44443e7a66c3a6623303adeb639a36f2a8be2a07e6a572f0a89442f795bd4457d270d58caaf7c18df410dcb78a0d0d578a0bce40121b42bc35b7329eb345922c356597cc6d7ba96953e615f0fa4b18e0c3b1deb1f5e63134e0f0a03f98ec311c73d38c42b29598819d6efc46817f7de4975a709a1c85c6728bf4ae873c32e38e11e606cedfe0ddb89ed82bc850aba61579624c943aefcb3e1fdf64ae526ede484e8a7483d21e159c361f4220ac82a676483780bd38ed69296950c1c632048732eda3571d66869321243426db2102e88cedc2d04df1e44a3c19521f73423970aff2395a532c675defac243a696ac1562afa4b5d5001ea903721e94744782839f00f9aa4c46891e33a622f15ca17961235b285bfe1b16647ce8b2cd696fd88d868787793a9bf4bda0c1ca12484c338d7201bd7bea47c321cb524ca3f3000d3ebe8cee32d36c6101f667232f0219745319a7b7eda6982479f4e5e05a39b454858fe905cf36af10ab9fc37ec95e6d7405389e7adc90fb2040a5d0795651569ff874c29bc03bed9267c2b31c49e0925a7ee80d1a20942c39ac86b0b213c77e9c537e5413470058e742c824bfaed657fcddf376aea292bb5bbfd6a9fa446de604dab6b121938283bb9ec304cab889be25bb04ba0e7a243496f836cb04a2b3ee9b133b4f6dfdfa4509feb4751c0a8c3c51c5a2728e04fdad19d4b9713658cc1fc98aa90a6a9376cfd1313429fa84835f7b181c3a91e7530ff4c5c4a2b35e4b06cc88766ff617609bfcd5bb68945608a367030eab8b63b2953d61afa79fd7634d66f39d4aadf7527fcdba4277023f92d037e360dcc426210d47643d85b1c86e6c23da2ec13485dc6044bde11d6d8e5a700a25f0063675aa8ca8f6d393365a93ca6d50fa5a811df69318d321d786a41c44add546bfdb35a1970f49ddbf9139c514a46f9bb4aed9ab90fca1b8584a438eea2541dc64064427cd076c147f3049fe19f4bd2bcda9ce04296a36f0f65272fd5345808abb2a7c069e99c261b067f74bdb9e3f613895b8497a42eabd8bce438d6f851636593e1c9df17f0f7dc8bdded5c9a74fcc0dce505d59c2c8d53ecd1309acac118e5b0ec01ec63a7f6adfaddf78f2279847885de7d78869e345ac28852d703ab0aedd9d96896db08618c2ef9b48e088b179ac4bb6adcaac78eb59c06ad7b64623d4c712f322e668cfd1faf14a93e9321aeda819d9577a8f80cb1a536a95376c62092dda0ec55e08bd41a0d64573a6141eadc130c36da4e8978c4af41d13569e11756b83a54f9f6625a2d9890cf289c4c40436093b148613bd72d484a2cd666f2d9f950ad295da0fed0548bc33f5ca3abeb8b36a667961f5b1e94b1411109aa8cd775a9928de520bf09b17a7204d4275ba1e3afae40a64ccec408ed8048f6571b9dde21b17b8842fae21d6cde4c70a73d717b984d538e5fea05e47b63747608ccc7c00a923f3daf324aa08103229837e107759a82edb3ac8501d6ce3e07982c8b0e2f25f627f968581a1c96781e58ab4a56bc2a09e9aa14019fade3609ebe7034941c4fa2afb893e13544d9aeba863836a96707ce0240093c3b47d8487ca82081c65542000e4c1f8e3eebf445962d65749db4a9fd2dd02fb197db3daae3708576d0e203179c7c6efe3393fd7b041bbb27701c31a03354092047bf5df5208cbe1f3607743f828dd2d24e21361c99ffe981d7a8dfd2a3c6af69c4f89be7c11e00d22d103f96c76a63574c27b8195f6841617b1b46af6db3a63853372a6a705a9437d894d285207b52e4e5fdf36dd90a317faee7566b28c9eab40c9348ab76c8614c21718c2bf7ae1a814d2f5246936ae50814fd78fa1306bd0d8bddcef1edaa267ba2a97aaa2ba800047f02364158ae1f8c2a9c7a1f4b7bc69c3a1628f927fd9b20fb34e6bc73b6c7dcba22de887d5ad2cc31588f9fd19d897ad59abe29720be311fc218797a7216cb9ee7a5cceff36efe2a02281d463fd1af26c23f649911795f800d434375e5c17882562ee446771f016c280e1ffb0ab89d5cb28015c7778a31ba9efa78d7e0fbdf613cdb41b4de1aeca42266acf43184a2ba32f7bdba80</script>
+  <div class="hbe hbe-content">
+    <div class="hbe hbe-input hbe-input-default">
+      <input class="hbe hbe-input-field hbe-input-field-default" type="password" id="hbePass">
+      <label class="hbe hbe-input-label hbe-input-label-default" for="hbePass">
+        <span class="hbe hbe-input-label-content hbe-input-label-content-default">Hey, password is required here.</span>
+      </label>
+    </div>
+  </div>
+</div>
+<script data-pjax src="/lib/hbe.js"></script><link href="/css/hbe.style.css" rel="stylesheet" type="text/css">]]></content>
+      <tags>
+        <tag>ISP</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Guided Filter</title>
+    <url>/2021/10/13/Guided-Filter/</url>
+    <content><![CDATA[<p>输入图p，导向图I， 输出图q，<span class="math inline">\(\Rightarrow
+q_i = \sum_jW_{ij}(I)p_j\)</span>，其中i，j为pixel index，<span
+class="math inline">\(W_{ij}\)</span>是导向图I的一个函数，与输入图p独立。</p>
+<p>假设输出图q在一个窗口<span
+class="math inline">\(w_i\)</span>中是导向图I的相信变换，即：<span
+class="math inline">\(q_i = a_kI_i + b_k, \forall i \in w_k\)</span></p>
+<span id="more"></span>
+<p>这种模型保证了仅有在导向图I有边缘的时候，输出图也有边缘，<span
+class="math inline">\(\nabla q = a\nabla I\)</span>，原理可以按照<a
+href="https://sci-hubtw.hkvisa.net/10.1109/acv.2002.1182150">https://sci-hubtw.hkvisa.net/10.1109/acv.2002.1182150</a></p>
+<p>为了确定<span
+class="math inline">\(a_k,b_k\)</span>系数，有如下的优化函数。</p>
+<p><span class="math inline">\(E(a_k, b_k) = \sum_{i \in
+\omega_k}((a_kI_i + b_k - p_i)^2 + \epsilon a_k^2)\)</span></p>
+<p>最终得到<span class="math inline">\(a_k,b_k\)</span>如下：</p>
+<p><span class="math inline">\(a_k =
+\frac{\frac{1}{\lvert\epsilon\rvert}\sum{i\in\omega_k(I_ip_i -
+\mu_k\overline{p}_k)}}{\sigma_k^2 + \omega}\)</span></p>
+<p><span class="math inline">\(b_k = \overline{p_k} -
+a_k\mu_k\)</span></p>
+<p>以偏导的方式求解<span class="math inline">\(a_k，b_k\)</span></p>
+<p>对于输出图q，可以认为是输入图p减去其噪声，<span
+class="math inline">\(q_i = p_i - n_i\)</span>，<span
+class="math inline">\(n_i\)</span>表示噪声</p>
+<p>对于输出图q与导向图I，有如下公式：<span class="math inline">\(\nabla
+q_i = a \nabla I_i\)</span>， <span class="math inline">\(q_i = aI_i +
+b\)</span></p>
+<p>最小化输出图q与输入图p的差异，求解系数：</p>
+<p><span class="math inline">\(\frac{\partial E}{\partial a_k} =
+2\sum_{i}^{N}((a_kI_i + b_k - p_i)I_i + \epsilon a_k)\)</span></p>
+<p><span class="math inline">\(\frac{\partial E}{\partial b_k} =
+-2\sum_{i}^{N}(p_i - a_kI_i - b_k)\)</span></p>
+<p>求解<span class="math inline">\(b_k\)</span></p>
+<p><span class="math display">\[\begin{aligned}
+&amp;\ \frac{\partial E}{\partial b_k} = -2\sum_{i}^{N}(p_i - a_kI_i -
+b_k) = 0 \\
+&amp;\ \Rightarrow Nb_k = \sum_{i}^n(p_i - a_kI_i) \\
+&amp;\ \Rightarrow b_k =  \frac{1}{N} \sum_{i}^n(p_i - a_kI_i) \\
+&amp;\ \Rightarrow b_k =  \frac{1}{N} \sum_{i}^np_i - a_k\frac{1}{N}
+\sum_{i}^nI_i \\
+&amp;\ \Rightarrow b_k =  p_k - a_k u_k \\
+\end{aligned}\]</span></p>
+<p><span class="math inline">\(p_k\)</span>和<span
+class="math inline">\(u_k\)</span>是窗口<span
+class="math inline">\(w_i\)</span>内，输入图<span
+class="math inline">\(p_i\)</span>和导向图<span
+class="math inline">\(I_i\)</span>的均值。</p>
+<p>求解<span class="math inline">\(a_k\)</span></p>
+<p><span class="math display">\[\begin{aligned}
+&amp;\ \frac{\partial E}{\partial a_k} = 2\sum_{i}^{N}((a_kI_i + b_k -
+p_i)I_i + \epsilon a_k) = 0 \\
+&amp;\ \Rightarrow -\sum_{i}^Np_iI_i + \sum_{i}^Nb_kI_i +
+\sum_{i}^Na_kI_i^2 + \sum_{i}^N \epsilon a_k = 0 \\
+&amp;\ \Rightarrow \sum_{i}^Np_iI_i - \sum_{i}^Nb_kI_i =
+\sum_{i}^Na_kI_i^2 + \sum_{i}^2\epsilon a_k \\
+&amp;\ \Rightarrow \sum_{i}^Np_iI_i - \sum_{i}^N(p_k-a_ku_k)I_i =
+a_k\sum_{i}^N(I_i^2 + \epsilon) \\
+&amp;\ \Rightarrow \sum_{i}^Np_iI_i - \sum_{i}^Np_kI_i +
+\sum_{i}^Na_ku_kI_i = a_k\sum_{i}^N(I_i^2 + \epsilon) \\
+&amp;\ \Rightarrow \sum_{i}^Np_iI_i - p_k\sum_{i}^NI_i =
+a_k\sum_{i}^N(I_i^2 + \epsilon - u_kI_i) \\
+&amp;\ \Rightarrow a_k = \frac{\sum_{i}^Np_iI_i -
+p_k\sum_{i}^NI_i}{\sum_{i}^N(I_i^2 + \epsilon - u_kI_i)} \\
+&amp;\ \Rightarrow a_k = \frac{\sum_{i}^Np_iI_i -
+\frac{1}{N}\sum_{i}^Np_i\sum_{i}^NI_i}{\sum_{i}^NI_i^2 -
+\frac{1}{N}\sum_{i}^NI_i\sum_{i}^NI_i + \epsilon} \\
+&amp;\ \Rightarrow a_k = \frac{\frac{1}{N}\sum_{i}^Np_iI_i -
+\frac{1}{N}\sum_{i}^Np_i\frac{1}{N}\sum_{i}^NI_i}{\frac{1}{N}\sum_{i}^NI_i^2
+- \frac{1}{N}\sum_{i}^NI_i\frac{1}{N}\sum_{i}^NI_i + \epsilon} \\
+\end{aligned}\]</span></p>
+<p>根据协方差公式</p>
+<p><span class="math inline">\(var(X) = \frac{\sum_{i}^{N}(X_i-\overline
+X)(X_i - \overline X)}{n-1}\)</span></p>
+<p><span class="math inline">\(cov(X, Y) = E[(X - E[X])(Y -
+E[Y])]\)</span></p>
+<p><span class="math inline">\(cov(X, Y) = E[XY] - E[X][Y]\)</span></p>
+<p><span class="math inline">\(a_k = \frac{cov(p_i, I_i)}{\sigma_k^2 +
+\epsilon}\)</span></p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line">cv::Mat <span class="function"><span class="title">guidedFilter</span>(<span class="params">cv::Mat I, cv::Mat p, int r, double eps</span>)</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="comment">/*</span></span><br><span class="line"><span class="comment">  % GUIDEDFILTER   O(1) time implementation of guided filter.</span></span><br><span class="line"><span class="comment">  %</span></span><br><span class="line"><span class="comment">  % - guidance image: I (should be a gray-scale/single channel image)</span></span><br><span class="line"><span class="comment">  % - filtering input image: p (should be a gray-scale/single channel image)</span></span><br><span class="line"><span class="comment">  % - local window radius: r</span></span><br><span class="line"><span class="comment">  % - regularization parameter: eps</span></span><br><span class="line"><span class="comment">  */</span></span><br><span class="line">  <span class="attr">cv</span>::Mat _I;</span><br><span class="line">  I.convertTo(_I, CV_64FC1);</span><br><span class="line">  I = _I;</span><br><span class="line">  cv::Mat _p;</span><br><span class="line">  p.convertTo(_p, CV_64FC1);</span><br><span class="line">  p = _p;</span><br><span class="line">  <span class="comment">//[hei, wid] = size(I);</span></span><br><span class="line">  int hei = I.rows;</span><br><span class="line">  int wid = I.cols;</span><br><span class="line">  <span class="comment">//N = boxfilter(ones(hei, wid), r); % the size of each local patch; N=(2r+1)^2 except for boundary pixels.</span></span><br><span class="line">  cv::Mat N;</span><br><span class="line">  cv::boxFilter(cv::Mat::ones(hei, wid,I.type()), N, CV_64FC1, <span class="attr">cv</span>::Size(r, r));</span><br><span class="line">  <span class="comment">//mean_I = boxfilter(I, r) ./ N;</span></span><br><span class="line">  cv::Mat mean_I;</span><br><span class="line">  cv::boxFilter(I, mean_I, CV_64FC1, <span class="attr">cv</span>::Size(r,r));</span><br><span class="line">  <span class="comment">//mean_p = boxfilter(p, r) ./ N;</span></span><br><span class="line">  cv::Mat mean_p;</span><br><span class="line">  cv::boxFilter(p, mean_p, CV_64FC1, <span class="attr">cv</span>::Size(r,r));</span><br><span class="line">  <span class="comment">//mean_Ip = boxfilter(I.*p, r) ./ N;</span></span><br><span class="line">  cv::Mat mean_Ip;</span><br><span class="line">  cv::boxFilter(I.mul(p), mean_Ip, CV_64FC1,</span><br><span class="line">  <span class="attr">cv</span>::Size(r, r));</span><br><span class="line">  <span class="comment">//cov_Ip = mean_Ip - mean_I .* mean_p; % this is the covariance of (I, p) in each local patch.</span></span><br><span class="line">  cv::Mat cov_Ip = mean_Ip - mean_I.mul(mean_p);</span><br><span class="line">  <span class="comment">//mean_II = boxfilter(I.*I, r) ./ N;</span></span><br><span class="line">  cv::Mat mean_II;</span><br><span class="line">  cv::boxFilter(I.mul(I), mean_II, CV_64FC1,</span><br><span class="line">  <span class="attr">cv</span>::Size(r, r));</span><br><span class="line">  <span class="comment">//var_I = mean_II - mean_I .* mean_I;</span></span><br><span class="line">  cv::Mat var_I = mean_II - mean_I.mul(mean_I);</span><br><span class="line">  <span class="comment">//a = cov_Ip ./ (var_I + eps); % Eqn. (5) in the paper;</span></span><br><span class="line">  cv::Mat a = cov_Ip / (var_I + eps);</span><br><span class="line">  <span class="comment">//b = mean_p - a .* mean_I; % Eqn. (6) in the paper;</span></span><br><span class="line">  cv::Mat b = mean_p - a.mul(mean_I);</span><br><span class="line">  <span class="comment">//mean_a = boxfilter(a, r) ./ N;</span></span><br><span class="line">  cv::Mat mean_a;</span><br><span class="line">  cv::boxFilter(a, mean_a, CV_64FC1, <span class="attr">cv</span>::Size(r,r));</span><br><span class="line">  mean_a = mean_a / N;</span><br><span class="line">  <span class="comment">//mean_b = boxfilter(b, r) ./ N;</span></span><br><span class="line">  cv::Mat mean_b;</span><br><span class="line">  cv::boxFilter(b, mean_b, CV_64FC1, <span class="attr">cv</span>::Size(r,r));</span><br><span class="line">  mean_b = mean_b / N;</span><br><span class="line">  <span class="comment">//q = mean_a .* I + mean_b; % Eqn. (8) in the paper;</span></span><br><span class="line">  cv::Mat q = mean_a.mul(I) + mean_b;</span><br><span class="line">  <span class="keyword">return</span> q;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+]]></content>
+      <tags>
+        <tag>图像处理</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Nvidia CUDA Architecture</title>
+    <url>/2021/12/24/Nvidia-CUDA-Architecture/</url>
+    <content><![CDATA[<h2 id="fermi-architecture">Fermi Architecture</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><img src="https://s2.loli.net/2022/05/23/lCSuMscTkdenIt1.png" alt="img" style="zoom:50%;" /></th>
+<th><img src="https://s2.loli.net/2022/05/23/muGjTriYMNvIFPe.png" alt="image-20211224153019867" style="zoom:45%;" /></th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+<span id="more"></span>
+<ul>
+<li>Host Interface： GPU，CPU，Memory通信的接口</li>
+<li>Giga Thread Engine：任务管理器，管理所有正在进行的工作</li>
+<li>Fermi架构拥有16个SM，SM属于硬件实体。每一个SM拥有21个CUDA
+core，每一个CUDA
+core拥有一个INT和一个FP计算单元；一个SM有16个LOAD/STORE单元，可以提供16线程同时读取/存储数据的能力；4个SFU单元，SFU：Special
+Function Unit，特殊函数计算单元，包括sin，cos函数。</li>
+</ul>
+<h2 id="kepler-architecture">Kepler Architecture</h2>
+<p>Kepler架构将SM重命名为SMX，其中大致结构并未改变，最明显的是增加了CUDA
+Core的数量。一个SMX中有192个CUDA Core。</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><img src="https://s2.loli.net/2022/05/23/GtSyW7B8RVEPcN4.png" alt="img" style="zoom:50%;" /></th>
+<th><img src="https://s2.loli.net/2022/05/23/vMbaX2oyzldWhEk.png" alt="img" style="zoom: 50%;" /></th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+<h2 id="maxwell-architecture">Maxwell Architecture</h2>
+<p>SMM变得更多了，架构变化不大。</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><img src="https://s2.loli.net/2022/05/23/U8NDAZhOJ9fQTRq.png" alt="img" style="zoom:75%;" /></th>
+<th><img src="https://s2.loli.net/2022/05/23/PH2Xez4AhUSacwG.png" alt="image-20211224161723378" style="zoom:50%;" /></th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+<h2 id="pascal-architecture">Pascal Architecture</h2>
+<p>第一个加入Deep Learning相关硬件设置的架构，即：DP Unit。</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><img src="https://s2.loli.net/2022/05/23/8akQquFoem1RWPs.png"
+alt="img" /></th>
+<th><img src="https://s2.loli.net/2022/05/23/w163XcyputQokvg.jpg" style="zoom:50%;" /></th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+<h2 id="volta-architecture">Volta Architecture</h2>
+<p>第一个以Deep Learning为主的GPU架构。原本的CUDA
+Core变成FP64，INT，FP32，TENSOR Core。</p>
+<p><img src="https://s2.loli.net/2022/05/23/WTDqRt1fboANn4S.png" alt="image-20211224165854516" style="zoom:50%;" /></p>
+<h2 id="turing-architecture">Turing Architecture</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><img src="https://s2.loli.net/2022/05/23/MZvAIWFncLpNsyj.png" style="zoom:50%;" /></th>
+<th><img src="https://s2.loli.net/2022/05/23/x8V5nFwOqokc46p.png" style="zoom:50%;" /></th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+<h2 id="empere-architecture">Empere Architecture</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><img src="https://s2.loli.net/2022/05/23/8akQquFoem1RWPs.png" style="zoom:50%;" /></th>
+<th><img src="https://s2.loli.net/2022/05/23/LPzeIAdm2DMgbpc.png" style="zoom:50%;" /></th>
+</tr>
+</thead>
+<tbody>
+</tbody>
+</table>
+]]></content>
+      <tags>
+        <tag>CUDA</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Sensor Noise Model Calibration</title>
+    <url>/2021/09/26/Sensor-Noise-Model-Calibration/</url>
+    <content><![CDATA[<figure>
+<img src="https://s2.loli.net/2022/05/23/sroq9vQ7fJOWNC8.png"
+alt="image-20210927104516396" />
+<figcaption aria-hidden="true">image-20210927104516396</figcaption>
+</figure>
+<p>图片来源：<a
+href="http://graphics.cs.cmu.edu/courses/15-463/2020_fall/lectures/lecture2.pdf">CMU
+Computational Photography, Fall 2020</a></p>
+<span id="more"></span>
+<p>Pipeline中绿色框部分会引入噪声，具体如下:</p>
+<figure>
+<img src="https://s2.loli.net/2022/05/23/l3LasJfYkmROzWy.png"
+alt="image-20210927105235305" />
+<figcaption aria-hidden="true">image-20210927105235305</figcaption>
+</figure>
+<p>图片来源：<a
+href="http://graphics.cs.cmu.edu/courses/15-463/2020_fall/lectures/lecture2.pdf">CMU
+Computational Photography, Fall 2020</a></p>
+<p>具体而言会有以下三种noise：</p>
+<ol type="1">
+<li><p>Photon noise，也称Shot noise
+光粒子到达的随机性，符合泊松分布</p></li>
+<li><p>Dark noise</p>
+<p>暗电流的影响，即便没有光粒子到达，也会因为元器件本身的特性产生噪声，一般而言温度越高，噪声越大，符合均值0的高斯分布</p></li>
+<li><p>Read noise</p>
+<p>信号放大过程中、模数转换过程中引入的噪声，俗称：gain、ADC；符合均值0的高斯分布</p></li>
+</ol>
+<p>因此可以在Raw denoise的相关论文中找到以下noise model。</p>
+<blockquote>
+<p><a
+href="https://openaccess.thecvf.com/content_cvpr_2018/papers/Mildenhall_Burst_Denoising_With_CVPR_2018_paper.pdf">Google:
+Burst Denoising with Kernel Prediction Networks</a></p>
+</blockquote>
+<p><span class="math display">\[
+x_p \sim N(y_p, \sigma_r^2 + \sigma_s y_p)
+\]</span></p>
+<blockquote>
+<p><a href="https://arxiv.org/abs/1811.11127">Google: Unprocessing
+Images for Learned Raw Denoising</a></p>
+</blockquote>
+<p><span class="math display">\[
+y \sim N(\mu=x, \sigma^2=\lambda_{read} + \lambda_{shot} x) \to
+N(\mu=x,\sigma^2=g_d^2\sigma_r^2 + g_dg_ax)
+\]</span></p>
+<p>其中digital gain $ g_d $， analog gain $ g_a <span
+class="math inline">\(，read noise的固定方差\)</span> ^2 $ <span
+class="math display">\[
+\lambda_{read}=g_d^2 \sigma_r^2, \ \lambda_{shot} = g_d g_a
+\]</span></p>
+<p>以下对上面的噪声联合分布进行推导。</p>
+<p>(Photon)Shot noise与环境照度，曝光有关。令环境照度$ $ ，光电转换效率$
+$，曝光时间t,，暗电流强度D</p>
+<p>Shot noise满足泊松分布 <span class="math display">\[
+n \sim Possion(\varphi, \alpha, t) = Possion(\varphi \cdot \alpha \cdot
+t)
+\]</span> Dark
+noise与曝光有关，曝光时间越长，元器件温度越高，暗电流影响越大，与环境光无关，满足泊松分布
+<span class="math display">\[
+n \sim Possion(D \cdot t)
+\]</span> 那么电信号L满足泊松分布，Shot noise和Dark noise的联合分布
+<span class="math display">\[
+L \sim Possion(t \cdot (\alpha \cdot \varphi + D))
+\]</span> 信号放大过程中产生Read noise，模数转换过程中产生ADC
+noise，两种noise满足均值为0的高斯分布</p>
+<p><span class="math display">\[
+n_{read} \sim Normal(0, \sigma_{read})
+\]</span></p>
+<p><span class="math display">\[
+n_{ADC} \sim Normal(0, \sigma_{ADC})
+\]</span></p>
+<p>电信号L放大后表示为G，放大的增益g，g与ISO有关 <span
+class="math inline">\(g = k \cdot ISO\)</span>，<span
+class="math inline">\(G = L \cdot g + n_{read} \cdot g\)</span>，</p>
+<p>经过ADC后信号：<span class="math inline">\(I = G +
+n_{ADC}\)</span></p>
+<p>最终信号I表示为： <span class="math display">\[
+I = L \cdot g + n_{read} \cdot g + n_{ADC}
+\]</span> 计算信号的均值和方差 <span class="math display">\[
+E(I) = g \cdot E(L) + g \cdot E(n_{read}) + E(n_{ADC})
+\]</span> 由于read noise和ADC noise均符合均值为0的高斯分布，因此 <span
+class="math display">\[
+E(I) = g \cdot E(L) = g \cdot t \cdot (\alpha \cdot \varphi + D)
+\]</span> 方差 <span class="math display">\[
+\begin{aligned}
+\sigma(I)^2 &amp;= \sigma(L \cdot g)^2 + \sigma(n_{read} \cdot g)^2 +
+\sigma(n_{ADC})^2 \\
+&amp;= g^2 \cdot t \cdot (\alpha \cdot \varphi + D) + g^2 \cdot
+\sigma(n_{read})^2 + \sigma(n_{ADC})^2
+\end{aligned}
+\]</span> read noise和ADC noise都属于加性噪声，可以合并 <span
+class="math display">\[
+I = L \cdot g + n_{read} + n_{ADC} = L \cdot g + n_{Add}
+\]</span></p>
+<p><span class="math display">\[
+n_{Add} = n_{read} \cdot g + n_{ADC}
+\]</span></p>
+<p>方差可以表示为： <span class="math display">\[
+\sigma(I)^2 = g^2 \cdot t \cdot (\alpha \cdot \varphi + D) +
+\sigma(n_{Add})^2
+\]</span> 一直暗电流，即：black level，那么可以消除暗电流D <span
+class="math display">\[
+E(I) = g \cdot t \cdot (\alpha \cdot \varphi + D) = g \cdot t \cdot
+(\alpha \cdot 0 + D) = g \cdot t \cdot D
+\]</span> 估计出暗电流的影响，可以将其从信号中减去，得到以下表达： <span
+class="math display">\[
+E(I) = g \cdot t \cdot \alpha \cdot \varphi
+\]</span></p>
+<p><span class="math display">\[
+\begin{aligned}
+\sigma(I)^2 &amp;= g^2 \cdot t \cdot \alpha \cdot \varphi +
+\sigma(n_{Add})^2 \\
+&amp;= g \cdot E(I) + \sigma(n_{Add})^2
+\end{aligned}
+\]</span></p>
+<p>因此可以看出联合分布的方差是一个线性关系，可与通过最小二乘法进行拟合。</p>
+<p>在实际的噪声估计中当做是 <span class="math inline">\(pixel \ value
+\to x\)</span>，最终得到开头的推导：<span class="math inline">\(g \to
+\lambda_{shot}, \sigma(n_{add})^2 \to \lambda_{read} \to
+g_d^2\sigma_r^2\)</span> <span class="math display">\[
+y \sim N(\mu=x, \sigma^2=\lambda_{read} + \lambda_{shot} x)
+\]</span></p>
+<p>实际上，<span class="math inline">\(\lambda_{read}\)</span>和 <span
+class="math inline">\(\lambda_{shot}\)</span>都是与ISO强相关的，在噪声标定1.0版本，需要对ISO
+100，300，500，800，1600，3200进行标定，得到RGB三通道<span
+class="math inline">\(\lambda_{read}\)</span>和<span
+class="math inline">\(\lambda_{shot}\)</span>共3*2*6=36组参数，在其它ISO值时，需要对齐进行插值。可能会引入不必要的误差，因此在噪声标定2.0版本中，将ISO作为参数引入标定过程。针对Sony
+sensor，有一个比较通用的公式：<span class="math inline">\(g_d \cdot g_a
+= \frac{ISO}{100}\)</span>，此时我们<span
+class="math inline">\(\lambda_{read}\)</span>和<span
+class="math inline">\(\lambda_{shot}\)</span>进行二次拟合，拟合的目标如下：
+<span class="math display">\[
+\lambda_{shot} = S \cdot g_d \cdot g_a = S \cdot \frac{ISO}{100}
+\]</span></p>
+<p><span class="math display">\[
+\lambda_{read} = R_0 \cdot (g_d \cdot g_a)^2 + R_1 = R_0 \cdot
+\frac{ISO}{100} + R_1
+\]</span></p>
+<p>此时将ISO作为参数引入标定过程，未来在噪声估计时会更精准。</p>
+<p>总结不同噪声在不同场景下的主导地位：</p>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">regime</th>
+<th>dominant noise</th>
+<th>notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">bright noise</td>
+<td>photon noise</td>
+<td>scene-dependent</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">dark noise</td>
+<td>read and ADC noise</td>
+<td>scene-independent</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">low iso</td>
+<td>ADC noise</td>
+<td>post-gain</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">high iso</td>
+<td>photon and read noise</td>
+<td>pre-gain</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">long exposure</td>
+<td>dark noise</td>
+<td>thermal dependence</td>
+</tr>
+</tbody>
+</table>
+]]></content>
+      <tags>
+        <tag>Sensor</tag>
+        <tag>Noise</tag>
+        <tag>Model</tag>
+        <tag>Calibration</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>不同架构下的CUDA Arch以及Gencode对应关系</title>
+    <url>/2022/04/23/%E4%B8%8D%E5%90%8C%E6%9E%B6%E6%9E%84%E4%B8%8B%E7%9A%84CUDA-Arch%E4%BB%A5%E5%8F%8AGencode%E5%AF%B9%E5%BA%94%E5%85%B3%E7%B3%BB/</url>
+    <content><![CDATA[<meta name="referrer" content="no-referrer" />
+<table style="width:100%;">
+<colgroup>
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Fermi†</th>
+<th>Kepler†</th>
+<th>Maxwell‡</th>
+<th>Pascal</th>
+<th>Volta</th>
+<th>Turing</th>
+<th>Ampere</th>
+<th>Hopper*</th>
+<th>Lovelace</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>sm_20</td>
+<td>sm_30</td>
+<td>sm_50</td>
+<td>sm_60</td>
+<td>sm_70</td>
+<td>sm_75</td>
+<td>sm_80</td>
+<td>sm_90</td>
+<td>sm_100?</td>
+</tr>
+<tr class="even">
+<td></td>
+<td>sm_35</td>
+<td>sm_52</td>
+<td>sm_61</td>
+<td>sm_72</td>
+<td></td>
+<td>sm_86</td>
+<td></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td></td>
+<td>sm_37</td>
+<td>sm_53</td>
+<td>sm_62</td>
+<td></td>
+<td></td>
+<td>sm_87</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<span id="more"></span>
+<p><strong>†</strong> Fermi and Kepler are deprecated from CUDA 9 and 11
+onwards</p>
+<p><strong>‡</strong> Maxwell is deprecated from CUDA 11.6 onwards</p>
+<ul>
+<li>Hopper is NVIDIA’s “tesla-next” series, with a 5nm process,
+replacing Ampere.</li>
+</ul>
+<h2 id="fermi-cards-cuda-3.2-until-cuda-8"><strong>Fermi cards (CUDA 3.2
+until CUDA 8)</strong></h2>
+<p>Deprecated from CUDA 9, support completely dropped from CUDA 10.</p>
+<ul>
+<li><strong>SM20 or SM_20, compute_30</strong> –GeForce 400, 500, 600,
+GT-630.<strong><em>Completely dropped from CUDA 10
+onwards.</em></strong></li>
+</ul>
+<h2 id="kepler-cards-cuda-5-until-cuda-10"><strong>Kepler cards (CUDA 5
+until CUDA 10)</strong></h2>
+<p>Deprecated from CUDA 11.</p>
+<ul>
+<li><strong>SM30 or <code>SM_30, compute_30</code> –</strong>Kepler
+architecture (e.g. generic Kepler, GeForce 700, GT-730).Adds support for
+unified memory programming<em><strong>Completely dropped from CUDA 11
+onwards</strong>.</em></li>
+<li><strong>SM35 or <code>SM_35, compute_35</code></strong> –Tesla
+K40.Adds support for dynamic parallelism.<strong>Deprecated from CUDA
+11, will be dropped in future versions</strong>.</li>
+<li><strong>SM37 or <code>SM_37, compute_37</code></strong> –Tesla
+K80.Adds a few more registers.<strong><em>Deprecated from CUDA 11, will
+be dropped in future versions</em></strong>, strongly suggest replacing
+with a <a
+href="https://www.amazon.com/gp/product/B07JVNHFFX/ref=as_li_tl?ie=UTF8&amp;camp=1789&amp;creative=9325&amp;creativeASIN=B07JVNHFFX&amp;linkCode=as2&amp;tag=arnonshimoni-20&amp;linkId=039f38074e50b581e71d500cd08bca85">32GB
+PCIe Tesla V100</a>.</li>
+</ul>
+<h2 id="maxwell-cards-cuda-6-until-cuda-11"><strong>Maxwell cards (CUDA
+6 until CUDA 11)</strong></h2>
+<ul>
+<li><strong>SM50
+or <code>SM_50, compute_50</code></strong> –Tesla/Quadro M
+series.<strong><em>Deprecated from CUDA 11, will be dropped in future
+versions</em></strong>, strongly suggest replacing with a <a
+href="https://www.amazon.com/gp/product/B07P6CDHS5/ref=as_li_tl?ie=UTF8&amp;camp=1789&amp;creative=9325&amp;creativeASIN=B07P6CDHS5&amp;linkCode=as2&amp;tag=arnonshimoni-20&amp;linkId=fe1f6fa6ad408060f634a35bad4271ce">Quadro
+RTX 4000</a> or <a
+href="https://www.amazon.com/PNY-VCNRTXA6000-PB-NVIDIA-RTX-A6000/dp/B09BDH8VZV?crid=3QY8KCKXO3FB8&amp;keywords=rtx+a6000&amp;qid=1647969665&amp;sprefix=rtx+a6000%2Caps%2C174&amp;sr=8-1&amp;linkCode=ll1&amp;tag=arnonshimoni-20&amp;linkId=d292ba4d995d2b034a27441321668ffb&amp;language=en_US&amp;ref_=as_li_ss_tl">A6000</a>.</li>
+<li><strong>SM52 or <code>SM_52, compute_52</code></strong> –Quadro
+M6000 , GeForce 900, GTX-970, GTX-980, GTX Titan X.</li>
+<li><strong>SM53 or <code>SM_53, compute_53</code></strong> –Tegra
+(Jetson) TX1 / Tegra X1, Drive CX, Drive PX, Jetson Nano.</li>
+</ul>
+<h2 id="pascal-cuda-8-and-later"><strong>Pascal (CUDA 8 and
+later)</strong></h2>
+<ul>
+<li><strong>SM60 or <code>SM_60, compute_60</code></strong> –Quadro
+GP100, Tesla P100, DGX-1 (Generic Pascal)</li>
+<li><strong>SM61 or <code>SM_61, compute_61</code></strong>–GTX 1080,
+GTX 1070, GTX 1060, GTX 1050, GTX 1030 (GP108), GT 1010 (GP108) Titan
+Xp, Tesla P40, Tesla P4, Discrete GPU on the NVIDIA Drive PX2</li>
+<li><strong>SM62 or <code>SM_62, compute_62</code></strong> – Integrated
+GPU on the NVIDIA Drive PX2, Tegra (Jetson) TX2</li>
+</ul>
+<h2 id="volta-cuda-9-and-later"><strong>Volta (CUDA 9 and
+later)</strong></h2>
+<ul>
+<li><strong>SM70 or <code>SM_70, compute_70</code></strong> –DGX-1 with
+Volta, Tesla V100, GTX 1180 (GV104), Titan V, Quadro GV100</li>
+<li><strong>SM72 or <code>SM_72, compute_72</code></strong> –Jetson AGX
+Xavier, Drive AGX Pegasus, Xavier NX</li>
+</ul>
+<h2 id="turing-cuda-10-and-later"><strong>Turing (CUDA 10 and
+later)</strong></h2>
+<ul>
+<li><strong>SM75 or <code>SM_75, compute_75</code></strong> –GTX/RTX
+Turing – GTX 1660 Ti, RTX 2060, <a
+href="https://www.amazon.com/gp/product/B082P1BF7H/ref=as_li_tl?ie=UTF8&amp;camp=1789&amp;creative=9325&amp;creativeASIN=B082P1BF7H&amp;linkCode=as2&amp;tag=arnonshimoni-20&amp;linkId=68e78b128dd90f652eb7796404e2126f">RTX
+2070</a>, RTX 2080, Titan RTX, Quadro RTX 4000, Quadro RTX 5000, Quadro
+RTX 6000, Quadro RTX 8000, Quadro T1000/T2000, Tesla T4</li>
+</ul>
+<h2 id="ampere-cuda-11.1-and-later"><strong>Ampere (CUDA 11.1 and
+later)</strong></h2>
+<ul>
+<li><strong>SM80 or <code>SM_80, compute_80</code></strong> –NVIDIA A100
+(the name “Tesla” has been dropped – GA100), NVIDIA DGX-A100</li>
+<li><strong>SM86 or <code>SM_86, compute_86</code> –</strong> (from <a
+href="https://docs.nvidia.com/cuda/ptx-compiler-api/index.html">CUDA
+11.1 onwards</a>)Tesla GA10x cards, RTX Ampere – RTX 3080, GA102 – RTX
+3090, RTX A2000, A3000, <a
+href="https://www.amazon.com/PNY-NVIDIA-Quadro-A6000-Graphics/dp/B08NWGS4X1?msclkid=45987a9faa0411ec98c321cb30a0780e&amp;linkCode=ll1&amp;tag=arnonshimoni-20&amp;linkId=ccac0fed7c3cac61b4373d7dac6e7136&amp;language=en_US&amp;ref_=as_li_ss_tl">RTX
+A4000</a>, A5000, <a
+href="https://www.amazon.com/PNY-VCNRTXA6000-PB-NVIDIA-RTX-A6000/dp/B09BDH8VZV?crid=3QY8KCKXO3FB8&amp;keywords=rtx+a6000&amp;qid=1647969665&amp;sprefix=rtx+a6000%2Caps%2C174&amp;sr=8-1&amp;linkCode=ll1&amp;tag=arnonshimoni-20&amp;linkId=d292ba4d995d2b034a27441321668ffb&amp;language=en_US&amp;ref_=as_li_ss_tl">A6000</a>,
+NVIDIA A40, GA106 – <a
+href="https://www.amazon.com/gp/product/B08W8DGK3X/ref=as_li_qf_asin_il_tl?ie=UTF8&amp;tag=arnonshimoni-20&amp;creative=9325&amp;linkCode=as2&amp;creativeASIN=B08W8DGK3X&amp;linkId=5cb5bc6a11eb10aab6a98ad3f6c00cb9">RTX
+3060</a>, GA104 – RTX 3070, GA107 – RTX 3050, RTX A10, RTX A16, RTX A40,
+A2 Tensor Core GPU</li>
+<li><strong>SM87 or <code>SM_87, compute_8</code>7 –</strong> (from <a
+href="https://docs.nvidia.com/cuda/ptx-compiler-api/index.html">CUDA
+11.4 onwards</a>)</li>
+</ul>
+<blockquote>
+<p>“Devices of compute capability 8.6 have 2x more FP32 operations per
+cycle per SM than devices of compute capability 8.0. While a binary
+compiled for 8.0 will run as is on 8.6, it is recommended to compile
+explicitly for 8.6 to benefit from the increased FP32 throughput.“</p>
+<p><strong>https://docs.nvidia.com/cuda/ampere-tuning-guide/index.html#improved_fp32</strong></p>
+</blockquote>
+<h2 id="hopper-cuda-12-and-later"><strong>Hopper (CUDA 12 and
+later)</strong></h2>
+<ul>
+<li><strong>SM90 or <code>SM_90, compute_90</code></strong> –NVIDIA H100
+(GH100)</li>
+</ul>
+<h2
+id="市面上常见的商品与版本对应关系">市面上常见的商品与版本对应关系</h2>
+<ul>
+<li>版本52：Quadro M6000 , GeForce 900, GTX-970, GTX-980, GTX Titan
+X</li>
+<li>版本53：Tegra (Jetson) TX1 / Tegra X1, Drive CX, Drive PX, Jetson
+Nano</li>
+<li>版本60：Quadro GP100, Tesla P100, DGX-1 (Generic Pascal)</li>
+<li>版本61：GTX 1080, GTX 1070, GTX 1060, GTX 1050, GTX 1030 (GP108), GT
+1010 (GP108) Titan Xp, Tesla P40, Tesla P4, Discrete GPU on the NVIDIA
+Drive PX2</li>
+<li>版本62：Integrated GPU on the NVIDIA Drive PX2, Tegra (Jetson)
+TX2</li>
+<li>版本70：DGX-1 with Volta, Tesla V100, GTX 1180 (GV104), Titan V,
+Quadro GV100</li>
+<li>版本72：Jetson AGX Xavier, Drive AGX Pegasus, Xavier NX</li>
+<li>版本75：GTX/RTX Turing – GTX 1660 Ti, RTX 2060, RTX 2070, RTX 2080,
+Titan RTX, Quadro RTX 4000, Quadro RTX 5000, Quadro RTX 6000, Quadro RTX
+8000, Quadro T1000/T2000, Tesla T4</li>
+<li>版本80：NVIDIA A100 (the name “Tesla” has been dropped – GA100),
+NVIDIA DGX-A100</li>
+<li>版本86：Tesla GA10x cards, RTX Ampere – RTX 3080, GA102 – RTX 3090,
+RTX A2000, A3000, A4000, A5000, A6000, NVIDIA A40, GA106 – RTX 3060,
+GA104 – RTX 3070, GA107 – RTX 3050, Quadro A10, Quadro A16, Quadro A40,
+A2 Tensor Core GPU</li>
+</ul>
+]]></content>
+      <tags>
+        <tag>CUDA</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>多曝光融合网络Loss设计</title>
+    <url>/2023/03/18/%E5%A4%9A%E6%9B%9D%E5%85%89%E8%9E%8D%E5%90%88%E7%BD%91%E7%BB%9CLoss%E8%AE%BE%E8%AE%A1/</url>
+    <content><![CDATA[<div class="hbe hbe-container" id="hexo-blog-encrypt" data-wpm="Oh, this is an invalid password. Check and try again, please." data-whm="OOPS, these decrypted content may changed, but you can still have a look.">
+  <script id="hbeData" type="hbeData" data-hmacdigest="984bd138924b1056ff1242b449c75b3314cb7df86249f694a8e123c8e3f43798">68036766acfc1da8ae32adcb6da431294e97773dc586559ee7dc9dd6f0903db2a9b0a7964b9dbfdca1574eb71ef8681c2da495c23549c72cf0470a97f7dac7af91335616e3e7f9c13ad5439d7968ec07c70e0c788aeacb87225c7e46a9b66f17645745080b83aed9921acf9617ab1085243b944ea28ac6b206793418de6023e991358bda6704a1170af1c54a9c9181fe0867a1de0f4a997a12409f130e7eddb319acc1cef09fe80e67556a4479e28bfca900a004465593cf9f48ef95932e080108f9a6d40f2abb64f6d374ec57c7d5c281d6d828905e3bd15289ec32feedac439c434c081bf399eb83a565859cbfc2ed3023211bf71a257e3e997c0359b2e25be5a2b71ce277ff2fbb19ae240b8264834de7ab68fa5304f500411d47cf80fc4cd5ef2634a89cf1e14a93b23f835ee029d6023d20a21215389a1614456580bb0b7816f9720273dabc48c4c43e04ac121ba4cae98b016eef604de414f1bf7d35845073aacf80526b4f2e70c438412edd609130e29a8145e746eb211b4341ccdc22b0be408efe3317fe9254a7944c9d89f4d9f085e44c699c4a47be5663a09a955f6511f552e7b46e50511465ccefc5a9dc05a3ec12b7a5945d7de70416b64e955474596a66bdb87958cefbe8661cacf2008b5f5571821083f719f99c9b54d39515270c9d70beeb9fccbd53ef3642d565d3642fc2c65a1a7ed012ac47728ae46f26574367e0566442fffaa8a1d6f1fc8a791c0b29830d080f82f16a304fb6d0911dd70bc497e911efb6174a85500edd3cb2094f1b981cb07eb2d53dd6308efe779aecbfeabd54a4455da0788844738a367fb2e0338a3bf63e2fb2aac12224d18acc91e93e465fa628ebb35122ba920b08daf11358855d2547c322d92bc2b2dc5b3e7ab8da0bffad4823083972cc53f9c6eb04a474137ee8c97739d874ca8324d6198e70b344e981576b69fa99fad6bb3e46ab4067d14883bbd35a723c10e60f5ec17956e08af5ed191ab2c4e4dd1325384336fcd0499c27ef121ec50f46c0b7aa3b33b4afff284769fcfaf6abc2c35a74689aa1e5067c86b39e787bad1a427869b5480e797b76d10a358bbfe38b01bbdcef9314ad5f7ef48d898381813b5eff4edf01697da87592699ed37e2d4ccf0d84149bc91848419bfde55046d09301497164f5653f2a6726f1d8ebb92c5e2eba172e56c1ebfc43e912c337b3232e14b26292c9fffa454535bd4f2e6fef43478b169d30cd293e9ae727813abbb076c598f2cad55394a974159b33225cc824a15065e3e77252f7a5555f751ae99d1c3ee057d852ca04e1fa9a62e4335e2837b26a3b0409847af138278fb2887647e973337fa65a51aee1ab9cbf558b0518a4b05e09d965fd80bc1b1a08f1d8a55e42e4d48a3518ae019555af2d2fe3d316e786c36b1ed0dc8cbf2e6a2758abb4f6aaad5d33ee8e4a1f4e2a309a459d72f11cff59bbb701a244fe4fc74fb45c06f4c74a7a1fefafc562f7e9c947d98213258567709e673583e6c5299de405ee642d9a696f2c981b5735d5478002b055379e78d841c73e9c0b0f45694ae9376ca026f2d83ac87013875592d32029d71990418fc69f8b6d94d2185f3104d7d94d5039d8336e11d4d060ec1d3ad9ae751e2824a2e3ccfd55f71dfa38187875e91d6b207508ea289e71b206b3e656ba5e01f21946ef6fb9a99fdd59b0e25b5a4d71d10072ce54902fb7c744aee252654263b1da22c3ce74881c3efc132ccbe0d903da4d49ed733a6287f37722bab792d5fa6d3161c0e82c621372b0539f5739560038b68f214fc4810fc9af1e74847eebbcd45fb36a4e471f91aba36c7882654310a2a52053c1b25e99159eece99429f123d4cef9b64239fb1c7ee6524937462a7fc64de8987f2eddd0d824c99c434e7f863ebd9f65ff37c1c07c25282418bf906767dbe949048098789909f77769a382e6c5990a3311321f9a35a50bc7d57f669f95bc7a867ec44e357cfd024c5b9ac405d2fa7549ceeddcb71eca94c296b1e25cc2395279177b7c2ce5de2a335ca83b4d3053396a0b06425498a3b6a1362e38b0f8c3b45f0253d28c17afa29e09fe723aaf4f6f60fe756952f73403fd52e21d26d27a1c025f3b840c542a9f4c1fc200ab47e19669aaf11948215141136a528c323f1b195237e17f7db277538f586cfa0f232df4cfb894cfc3f260624626529c6111f61dc4f1ae89c75083b59eadcc67b243f33bbd27277eeaf1716c3c16c6ff7f67edaca89f3f4405063c8424d4454319f481c4ee5a680086e8989b288227777d5dd393069efbd45c1a918ed1cad6084f41186362c21bb916a745f8b4f03c2ebb891c7e1a2659c6b873b467866bc545062fe11d25029c5c17e8504f4cfd6234d645a4ed4d71b082ed4885d8272dc47f34f1ee6329f3552af542a6aa75c786ac60f3d47206dfb9808ba491a7e72482777c08a56365649c15bf54ddb6e0c731eb9790bfdb62b939d49c119959a44b89bfb816302d47a5d46981ee04b0ecaf01f8112960fe0223b2ea8288cd06bce717e1f7c086255178b3f6966f7b61335eab87e94ce9b4c9e8edb9d68687cde612c272d449206b104a57a8e7b47ce26dcd6a20aef0c31e8a993ef6329356a05bc1652d2782baf92da1f18a36c672d4bfd74d21abb4ae04eb76f16661f4f6ab2e984c74305735bff5a5633a7e78a2220c6a39949e7843a77aee5828b478b13ab556878a77e0f2e61f3175b3c350631dca62e5388af00360264217a078fb409bc3fa9908ffae4136af08ca9124a935e13a4383949990c379e14c2849e5178391578cd5706c069b4bb24cbb31b1908647fd6682003e72f87dd44fc29ea87befdfc7f49322fc1ace29b08e4d8a6e813173e94ea43440bca12f8fe5d0200b72e21dff95de724b14ca9888bba55ec184cb9ef89aa4c93a0841200d621fdd174970ed14f6301c119128de3afa54365efc51d1ca0d535e039c09da676037c186c62732dd503ebabb277047921125b815a6a374270bcb47ce3f0406342aa59acda7ad6db7c12a4d390de140338d06668033c38795bbc9bf87b09a4c9390d3a98acdb67a7aa14a4d5b0e5ef5cd68e277fe26b4888a841a8abb9c33304112a4458549301a6dee1914236c38b44f591a883c55f41c1d9f60bf59fed2acd3f7569a44bac3244688710c998a90b6728733829c2e6ddaec87537d1f34dad1df8682375deecb325ffa4c12b9830abd41a621937aabea6b1685a4ea3213a8469f3b99d0ea74e8bbee4777525538c7986011dda37a3872bba1e3520ba1a4598d63e1050cc86d1b6c387a08ef51568500f7b7a667572ec265bdfe1a9c339c7fc8c2c5a410052a15a57d1a7f63338b2ce36c5aef41a2ff2fdfc3fcdf8978781376811faa3b207eb5bcc6bc3343ed796c65656ee84be3fd7d17b02480a63661ff21d1dc946f41f2b5f820f837fe7759f8a3dad481c26265f51167e5101a2e7cd3ac0f40d3626be040d4b84c1cf0e884b48e0f7f4a9eac687b34e3f7955059c000383af097b77ef4082540e3acd6c514b048fcd9ee8a336b83941ab9d23141ba33655883e9c1bb75af3e6b6ae43f120df4080c0c74c6863ebc40fb9720339b6551a0dfc0ddb4d90f94a12ee75f5a05f708e5ecd5d5f0e557df3ab7a219dacce81b0732c14f6a9b6f5735a0e87dba1685ef20b4ea9c1da2f6aa133b75ef8bb1eabdc71252b4e468d15b4d55b2d1e19fae5f3df36d4ebcc8eb5386d9221e113f1ed24c4d7a1a18362611e47d17d9d9cb626abee63c7c16b3ab8d0d93c1cda4e3744905b52b06a559edc9e7f23ce646f4597fd5c08980e454504b07d00b46a04210e026757dc5a316d74b82a7f01584dff14cfd09042374cf34e98ca6e500ccd477cafc6fd3fffa0fad888ab9cbd35529ecfcbb873d965155ee0f36bd57f9acf7f48aa395b1edb6bbca6227d71e794959ca8b78471e38358c94a232d3ef9a31485c710fc5e48d841b799c72e371349bdf1a7c8afe46d9df280a8c0a9356e19c38d5d3d782093c0d2275bf59ec0ee3e9607dbadf4a5e38decd1c9be35a1cee4d7ecfa377f6a4d83f1e39b0e8f47da3043610739057740f6a3cb786868d5b3ef0c40a18995b860490140b4dc428c41495b304a6888121b4e38be8b6ec7182a2ba1b2ad6bb3b217bf363031886938288270da04f6aea298c016df625153ca1493652dbb47aef173b75591e9d2555d958318670d20b25129989925faf5b03d5d1ab5e176f5948a0f533a251f96103c89194be19393bc947c92215d0e78b1fc9d6f46747cf643adcdb6e50e4373220e637f5dd3e1ab21f0d2951ceaf869fc98ffd4887a2ed793c6e238fe0cc8d45aea26ff81ea2394e7aea4df0ec4473a86c4687e75eb8ca13500e8b458915fca96a7de1489d26f7ef1c40bbdddbb605811edbe6ef092fd6248682953ae71444243fef2c3ddda3f2af6cd3acfdaa91e700db1abc0b9d1c72741e83e2bdb67cc3990d184115244212ddb09182e8309937de6b22b28a18e70fd88e3a78aa23fec88e87203715f83cea4c78ee6021f0e278fa3dacbc2a8b1d83e2bf02a4b483990af19a54a4f5053c2e20440fece6b1b8adf7b36c8be409010c68dc53492828585e521824bad43a1d8946b3dd99a4a95fef6a0516f8d7920583b25006e429ff9271a5d51e24c985cfc08985f87cc062d42bffe171419a0c1d4661cb1116fe87df490141845f60cb3fd3eaa0f125a6f18a923bdeeb9ab34829280d5c833bd4b80495246d92e30f7ab8bf1f4599f2020fcc9350a19836c0f7876d4be44cdcb8712d1b63ef98f086ed2e1440eec656020237120991b79bd07e0122509a3c7eca89f07b07400fd0f787f4c096ed02a4233b02976014827f2761c59c936af8cad81c1f0ca762b343eda37afaaba902155a0e3b776a8cffa35df2ae7a99455a694910eeeb932366ef116ccd6df4a80aae6cb6403620da1692b669fd74f81698a38fa5e9828c37bfb008b27bca76d3a73ea8300ea9a13a9d0b7d326e4ce3778dd4c5c7a43aeedae759cac039350ec9b19184d25736e0e153034745c3d4640749353be8694d0b32ce88b90e6c54be3f824a37e22a8f84320d2d7aefde6c414f59b290e976bef3a3f97efde7fb837f92c713725ac9689f37af5c3e184dccea6ed821e9e8b50b5fe961c208cb6a754f4b9588d60806a0f823d6f971e18700aac859664fb214f438c143681bbcd78740b34455b41df97fed01998583a2b2f2c2a4a845aafa57b97a225b306ba26b1561ab9eac840e3efa9de274c6558add31aa8d49fbf1253fedee871b77d77e5a51f8375a945e768e5941eef0d2ad2031bc52a43a332f4da5f8b0c675909ceddda3820ed9221dc37d3d7ac4068c02935842a1ee835ab65c888fb99e9a567885ba4961aea3b716a8176917753d10417189a8f42161815183a0a927c33ee688e3921f4ec3b9d9eda44da4f85cb25e9d7f342e098e1bd0929573f73dd3aaa00653a8efd3c9993ca35e4a20a5a5d56bd4802a89c68e0366175f808088e15d636069500df7f2579a6dba204c8efb26e6158c70cdff81b0a6473b1e356247607f584e08abe8f85d69fd64e2e76bd110cb43aa8b8f8a37e05f80b65b65bc1c64569bfec0a4bcf1b513f51aca8357b44ecf2a9b292efa31903c936657dd2b18f70f8fb14cd102eaefd9bc2a092953858ae08a5bd5595c79441b7db57bb8dc0f31577578137f9f88dce1a0c9dc15847149a6193f3d08f3a2769eb6c788bd918f96f076515054969d08d460728b635bb8779b44fe777e0664feb867b2caf94d6aa7ae6c68a16b32f8eb323ea0fd3a8cb6855eca0ba020992438814ac2dbb1bec23679bfbad3569039931eb1ac97833a30d530e3d9502cb92e342ffea0da53c96c57c5617fb293d2997c755611882775764e2ef4e8e33d0e1fac5d5c940fe30c8093aba6a0611723af3c92da2b73ba23dde9d1f81b3a72f587883fec32df43eb8d0a6fd0b1f641b01e839c4e9bfa7abe563bd5ac596103c74665c03a010cffa4aca1444cc0457fa72c1d29ef194c5c06a047997bb1669e952e5a4d3c8e739a27015dd92071bb6fcfee0c7713f7be9e57f9439800e78e13e0e90f65928f5e71eb829eb243975421c520a03aa6a58903fc3c2483f5b53e25f55397affc1e8e02e24b5c3767104797b705fe83a6c352e13b69f60c488f891dcb345dfeb8dfdd45af2087731246fab76e436dd233a2b5a77a5e796c1550053bd02ca0c2329fe0a7d1276a2710d1e0381c92fd623c934718338498ecfe75566cce83d41b4c5b8a7d9156cf46a906be8312cd88a2c98c945fc7fd3d6a88727d6f3cdfa4b34e4e3c1d22cacc90fc0f5f2a125b9d2d835b4258625c09a02fd70dd7f554e0d087f452cc8adbb0cbc6d4f0e651fcc2bf45033e0edfcc8026be8cee5d14080864a67c4f0a352a99e7718f74cc66309fbe92263f83ecfd426dcfee228e062668bd3b4776cbdbdf0781a06edfee68fa0e5736b49cf4b08f0d1741beb3cfd51b406cbbabd7305b5388f3add16aae78a7f301bcc8c1ae3e00595d8e7412437b44091e8081d21aef31e51f0cbb467b90766db38cf35c9d9bdb0dcf1f79934c5115661d50885d28ecda021ff66cb89c000565461de16c5409d5753b8ca9f14ac1b6aafb19a39b5045e713f10942d42ea43674ce4a926215afb5e381620448df105e6c5bd74b2107b93073af62b0ddf3caf6fba82c3bf768baae4621574e8a0d5e1a9a8d16183722a6edc1fba4db9910d01c0d41a68a79316e33ec392ceaa79b2e7a17f52bd1e28d1cee1fd4becc2265391ba50bd2835195d47a96406e5ffaaff2fb134a3bd5fe74170343aea3716402102d7f1da689735045c3b345e8f6a018dd8c5d6712c247eb4a02e660e34a6d97e0bfbb88b20cbf0a6010dfcb0bb64c1df91b226a6fa50a97f986bbbecd5289566e1df21bb68eca1622994c1571ad38525b1c55c64616803bd9450f985c55956aea6495828202f0d2406790429b0ff97530867904b2b865ac22dacaa94d025d2aaffdf3a571a7dbada4b3456cb59002c211b31a697bc2187cd4035a37cefbf8c2b4ae0eb09a09fc3f5d9ac2c05a7da1efa84fdbc42d48d173b0e605e40a8409d68f496225ce1d1816fcf726174f0a9f7fe12d1124bd0095a70f941f0c557f5168de29936232725e343e0bacaa98c67e1e93df028fbe597ea5bda6e4131b04f426af91395ed5115c408e1308b6f8b6c853eea117611fa6bd9360edb9ca987269d4ae36c0922448a196fb926ca76575d5ef0453d24d36d34b7e917be5fdd6c058987c8088042e05963d4bac56b5192097895233daf7784cfa92b6d807418ce2152d8233708aea45a04a36747b9896714f1e997133a724599f21cdada5e5393f0ae9ed02f364039f710a255a45bbca3bc6295f8269aa8aa41df58f486816caa8ff27e1f59c7d0f1b536a0c50127a4695d8e653a457319de395549477e1039a5c60412ae3812969e72df08b1ae90d0e2965dce2ea7eee5c7bf1641bd081d729b314db10fdd74446c05d92a192e6928acc69d5433e55d47a85d470d89d75f4a48bfc7b78b4c1b1e0d914ca55399ae042005e2bf73f2c84c898c53d5fa16e286527b8b9926c33f71fa865317cacff763324968d571767c22e91e5774dabb00bcd11950a50c8089f58b61491cec6a0e5f9c9b7ff2e64c92f47a2974f36efbe863fc45911cdaa960e467bbfef0486d297d16fe5c5f9c2d0789f32b09bb4a219f4ec1dcc698d5d5dd1633961120f0dd670030bbe4acbb43a535c91ca478c7854f97ba3af05f8af372d73b6ee9c85c44d169e3cf9cba7e6bfe71c2ddb783e494337e959da05a37a91b8bd3d16e4aa23cc91be5605f04e0207206aaea3dc37e48c82edd923801f61ce627860b379ef2bf3b9cd741509ffd69176be83cebeac04ce3263b9f1046d1480559912fa21156518decfad34d6bbe23b02c8afd76f6706abd64a25918251751aed8f59e092259190865815fe5155d7dfd1a84d8eb88f6e4ffdf139291c8b6f377786c860010b6557af473d1b9cafe795edcde7b8258503b94e022108ca5d3a150b644835a6e3268d1696192d08394485b3b96f0f03a49072ad3a1283c2811033d4da558a7d2405072c8349a72f68bca5744e8802eb8c711300e3536481d7d8354f8029698648e90114658a4b0735d1900ccb0ff45b2b0b8cc06b301cea36d5c5a5e6e8f7956208b762cdddda4e96e76a2fb77948a4cd83c60acdcfd941838cd9007d5d1a41abd6e1bd1fa96e39db8b931baa83123fae4a3e7dffc507d1cd2d928eab8cb064dda253c9ff7af6d7b090a6141e6112860ef083b537e64d3b8c9ad1484277d2d747b5f808a6a1fb18bc7c3e8f848b145af3403e566e8faf936f7c8def66a73c53acb6965204034d2740b191337dfd6d9be17e146f4fac3643aa7cf3b0c36adaa8c185b51fc8aa1971ee71c465893d72a7a3878d0e4e968e1347f858510f958326441fd380a3fdc54535fc7bc46c551a7ac4f11b344bd91d80110c644b39f3c21f6f5a11e1f06a85e163257678464dacf6d6775c39bb0b9585650c55da67832c29e4070528b2853694fb39d2b250876d6269265ddc53fffe22890fd14611887eb63bf9c2a5350999074d07497c594fb01f9967b23a3cc30d7010eade462f51bb423ab1b313e51679e6f4279152f3d77787c07c1a43818c108ce12526eb6be5a6aa8d5286480a680cf8aeb3617ec4a7b03374c8a8089858c8fd9416bd1a68ad7c4d84d3dced9e6ee3bb0753ddfb0923009a55c56ce0f24026c8070d4e2b380b0d7eadb194be21946f4ba89ee991ecaddf52cee22a7620cb9f65b8a4023c353f878c76004096d030bd8b565f9a95cebe8d88201d827b957f66c8f45557527bbf0ee7a4bf7ff5f8cf93c86cbda0ff14c1c8cce452f0bbd58d8ffa34249e35e78853956a6f7194bf5e1a74a95b86cd8961f82778eb93a540e837d244dfea81580cf9ad78343c49fd5adc2b57647c401b14d18fa6ddb775c64e219419159233463b61977dd290cec64e53ae589c45f40527acb5abdccecdde37f95df06d932b149e89006e33696037d4f25615cd804f9d9de8f89bad1b98a727c05f7a6a08904e4d9f2ce6c75972e22c056a9243320750dfa66b77d952b3ab6eb4028c9da8b663c2e1c365a628675512e21fc6379b2870d74bd0521e82a15de1c307a25c86e6b47067636ccdb83baad450333a02df1b1524e8746fa08c5cbc9c6b11572d69807c7d2aa63192999fa58aa634cc0d21b70ca3263bd7a96029d03e682a78a9edcdfc486902569a64799b7ef8305521fb017b13bfa1cd996cae310e6ea30f04f5512a37aa51b18fbb7f872d328d27113fb558bfb329d02d3b2f3cbde62ba36261dad8222b9274b9955c1569681ffc5c1878554ef487ea708c34d93a6121d28f9dc17a5a22e3780269bd924bbb8c37c594b746e7bc5d186ce4d670cc656017b1d61178227ab64427b18ee4bb883354cbde4acf250066fb03495c9a74a789209370249813bd8b066303d818f21ce056f751c149e0d06cdc7be1a0cc3ad74a261d19e3565ca8b5b309a85179689fce916e8e5a76d17b871165ef1ad0bb081d7fa3a2f31be8748fa8c3bf7fe6649d5b7777f2a9610e6347df1ebc82d4e14208534a11dbb8403ffc2f6f646c6a98477c23bdae0e6b887d17b06f5ca61705741eb322c1ccb8ba31af7b76b218f19e186fa28e6a28a4ec44feb9cc35254a012ab651508a5ff0004a4904c614b27fd29975ac626572f4c65e97f10e3219763c12a3e2cdb66cde4b52bd2954581bd4ab0c66046c3281a87ea36b7f3e5a36b1629984d85f639fe782dcac2b3898094ba5521897a576fb99bcef87f8a70bae12583cae57c589a35ba87056e950df2a3c28a370becbe94e6c28d320a16d3969347718fe34c417ce67ef5c045eff2884262f55808f25eb02ed092fb5a939e0f1be118302e33b0f34e88143871ef2bfe92bdc69098f8c6a8bdc826a1b8d19b6f5405ddd13556ac8b8f192cd9446d9abf47ac94f07b502e123cd6553375a71e0f9cb327229cacbae6baa3b7996cf8763d93e7df9e3d19866f6afded0c63b0f1c185c03722e585b1408d0edeaae7c9d4db199d479e998ddf012e7398c4ca5954c1d7dcc00d11d6f7f2f1fe9b4c872c08ed7719a4e0aebcaef39c6296dbbd5dffa9a125e76ada7c8033c73cbdcaecf3d43334d18968c46f08763bc57dc41aa86d52012878594481a11fe43e4e50e65cef3e3a0b933a1000127f5c31fcd062e4c79b481646e3c6980b68ba871af9f039ab3a5983754a0e7424bf2f13c4e0cfeae9b40ec2c143623a4b9f7e186415dbed721f9d201150633364ee9a700e6a60591a7df4d1e5dfb4e7991c7e987fce4ab606f7e01b25cb74f22efad2f461545bfbd4ecddb19739eb5b6f2e1c4b887a65de0a6a8da6fb6f5e490bbadb1bc5de492a6c0ae6fb4078403e7d31ddfe3213f5ec26f5d0a1ad57ecb2682ddcb688ca800d4e11d4fcf32108d3a9a0f42e529cac7eda1b79aea66227fef6d77bc95a2d3e54e8349e1a65e1544d64e4ab97498e4df9dd0a9f635df5be1955985ededcb472f243f5c6879420b6a8ac30135243def6764b45239eeecc5009e499131a098374cdf2f519a9c7f0767e384db02ad90cbaecf04cdad70c14f07ed4df80159c993b8e936b157ba9a45d004968b2203b05bdedb9c01971670248b8034045f737fa4feb6a25f50e405fd2df0102bb008e2af8fab7dbe1bd5219a34bee2ffa02926fbdc89dbc710e3646347b3d412f3fbc36f0c2d9a9e5b4ed5a1a253756efaa8e2d97bd72b7c947af722929a614720e9df983321442399584935f76954760ad334d3caf58fc86b6b702170e517b7b8f3bfced63a1992e45d1086c1029a44ffcae9453143e580a42f43f0f463b798e5c5d534e8bccdb967f3228d959134aaeae874b3fe5b4aca26e8a137236302a74a5bf8ed6453f26b07e28dcd9e61ae7c841351693254efda9de093e2823db8bd127b40e34ad27e907dc1a70b544791e8ac3851cfa83125ee0a1702c4f9f0b1db6c90829d905735d604e17470e10a0ccbe85abcb26a2fa90827c829a0490db5f42b25efb019033a830aeb65c30c0b69dcf3d76f9e64fe3d4241ea26147bfd81be62384458f71a55caced6466610de06cc1c2cfe3d461f052322bfe853cc7b23d780f1981eceffdaf87fb8b46ae3ef866f97d91f8eea9cc99f4286e024272902b45a5dee13e94ef732cd0894358e092fc55b076105d6b164a6ff9d2a68c152d7da15047c6eb0ea4fe3f2f522b4b9b6007f8c9d683d2aa9e59ccb0cc16f4180db5074b647d406f97a7c508652eeadb64f71c1f9fa64fca8f8963e6bc02e6e97f3bba1bedeaa0cf9bfec84d64717e26afacd96261f63bd9be1719cf84aeb5c5e7bdd547a4eaf3b174c69680418ba940ed9191b4d2d9eb7a97434ea19563712e9a5e70c58e7330ae78d1558b5cd6044d284e98ca3542055e74f09cdb47e6bda33b9b52ce6d98291afe1c33be99fb492cd1d3926c07bc92982342e824555487af8b6900bfc81440559168f96065babde7fa8dc6fe03826e825dd5a125981cbd66c4994776ec290f321f61f608e2e098f080ba16b0c18b78b2ee0a93835e9a38b861838f1b02772dee64edc61167bd506aa33d044c27038be5324d7dc05041cd9a4526ff4a6a35e1e944d7e0822ef2899b322202f4af1555b8629f7a4543fb857817986aacb8716b60e7879c9c2a879c36f088015120f4b7c7b6ca72b534e1a9c2967913f6bad212a58e9351f9bc6dab3d0bc5f613caf64060e3b68ba0a51f5a8be1d917c5543b9dea3de2695d13b33f8ed0d906c9daddf7d9f1f20cf721325f62e9be07fd6455760f9b3cbcd1d49d912fe8d73adad44f5165f2d3ee3574c6c83fd2be73097ccb15de4dabc6eca4c5e8177182ba36dcfc83288717ede95b7c739882aa2f1bf39688d20d352a77f6985827a2f6ac2a91c6c46537f75efcc1ceea977d3babf7564fc4c27905cf2551ae4f39fa21a1b6c1e4617a57d6e863e60583c380b4084e7b98cb9c83d38e9031befcdc338e50b0c94b0ebc732d10196a2244a48b902a30575d955e6166d116f5537aae987674a4e4e37a2b9c13abd0b4f12c1d9b0312349ac43360e8388b0f49916d762ca0ad5eda33120a4dace4ab195b92488550cb6c0cf075cce13e203e30e286727a1128b19eecab34a17d6730e65525e94eae55b075348f268ae3ed6fab56789c0fdaa186a4eafc08d0ee407c57f04157e0ad44b80d298490588106a2f5b0618fb26dc6c0d077b72e9c7c06b53ac8c5502a1d7b9dc61bc88229dd813c8a474206e9a481a49ee30d92e5a2385ec1dea519b396e11de7d6c713452a3a2a2598a8139c5aae796147631397d95c146b7ae168b4ff32d68e518239df8ad13f99c06ea88f71fd1c32f4f37bdab65de2813fd0d6d0bafcde7edc8100300daee0c2bce9931dbf63b6e2a7b53dd935cb332abb95785d1542758d907a54c359199ffa84819930c8d711563330b8cb1d720553c802f289c9e05381c02f785d724c84751a6ea53710c87c132f56c989f559be1e7fa072983b7b7ec773b9165bc8bf9f3d8ec41cd65676f74ec79197cc71fce4f2ba72f56dbf565286ac6218c5347b45b0c0d9e9e260756300967cdfcc319ef92c853e41b56f73619b53a0feacc1b5af7126927cfe74c2cab4652fe8f41602d5f041f593046ea1b7bc2a228640ea27ea87e7a07a5b880cd571f173bde98b77b73c9eacb0d332058c95fa336b26d9d4dd2566d11d6dca65ce41ded9d95146c40baeb70922a0bf1b10f206386afb34402bee4bffed6d9ba79df231dcdf88a33d33c72fcd969bc74ee07a1fa97130f524f48db8aef42ed465ff526af9f1bc4e8d772cdbc066c0504716e465d7b71c365a4b425f139169cde1f35bd2ae1cbce8c0d825076d4c8f3c96fc9fea369cfd3ec1c539e4ea05fb0ad3893e7b2103663b4442c406ee4d9f13ffc585a304252e3a2ed1c3be657806c4fb917bba213dc0511f871bb9e262fc6fc44210fa1f06e06723e9a6b5ca042ce9d910710d4dcad60d3b7d08bea8ff8b87d712d898ed226015c3ee7a4335ebd1c08d05c46843261645fccea574a9997ac6d526ff1f15c06ebbadfc3b596d36317bbf2848fd8a6a757103d94a966988d5471b488688ec72f98d08637f755cc0bbf5eee58b974a647af470fbac3205cae8efedc932c877aec7b33cca23c2fe0a59569e334a8d8b52f6a5769df2b1a31acb2a23c2c85ea6721c9c197d85f29ac8546f61edbbcde60dfe636db5d2f8901a93e3a1f92df79960b5b1f904ce993916b7e07a23f0b014b6ae05e3a8d965cfcb9276c5a557976e10f3660c6193bd52d8d714f5ff4c6c4a873d49918731451413c0ef0c2bd4c37047ef5a2acf7dbbc296fe0b0fb7eb6d17b4d9083226575ca965b62c08d7bc81e88afcbbd45de85f86a85e1a44e21ac002e12462979b4d40b6708ed53b79c156b461483c267d7a6356f1500326e4f4982ed29d099227f80458e2583f1190c372fb846b814bd6ab454940fd774782bab0e2e61554c4470fcc4b33c634e3d12c88993ae76f34e4922b601394f4d75e74c978154fd3d23cf74d2c44a0ebd7c38080b1a680d8fa813768ec4bbf4cb2856441e6620e83bff073532545299c1d0e39d219fd2bf73174c517f591663270bb5108b02b086c588bc958cece498af7f9d3b3d19b190b74268fdc68476ebe5fb65fb6d695bd4fdb284385de5fa7ba300021b9d5c08e3b93b9d0086fe3faf5548d6a7ee59f6a0e5030cfdc4087572f4f2dd5f555f3a45ef789ac518287f515b29e32a2b59d139fdf5c1cae6570ea7f8720a2831b7bd72ae715f72908ede2a189c43a89b6b66f6c5044a9f330a8e4efa288232e588125c5399a18387785c9906c5e28b97d76fdfbe991f92a6faaaa60778c8da093311af3aabbdda3db687f432d6f6196558cda547a6c290ffc66f8bf040</script>
+  <div class="hbe hbe-content">
+    <div class="hbe hbe-input hbe-input-default">
+      <input class="hbe hbe-input-field hbe-input-field-default" type="password" id="hbePass">
+      <label class="hbe hbe-input-label hbe-input-label-default" for="hbePass">
+        <span class="hbe hbe-input-label-content hbe-input-label-content-default">Hey, password is required here.</span>
+      </label>
+    </div>
+  </div>
+</div>
+<script data-pjax src="/lib/hbe.js"></script><link href="/css/hbe.style.css" rel="stylesheet" type="text/css">]]></content>
+      <tags>
+        <tag>HDR</tag>
+        <tag>Deep Learning</tag>
+        <tag>Loss</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>超分辨率Loss设计记录(1)</title>
+    <url>/2022/11/19/%E8%B6%85%E5%88%86%E8%BE%A8%E7%8E%87Loss%E8%AE%BE%E8%AE%A1%E8%AE%B0%E5%BD%95-1/</url>
+    <content><![CDATA[<meta name="referrer" content="no-referrer" />
+<p>在超分辨率(Super-Resolution)网络训练中使用均方误差(MSE)损失函数确实存在一个常见问题,
+即可能导致生成的结果过于平滑和模糊
+这是因为MSE损失函数鼓励模型生成像素值,
+以使其与目标图像的像素值之间的平方差最小化这种最小化平方差的方法有时会导致图像细节的丢失,
+使得生成的高分辨率图像看起来过于平滑.</p>
+<span id="more"></span>
+<p><img src="https://s2.loli.net/2023/10/19/WEjclfagntGVxbo.png" /></p>
+<p>相关材料可以查看<a
+href="https://arxiv.org/pdf/1609.04802v5.pdf">SRGAN</a>中Figure2以及1.1.3小节.
+虽然直接优化MSE可以产生较高的PSNR/SSIM, 但是在zoom scale较大的情况下,
+MSE作为loss function引导的学习无法使得重建图像捕获细节信息,
+从论文Figure2中可以看到, 左二图有较高的PSNR/SSIM, 但是从观感上判断,
+左三图明显具有更多的细节.</p>
+<p>为了解决这个问题, 通常在超分辨率网络中使用其他损失函数或技术,
+以更好地保留细节和纹理 以下是一些替代方法：</p>
+<ol type="1">
+<li><p><strong>感知损失(Perceptual Loss)</strong>：使用感知损失,
+通常是使用预训练的深度卷积神经网络(如VGG)来计算生成图像与目标图像之间的特征表示的差异
+这种方法更强调图像的结构和纹理, 而不仅仅是像素值
+这有助于生成更具细节和真实感的图像</p></li>
+<li><p><strong>对抗性损失(Adversarial
+Loss)</strong>：引入生成对抗网络(GAN)的方法,
+其中生成器网络和判别器网络相互竞争 生成器的目标是欺骗判别器,
+而判别器的目标是区分生成图像和真实图像
+这种对抗性训练有助于生成更逼真的图像</p></li>
+<li><p><strong>内容和风格损失(Content and Style
+Loss)</strong>：结合感知损失和风格损失,
+以确保生成的图像在内容和风格上都与目标图像相似</p></li>
+<li><p><strong>自适应权重调整</strong>：使用动态权重或损失加权方法,
+以平衡不同类型的损失函数,
+以便在训练过程中更好地控制平滑度和细节</p></li>
+</ol>
+<p>这些方法可以帮助超分辨率网络生成更锐利和更具细节的高分辨率图像,
+而不仅仅是通过最小化像素级差异来生成图像
+选择哪种方法取决于具体的问题和数据集, 以及对生成图像的期望质量</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">import</span> torch.nn <span class="keyword">as</span> nn</span><br><span class="line"><span class="keyword">import</span> torchvision.models <span class="keyword">as</span> models</span><br><span class="line"></span><br><span class="line"><span class="comment">#SRGAN使用预训练好的VGG19，用生成器的结果以及原始图像通过VGG后分别得到的特征图计算MSE，具体解释推荐看SRGAN的相关资料</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">VGG</span>(<span class="params">nn.Module</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, device</span>):</span></span><br><span class="line">        <span class="built_in">super</span>(VGG, self).__init__()</span><br><span class="line">        vgg = models.vgg19(<span class="literal">True</span>)</span><br><span class="line">        <span class="keyword">for</span> pa <span class="keyword">in</span> vgg.parameters():</span><br><span class="line">            pa.requires_grad = <span class="literal">False</span></span><br><span class="line">        self.vgg = vgg.features[:<span class="number">16</span>]</span><br><span class="line">        self.vgg = self.vgg.to(device)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span>(<span class="params">self, x</span>):</span></span><br><span class="line">        out = self.vgg(x)</span><br><span class="line">        <span class="keyword">return</span> out</span><br><span class="line"></span><br><span class="line"><span class="comment">#内容损失</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ContentLoss</span>(<span class="params">nn.Module</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, device</span>):</span></span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        self.mse = nn.MSELoss()</span><br><span class="line">        self.vgg19 = VGG(device)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span>(<span class="params">self, fake, real</span>):</span></span><br><span class="line">        feature_fake = self.vgg19(fake)</span><br><span class="line">        feature_real = self.vgg19(real)</span><br><span class="line">        loss = self.mse(feature_fake, feature_real)</span><br><span class="line">        <span class="keyword">return</span> loss</span><br><span class="line"></span><br><span class="line"><span class="comment">#对抗损失</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">AdversarialLoss</span>(<span class="params">nn.Module</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span>(<span class="params">self, x</span>):</span></span><br><span class="line">        loss = torch.<span class="built_in">sum</span>(-torch.log(x))</span><br><span class="line">        <span class="keyword">return</span> loss</span><br><span class="line"></span><br><span class="line"><span class="comment">#感知损失</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">PerceptualLoss</span>(<span class="params">nn.Module</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, device</span>):</span></span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        self.vgg_loss = ContentLoss(device)</span><br><span class="line">        self.adversarial = AdversarialLoss()</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span>(<span class="params">self, fake, real, x</span>):</span></span><br><span class="line">        vgg_loss = self.vgg_loss(fake, real)</span><br><span class="line">        adversarial_loss = self.adversarial(x)</span><br><span class="line">        <span class="keyword">return</span> vgg_loss + <span class="number">1e-3</span>*adversarial_loss</span><br><span class="line"></span><br><span class="line"><span class="comment">#正则项，需要说明的是，在SRGAN的后续版本的论文中，这个正则项被删除了</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">RegularizationLoss</span>(<span class="params">nn.Module</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span>(<span class="params">self, x</span>):</span></span><br><span class="line">        a = torch.square(</span><br><span class="line">            x[:, :, :x.shape[<span class="number">2</span>]-<span class="number">1</span>, :x.shape[<span class="number">3</span>]-<span class="number">1</span>] - x[:, :, <span class="number">1</span>:x.shape[<span class="number">2</span>], :x.shape[<span class="number">3</span>]-<span class="number">1</span>]</span><br><span class="line">        )</span><br><span class="line">        b = torch.square(</span><br><span class="line">            x[:, :, :x.shape[<span class="number">2</span>]-<span class="number">1</span>, :x.shape[<span class="number">3</span>]-<span class="number">1</span>] - x[:, :, :x.shape[<span class="number">2</span>]-<span class="number">1</span>, <span class="number">1</span>:x.shape[<span class="number">3</span>]]</span><br><span class="line">        )</span><br><span class="line">        loss = torch.<span class="built_in">sum</span>(torch.<span class="built_in">pow</span>(a+b, <span class="number">1.25</span>))</span><br><span class="line">        <span class="keyword">return</span> loss</span><br></pre></td></tr></table></figure>
+]]></content>
+      <tags>
+        <tag>Deep Learning</tag>
+        <tag>Loss</tag>
+        <tag>SR</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>超分辨率效果改善方案记录(1)</title>
+    <url>/2023/04/05/%E8%B6%85%E5%88%86%E8%BE%A8%E7%8E%87%E6%95%88%E6%9E%9C%E6%94%B9%E5%96%84%E6%96%B9%E6%A1%88%E8%AE%B0%E5%BD%95-1/</url>
+    <content><![CDATA[<meta name="referrer" content="no-referrer" />
+<p>在图像处理和计算机视觉中, 上采样(upsampling)是一种常见的操作,
+用于将图像从低分辨率扩大到高分辨率.
+两种常见的上采样方法是最近邻上采样(Nearest-neighbor
+Upsampling)和双线性上采样(Bilinear Upsampling).
+它们各自具有不同的特点:</p>
+<span id="more"></span>
+<ol type="1">
+<li><p><strong>最近邻上采样</strong>:
+这种方法在上采样过程中选择与原始像素最接近的像素值, 以填充新像素.
+它会导致锯齿状的边缘, 因为它不考虑像素之间的平滑过渡,
+导致锐利的边缘.</p></li>
+<li><p><strong>双线性上采样</strong>: 双线性上采样考虑了周围像素的权重,
+以计算新像素的值. 这使得边缘更加平滑,
+因为它会对周围像素的值进行线性插值.
+这种方法在上采样过程中产生更平滑的图像,
+但可能会导致边缘相对于最近邻上采样来说不够锐利.</p></li>
+</ol>
+<p>将两种上采样方法结合以获得同时锐利和平滑的结果其实有是可能的,
+我们称为混合上采样或自适应上采样. 一种常见的方法是使用权重混合两种方法,
+以在不同部分的图像上应用它们. 以下是一种简单的方法:</p>
+<ol type="1">
+<li><p><strong>定义混合权重</strong>:
+为了结合最近邻上采样和双线性上采样, 您可以定义一个混合权重图像.
+这个权重图像决定了每个像素处应该使用哪种上采样方法的权重.</p></li>
+<li><p><strong>应用混合权重</strong>: 使用混合权重图像,
+对每个像素应用最近邻上采样和双线性上采样. 具体地, 对于每个像素,
+根据混合权重来决定最近邻和双线性上采样两者的权重. 然后,
+将两种上采样结果加权相加以生成混合上采样结果.</p></li>
+</ol>
+<p>这种方法允许您在图像中的不同区域使用不同的上采样方法,
+以获得锐利的边缘和平滑的纹理.</p>
+<p>当然, 以下是对您描述的过程的更具技术性的表述:</p>
+<p><strong>步骤1: </strong> 首先,
+将从2x超分辨率模型获得的Y通道图像分别应用nearest
+upsample(Y_nn)和bilinear upsample(Y_bi).</p>
+<p><strong>步骤2: </strong> 接下来, 通过在Y_nn和Y_bi上执行卷积操作,
+生成图像的垂直和水平边缘. 这个步骤有助于增强图像的边缘信息.</p>
+<p><strong>步骤3: </strong>
+利用OpenCV库的<code>cv::cartToPolar()</code>函数,
+计算垂直和水平边缘的tan角度和幅度. 这一步有助于了解边缘的方向和强度.</p>
+<p><strong>步骤4: </strong> 创建一个融合mask,
+将角度接近0、90和180度的像素设置为1, 同时将幅度小于5的像素设置为0.
+这个mask有助于确定需要特定上采样结果的区域.</p>
+<p><strong>步骤5: </strong> 对融合mask进行膨胀(dilate)操作,
+扩展需要混合结果的区域.
+这个膨胀操作确保了最近邻上采样和双线性上采样区域之间的平滑过渡.</p>
+<p><strong>步骤6: </strong> 最后, 将融合mask应用于Y_nn和Y_bi的结果,
+得到融合的输出Y_out. 融合结果的计算公式为: Y_out = Y_nn * mask + (1.0 -
+mask) * Y_bi. 这个过程产生了最终图像, 根据融合mask的区域,
+综合了最近邻上采样的锐利度和双线性上采样的平滑度.</p>
+<p>这种方法通过考虑边缘细节和不同上采样区域之间的平滑过渡,
+确保了改进和平衡的超分辨率结果.</p>
+]]></content>
+      <tags>
+        <tag>SR</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>高通平台ISP调试记录(1)-ANR</title>
+    <url>/2023/05/07/%E9%AB%98%E9%80%9A%E5%B9%B3%E5%8F%B0ISP%E8%B0%83%E8%AF%95%E8%AE%B0%E5%BD%95-1-ANR/</url>
+    <content><![CDATA[<meta name="referrer" content="no-referrer" />
+<p>anr模块</p>
+<span id="more"></span>
+<p>enable_grey_treatment_thr_modification</p>
+<p>控制开启边缘去彩噪</p>
+<p>detect_grey_condition_chromaticity_thr_low</p>
+<p>detect_grey_condition_chromaticity_thr_high</p>
+<p>detect_grey_condition_y_max_derivative_thr_low</p>
+<p>detect_grey_condition_y_max_derivative_thr_high</p>
+<p>检测是否需要去彩噪的threshold</p>
+<p>thr_modification_target_y</p>
+<p>thr_modification_target_u</p>
+<p>thr_modification_target_v</p>
+<p>检测到需要加强edge false color denois才生效， 值越打越强</p>
+<p>luma_filter_lut_thr_y</p>
+<p>luma_filter_lut_thr_uv</p>
+<p>为了解决lsc导致的噪声，按照半径区分， 值越大去噪约越强</p>
+<p>chroma_filter_lut_thr_y</p>
+<p>chroma_filter_lut_thr_uv</p>
+<p>为了解决lsc导致的噪声，按照半径区分， 值越大去噪约越强</p>
+<p>y_threshold_per_y</p>
+<p>u_threshold_per_y</p>
+<p>v_threshold_per_y</p>
+<p>值越大去噪越强 最常用</p>
+<p>luma_input_indication_thr_modification_scale</p>
+<p>chroma_input_indication_thr_modification_scale</p>
+<p>full path上不认为是噪声， 但是DC4上需要做去噪， 此时开启inter
+length， 如果inter length的值为32， 则full path 的threshold就是full path
+threshold的2倍</p>
+<p>dcblend2_luma_strength_function</p>
+<p>dcblend2_chroma_strength_function（0 0 0 0 64 128）融合权重最大值，
+去噪最强</p>
+<p>一般不动</p>
+]]></content>
+      <tags>
+        <tag>ISP</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>高通平台ISP调试记录(2)-ASF</title>
+    <url>/2023/06/12/%E9%AB%98%E9%80%9A%E5%B9%B3%E5%8F%B0ISP%E8%B0%83%E8%AF%95%E8%AE%B0%E5%BD%95-2-ASF/</url>
+    <content><![CDATA[<meta name="referrer" content="no-referrer" />
+<p>asf模块：</p>
+<span id="more"></span>
+<p>negative_thr</p>
+<p>越小 黑边越小</p>
+<p>layer_1_gain_positive_lut</p>
+<p>layer_1_gain_negative_lut</p>
+<p>按照亮度分为64个点， 越大锐化越强</p>
+<p>layer_1_gain_contrast_positive_lut</p>
+<p>layer_1_gain_contrast_negative_lut</p>
+<p>8450平台后亮度区分，越大锐化越强</p>
+<p>layer_1_gain_weight_lut</p>
+<p>不是细节 但是也不是平坦区， 值越大锐化越强</p>
+<p>layer_1_clamp_ul</p>
+<p>layer_1_clamp_ll</p>
+<p>值为0， 约等于关闭asf， 主观上控制黑白边</p>
+<p>控制</p>
+<p>edge_thr</p>
+<p>控制detect edge的大小， 值越大， detect的范围越小， edge越少</p>
+<p>layer_1_positive_texture_preserve_factor</p>
+<p>layer_1_negtive_texture_preserve_factor</p>
+<p>控制还原一下儿positve和negtive的细节</p>
+<p>layer_1_sp</p>
+<p>radial_activity_adj</p>
+<p>值越小 锐化越弱</p>
+<p>radial_gain_adj</p>
+<p>值越小 锐化越弱</p>
+]]></content>
+      <tags>
+        <tag>ISP</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>高通平台ISP调试记录(3)-HNR</title>
+    <url>/2023/07/11/%E9%AB%98%E9%80%9A%E5%B9%B3%E5%8F%B0ISP%E8%B0%83%E8%AF%95%E8%AE%B0%E5%BD%95-3-HNR/</url>
+    <content><![CDATA[<meta name="referrer" content="no-referrer" />
+<p>hnr模块：</p>
+<span id="more"></span>
+<p>fnr_gain_arr</p>
+<p>平坦区去噪， 将全图平坦成都划分成17个等级， 值越小， 去噪力度越大</p>
+<p>lnr_gain_arr</p>
+<p>按照亮度区分 33个等级， 值越小， 力度越强</p>
+<p>功能类似于fnr，</p>
+<p>gain_arr 功能是加强去噪力度</p>
+<p>radial_noise_prsv_adj</p>
+<p>按照半径区分， 值越大去噪越弱， 表明希望保留的噪声大小</p>
+<p>radial_anchor</p>
+<p>从中心到边缘， 0是中心</p>
+<p>blend_lnr_gain_arr</p>
+<p>和hnr的input做blend， 值越大去噪越小</p>
+]]></content>
+      <tags>
+        <tag>ISP</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>高通平台ISP调试记录(4)-WNR</title>
+    <url>/2023/08/17/%E9%AB%98%E9%80%9A%E5%B9%B3%E5%8F%B0ISP%E8%B0%83%E8%AF%95%E8%AE%B0%E5%BD%95-4-WNR/</url>
+    <content><![CDATA[<meta name="referrer" content="no-referrer" />
+<p>暂无</p>
+<span id="more"></span>
+]]></content>
+      <tags>
+        <tag>ISP</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>MacOS平台设置定时运行的任务记录</title>
+    <url>/2023/10/20/MacOS%E5%B9%B3%E5%8F%B0%E8%AE%BE%E7%BD%AE%E5%AE%9A%E6%97%B6%E8%BF%90%E8%A1%8C%E7%9A%84%E4%BB%BB%E5%8A%A1%E8%AE%B0%E5%BD%95/</url>
+    <content><![CDATA[<meta name="referrer" content="no-referrer" />
+<p>最近考虑到iCloud的速度较慢，且偶尔会出现问题时，放弃iCloud，而是转而使用坚果云来进行多台主机之间的数据同步。</p>
+<span id="more"></span>
+<p>坚果云同步是会遇到一些隐藏文件无法同步的问题,
+但是我也不需要同步这些隐藏文件, 包括恼人的 <code>.DS_Store</code> 文件,
+因此我需要一个定时任务来定期清理这些文件。在 macOS 平台上，传统的
+crontab 命令确实不太实用，因为 macOS 已经采用了 launchd
+作为任务管理器。launchd
+提供了更强大和灵活的方式来管理计划任务，允许你以更直观的方式创建和管理定时任务。</p>
+<p>在 macOS 平台上，使用 <code>launchd</code>
+来设置定时运行的任务。<code>launchd</code>
+是一个系统级的守护程序，用于管理和监控各种系统和用户级任务。以下是如何使用
+<code>launchd</code> 在 macOS 上设置定时运行的任务的步骤：</p>
+<ol type="1">
+<li><p>创建一个属性列表（plist）文件：</p>
+<p>使用文本编辑器创建一个属性列表文件，该文件包含有关你的任务的描述，包括任务的类型、触发器和执行内容。属性列表文件的文件扩展名应为
+<code>.plist</code>。</p>
+<p>你可以使用以下示例属性列表作为参考，并根据你的需求进行修改：</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">plist</span> <span class="meta-keyword">PUBLIC</span> <span class="meta-string">&quot;-//Apple//DTD PLIST 1.0//EN&quot;</span> <span class="meta-string">&quot;http://www.apple.com/DTDs/PropertyList-1.0.dtd&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">plist</span> <span class="attr">version</span>=<span class="string">&quot;1.0&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dict</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">key</span>&gt;</span>Label<span class="tag">&lt;/<span class="name">key</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">string</span>&gt;</span>com.vix.cron<span class="tag">&lt;/<span class="name">string</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">key</span>&gt;</span>ProgramArguments<span class="tag">&lt;/<span class="name">key</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">array</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">string</span>&gt;</span>这里存放需要执行的脚本地址<span class="tag">&lt;/<span class="name">string</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">array</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">key</span>&gt;</span>Nice<span class="tag">&lt;/<span class="name">key</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">integer</span>&gt;</span>1<span class="tag">&lt;/<span class="name">integer</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">key</span>&gt;</span>StartInterval<span class="tag">&lt;/<span class="name">key</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">integer</span>&gt;</span>30<span class="tag">&lt;/<span class="name">integer</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">key</span>&gt;</span>RunAtLoad<span class="tag">&lt;/<span class="name">key</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">true</span> /&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">key</span>&gt;</span>StandardErrorPath<span class="tag">&lt;/<span class="name">key</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">string</span>&gt;</span>/tmp/test.err<span class="tag">&lt;/<span class="name">string</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">key</span>&gt;</span>StandardOutPath<span class="tag">&lt;/<span class="name">key</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">string</span>&gt;</span>/tmp/test.out<span class="tag">&lt;/<span class="name">string</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dict</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">plist</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>这个示例会每30秒执行一次脚本文件
+<code>/path/to/your/script.sh</code>。</p>
+<p>我的定时清理 <code>.DS_Store</code> 文件脚本参考如下:</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">!/bin/bash</span></span><br><span class="line">find ~/Documents -name &quot;.DS_Store&quot; -depth -exec rm -rf &#123;&#125; \;</span><br><span class="line">find ~/Desktop -name &quot;.DS_Store&quot; -depth -exec rm -rf &#123;&#125; \;</span><br></pre></td></tr></table></figure></li>
+<li><p>将 plist 文件保存到适当的位置：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">~/Library/LaunchAgents/</span><br></pre></td></tr></table></figure>
+<p>或</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">/Library/LaunchDaemons/</span><br></pre></td></tr></table></figure>
+<p>如果你想为当前用户设置任务，将 plist 文件保存到
+<code>~/Library/LaunchAgents/</code>；如果你想为系统设置任务，将 plist
+文件保存到 <code>/Library/LaunchDaemons/</code>。</p></li>
+<li><p>加载任务：</p>
+<p>使用以下命令加载你的任务：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">launchctl load /path/to/your/plist/file.plist</span><br></pre></td></tr></table></figure>
+<p>如果你将 plist 文件保存到
+<code>~/Library/LaunchAgents/</code>，则使用以下命令：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">launchctl load ~/Library/LaunchAgents/yourfile.plist</span><br></pre></td></tr></table></figure>
+<p>如果你将 plist 文件保存到
+<code>/Library/LaunchDaemons/</code>，则使用以下命令：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo launchctl load /Library/LaunchDaemons/yourfile.plist</span><br></pre></td></tr></table></figure></li>
+<li><p>启动或重新启动任务：</p>
+<p>任务会根据属性列表中定义的时间触发。你还可以使用
+<code>launchctl</code> 命令手动启动或重新启动任务：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">launchctl start com.example.myjob</span><br></pre></td></tr></table></figure>
+<p>或</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">sudo launchctl start com.example.myjob</span><br></pre></td></tr></table></figure>
+<p>请替换 <code>com.example.myjob</code> 为你的任务的 Label
+值。</p></li>
+<li><p>停止任务：</p>
+<p>你可以使用以下命令停止任务：</p>
+<p><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">launchctl unload xxx</span><br></pre></td></tr></table></figure></p></li>
+<li><p>查看任务状态：</p>
+<p>你可以使用以下命令查看任务的状态：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">launchctl list | grep com.example.myjob</span><br></pre></td></tr></table></figure>
+<p>请替换 <code>com.example.myjob</code> 为你的任务的 Label 值。</p>
+<p>你还可以使用以下命令查看任务的日志：</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">tail -f /tmp/test.out</span><br></pre></td></tr></table></figure>
+<p>请替换 <code>/tmp/test.out</code> 为你的任务的
+<code>StandardOutPath</code> 值。</p></li>
+<li><p>更多的定时任务设置：</p>
+<p><code>launchd</code>
+提供了多种方式来设置更精细的定时任务，可以根据分钟、小时等更加精确的时间间隔来执行任务。以下是一些示例：</p>
+<ul>
+<li><strong>按分钟执行任务</strong>：</li>
+</ul>
+<p>如果你希望定时任务每隔一定的分钟数执行一次，你可以使用
+<code>StartInterval</code> 键来设置间隔。下面是一个示例：</p>
+<p><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">key</span>&gt;</span>StartInterval<span class="tag">&lt;/<span class="name">key</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">integer</span>&gt;</span>600<span class="tag">&lt;/<span class="name">integer</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>这将使任务每隔 10 分钟执行一次。</p>
+<ul>
+<li><strong>按小时执行任务</strong>：</li>
+</ul>
+<p>如果你希望任务按小时执行，你可以结合使用
+<code>StartCalendarInterval</code> 和
+<code>StartInterval</code>。例如，要在每小时的第 30 分钟执行任务：</p>
+<p><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">key</span>&gt;</span>StartCalendarInterval<span class="tag">&lt;/<span class="name">key</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dict</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">key</span>&gt;</span>Minute<span class="tag">&lt;/<span class="name">key</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">integer</span>&gt;</span>30<span class="tag">&lt;/<span class="name">integer</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dict</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">key</span>&gt;</span>StartInterval<span class="tag">&lt;/<span class="name">key</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">integer</span>&gt;</span>3600<span class="tag">&lt;/<span class="name">integer</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>这将使任务每隔一小时执行一次，并在每小时的第 30 分执行。</p>
+<ul>
+<li><strong>按天执行任务</strong>：</li>
+</ul>
+<p>如果你需要在特定时间执行任务，可以使用
+<code>StartCalendarInterval</code>，如下所示：</p>
+<p><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">key</span>&gt;</span>StartCalendarInterval<span class="tag">&lt;/<span class="name">key</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dict</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">key</span>&gt;</span>Hour<span class="tag">&lt;/<span class="name">key</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">integer</span>&gt;</span>8<span class="tag">&lt;/<span class="name">integer</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">key</span>&gt;</span>Minute<span class="tag">&lt;/<span class="name">key</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">integer</span>&gt;</span>0<span class="tag">&lt;/<span class="name">integer</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dict</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>这将使任务在每天早上 8 点执行。</p>
+<ul>
+<li><strong>按周执行任务</strong>：</li>
+</ul>
+<p>你可以使用 <code>StartCalendarInterval</code>
+来指定具体的星期几执行任务，例如，每周一早上 8 点：</p>
+<p><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">key</span>&gt;</span>StartCalendarInterval<span class="tag">&lt;/<span class="name">key</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dict</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">key</span>&gt;</span>Hour<span class="tag">&lt;/<span class="name">key</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">integer</span>&gt;</span>8<span class="tag">&lt;/<span class="name">integer</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">key</span>&gt;</span>Minute<span class="tag">&lt;/<span class="name">key</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">integer</span>&gt;</span>0<span class="tag">&lt;/<span class="name">integer</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">key</span>&gt;</span>Weekday<span class="tag">&lt;/<span class="name">key</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">integer</span>&gt;</span>1<span class="tag">&lt;/<span class="name">integer</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dict</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>这将使任务每周一早上 8 点执行。</p>
+<p>通过合理设置 <code>StartInterval</code> 和
+<code>StartCalendarInterval</code>，你可以创建几乎任何你想要的定时任务规则，以满足不同的需求。请根据你的具体需求修改上述示例来创建自定义的定时任务。</p></li>
+</ol>
+<p>你的任务现在应该会按计划执行。你可以根据需要编辑 plist
+文件来更改触发时间或其他任务设置。</p>
+]]></content>
+  </entry>
+</search>
