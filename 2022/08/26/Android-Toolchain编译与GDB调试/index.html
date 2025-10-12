@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width">
-<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 5.4.2">
+<meta name="theme-color" content="#fff"><meta name="generator" content="Hexo 5.4.2">
 
   <link rel="apple-touch-icon" sizes="180x180" href="/images/computer-chip_gray.svg">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/computer-chip_gray.svg">
   <link rel="icon" type="image/png" sizes="16x16" href="/images/computer-chip_gray.svg">
-  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <link rel="mask-icon" href="/images/computer-chip_gray.svg" color="#fff">
 
 <link rel="stylesheet" href="/css/main.css">
 
@@ -18,7 +18,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/themes/blue/pace-theme-minimal.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/pace.min.js" integrity="sha256-gqd7YTjg/BtfqWSwsJOvndl0Bxc8gFImLEkXQT8+qj0=" crossorigin="anonymous"></script>
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"huziliang.com","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.19.1","exturl":false,"sidebar":{"position":"left","display":"remove","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":true,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"huziliang.com","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.19.1","exturl":false,"sidebar":{"position":"left","display":"remove","padding":18,"offset":12},"copycode":{"enable":true,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":true,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
     <meta name="description" content="在进行linux主机上进行arm跨平台进行pure c++开发时，可能混有Neon intrinsic或者ARM assembly代码，此时进行代码编译和调试，可以使用standalone toolchain进行编译，使用gdb+gdbserver进行调试。">
 <meta property="og:type" content="article">
@@ -218,10 +218,10 @@ website上下载一个NDK工具包并解压，本人使用的是r14b版本，链
 target="_blank" rel="noopener" href="https://dl.google.com/android/repository/android-ndk-r14b-linux-x86_64.zip">https://dl.google.com/android/repository/android-ndk-r14b-linux-x86_64.zip</a></p>
 <ul>
 <li><p>Standalone Toolchain的编译</p>
-<p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> android-ndk-r14b/build/tools/</span><br><span class="line">./make-standalone-toolchain.sh --platform=android-21 --install-dir=./android-aarch64 --arch=arm64</span><br><span class="line">./make-standalone-toolchain.sh --platform=android-21 --install-dir=./android-armv7 --arch=arm</span><br></pre></td></tr></table></figure></p>
+<p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> android-ndk-r14b/build/tools/</span><br><span class="line">./make-standalone-toolchain.sh --platform=android-21 --install-dir=./android-aarch64 --<span class="built_in">arch</span>=arm64</span><br><span class="line">./make-standalone-toolchain.sh --platform=android-21 --install-dir=./android-armv7 --<span class="built_in">arch</span>=arm</span><br></pre></td></tr></table></figure></p>
 <p>通过以上命令，会生成android-aarch64，android-armv7两个目录，可以将生成的standalone
 toolchain拷贝至固定目录</p>
-<p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo cp -r android-ndk-r14b/build/tools/android-aarch64 /opt</span><br><span class="line">sudo cp -r android-ndk-r14b/build/tools/android-armv7 /opt</span><br></pre></td></tr></table></figure></p>
+<p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> <span class="built_in">cp</span> -r android-ndk-r14b/build/tools/android-aarch64 /opt</span><br><span class="line"><span class="built_in">sudo</span> <span class="built_in">cp</span> -r android-ndk-r14b/build/tools/android-armv7 /opt</span><br></pre></td></tr></table></figure></p>
 <p>以上完成standalone toolchain生成</p></li>
 <li><p>Linux主机编译arm跨平台pure c++程序</p>
 <ol type="1">
@@ -239,17 +239,17 @@ toolchain拷贝至固定目录</p>
 <ol type="1">
 <li>ARM平台程序的执行</li>
 </ol>
-<p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">adb push main /data/<span class="built_in">local</span>/tmp</span><br><span class="line">adb shell ./data/<span class="built_in">local</span>/tmp/main</span><br></pre></td></tr></table></figure></p></li>
+<p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">adb push main /data/local/tmp</span><br><span class="line">adb shell ./data/local/tmp/main</span><br></pre></td></tr></table></figure></p></li>
 <li><p>GDB+GDBServer调试</p>
 <ol type="1">
 <li>准备GDBServer</li>
 </ol>
 <p>测试手机一般出厂不会自带gdbserver，可以将NDK工具包中对应平台gdbserver推入手机</p>
-<p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">adb push android-ndk-r14b/prebuilt/android-arm64/gdbserver/gdbserver /data/<span class="built_in">local</span>/tmp</span><br></pre></td></tr></table></figure></p>
+<p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">adb push android-ndk-r14b/prebuilt/android-arm64/gdbserver/gdbserver /data/local/tmp</span><br></pre></td></tr></table></figure></p>
 <ol type="1">
 <li>启动GDBServer</li>
 </ol>
-<p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">adb shell <span class="comment"># 进入手机shell命令行</span></span><br><span class="line"><span class="built_in">cd</span> /data/<span class="built_in">local</span>/tmp</span><br><span class="line">./gdbserver tcp:9090 main</span><br><span class="line"></span><br><span class="line"><span class="comment"># 正常输出如下：</span></span><br><span class="line">Process main created; pid = 7201</span><br><span class="line">gdbserver: Unable to determine the number of hardware watchpoints available.</span><br><span class="line">gdbserver: Unable to determine the number of hardware breakpoints available.</span><br><span class="line">Listening on port 9090</span><br></pre></td></tr></table></figure></p>
+<p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">adb shell <span class="comment"># 进入手机shell命令行</span></span><br><span class="line"><span class="built_in">cd</span> /data/local/tmp</span><br><span class="line">./gdbserver tcp:9090 main</span><br><span class="line"></span><br><span class="line"><span class="comment"># 正常输出如下：</span></span><br><span class="line">Process main created; pid = 7201</span><br><span class="line">gdbserver: Unable to determine the number of hardware watchpoints available.</span><br><span class="line">gdbserver: Unable to determine the number of hardware breakpoints available.</span><br><span class="line">Listening on port 9090</span><br></pre></td></tr></table></figure></p>
 <ol type="1">
 <li>在主机平台启动gdb调试程序</li>
 </ol>

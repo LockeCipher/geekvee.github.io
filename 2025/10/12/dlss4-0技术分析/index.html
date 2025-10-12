@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#fff"><meta name="generator" content="Hexo 5.4.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/computer-chip_gray.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/computer-chip_gray.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/computer-chip_gray.svg">
+  <link rel="mask-icon" href="/images/computer-chip_gray.svg" color="#fff">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha256-yIDrPSXHZdOZhAqiBP7CKzIwMQmRCJ8UeB8Jo17YC4o=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/themes/blue/pace-theme-minimal.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/pace.min.js" integrity="sha256-gqd7YTjg/BtfqWSwsJOvndl0Bxc8gFImLEkXQT8+qj0=" crossorigin="anonymous"></script>
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"huziliang.com","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.19.1","exturl":false,"sidebar":{"position":"left","display":"remove","padding":18,"offset":12},"copycode":{"enable":true,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":true,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="NVIDIA DLSS 历年发展技术分析 近年来，随着实时图形渲染对画质和性能的双重追求，NVIDIA 推出的深度学习超采样技术（Deep Learning Super Sampling，简称 DLSS）成为业界热点。从最初的 DLSS 1.0 到最新一代 DLSS 4.0，技术持续演进，本文将梳理 DLSS 各代技术路线及其核心升级点，并结合实际应用分析其影响。 一、DLSS 1.0：深度学习">
+<meta property="og:type" content="article">
+<meta property="og:title" content="DLSS发展历程">
+<meta property="og:url" content="https://huziliang.com/2025/10/12/dlss4-0%E6%8A%80%E6%9C%AF%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="Cipher Locke">
+<meta property="og:description" content="NVIDIA DLSS 历年发展技术分析 近年来，随着实时图形渲染对画质和性能的双重追求，NVIDIA 推出的深度学习超采样技术（Deep Learning Super Sampling，简称 DLSS）成为业界热点。从最初的 DLSS 1.0 到最新一代 DLSS 4.0，技术持续演进，本文将梳理 DLSS 各代技术路线及其核心升级点，并结合实际应用分析其影响。 一、DLSS 1.0：深度学习">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2025-10-12T08:08:11.000Z">
+<meta property="article:modified_time" content="2025-10-12T08:14:17.687Z">
+<meta property="article:author" content="Cipher Locke">
+<meta property="article:tag" content="超分辨率">
+<meta property="article:tag" content="AI">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://huziliang.com/2025/10/12/dlss4-0%E6%8A%80%E6%9C%AF%E5%88%86%E6%9E%90/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://huziliang.com/2025/10/12/dlss4-0%E6%8A%80%E6%9C%AF%E5%88%86%E6%9E%90/","path":"2025/10/12/dlss4-0技术分析/","title":"DLSS发展历程"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>DLSS发展历程 | Cipher Locke</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader" style="padding-top: 50px !important"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <style>
+    .pixel-slime {
+      height: 100px;
+      width: 105px;
+      position: relative;
+      display: inline-block;
+      margin: 20px;
+      &::before {
+        content: "";
+        position: absolute;
+        background: 0 0;
+        width: 5px;
+        height: 5px;
+        top: -5px;
+        left: -5px;
+        box-shadow: 65px 5px rgb(91, 155, 213), 55px 10px rgb(91, 155, 213), 60px 10px rgb(91, 155, 213), 70px 10px rgb(91, 155, 213), 40px 15px rgb(91, 155, 213), 45px 15px rgb(91, 155, 213), 50px 15px rgb(91, 155, 213), 75px 15px rgb(91, 155, 213), 30px 20px rgb(91, 155, 213), 35px 20px rgb(91, 155, 213), 80px 20px rgb(91, 155, 213), 20px 25px rgb(91, 155, 213), 25px 25px rgb(91, 155, 213), 85px 25px rgb(91, 155, 213), 90px 25px rgb(91, 155, 213), 15px 30px rgb(91, 155, 213), 95px 30px rgb(91, 155, 213), 10px 35px rgb(91, 155, 213), 100px 35px rgb(91, 155, 213), 10px 40px rgb(91, 155, 213), 100px 40px rgb(91, 155, 213), 5px 45px rgb(91, 155, 213), 105px 45px rgb(91, 155, 213), 5px 50px rgb(91, 155, 213), 105px 50px rgb(91, 155, 213), 5px 55px rgb(91, 155, 213), 105px 55px rgb(91, 155, 213), 5px 60px rgb(91, 155, 213), 105px 60px rgb(91, 155, 213), 5px 65px rgb(91, 155, 213), 105px 65px rgb(91, 155, 213), 5px 70px rgb(91, 155, 213), 105px 70px rgb(91, 155, 213), 10px 75px rgb(91, 155, 213), 100px 75px rgb(91, 155, 213), 10px 80px rgb(91, 155, 213), 100px 80px rgb(91, 155, 213), 15px 85px rgb(91, 155, 213), 95px 85px rgb(91, 155, 213), 20px 90px rgb(91, 155, 213), 25px 90px rgb(91, 155, 213), 85px 90px rgb(91, 155, 213), 90px 90px rgb(91, 155, 213), 30px 95px rgb(91, 155, 213), 35px 95px rgb(91, 155, 213), 75px 95px rgb(91, 155, 213), 80px 95px rgb(91, 155, 213), 40px 100px rgb(91, 155, 213), 45px 100px rgb(91, 155, 213), 50px 100px rgb(91, 155, 213), 55px 100px rgb(91, 155, 213), 60px 100px rgb(91, 155, 213), 65px 100px rgb(91, 155, 213), 70px 100px rgb(91, 155, 213), 65px 10px rgb(221, 235, 247), 55px 15px rgb(221, 235, 247), 60px 15px rgb(221, 235, 247), 70px 15px rgb(221, 235, 247), 50px 20px rgb(221, 235, 247), 75px 20px rgb(221, 235, 247), 80px 25px rgb(221, 235, 247), 85px 30px rgb(221, 235, 247), 90px 30px rgb(221, 235, 247), 15px 35px rgb(221, 235, 247), 100px 55px rgb(221, 235, 247), 100px 60px rgb(221, 235, 247), 85px 65px rgb(221, 235, 247), 15px 60px rgb(221, 235, 247), 40px 20px rgb(242, 247, 252), 45px 20px rgb(242, 247, 252), 30px 25px rgb(242, 247, 252), 35px 25px rgb(242, 247, 252), 20px 30px rgb(242, 247, 252), 25px 30px rgb(242, 247, 252), 95px 35px rgb(242, 247, 252), 95px 40px rgb(242, 247, 252), 100px 45px rgb(242, 247, 252), 100px 50px rgb(242, 247, 252), 25px 50px rgb(242, 247, 252), 20px 60px rgb(242, 247, 252), 70px 55px rgb(242, 247, 252), 80px 65px rgb(242, 247, 252), 65px 15px rgb(189, 215, 238), 55px 20px rgb(189, 215, 238), 60px 20px rgb(189, 215, 238), 65px 20px rgb(189, 215, 238), 70px 20px rgb(189, 215, 238), 40px 25px rgb(189, 215, 238), 45px 25px rgb(189, 215, 238), 50px 25px rgb(189, 215, 238), 55px 25px rgb(189, 215, 238), 60px 25px rgb(189, 215, 238), 65px 25px rgb(189, 215, 238), 70px 25px rgb(189, 215, 238), 75px 25px rgb(189, 215, 238), 30px 30px rgb(189, 215, 238), 35px 30px rgb(189, 215, 238), 40px 30px rgb(189, 215, 238), 45px 30px rgb(189, 215, 238), 50px 30px rgb(189, 215, 238), 55px 30px rgb(189, 215, 238), 60px 30px rgb(189, 215, 238), 65px 30px rgb(189, 215, 238), 70px 30px rgb(189, 215, 238), 75px 30px rgb(189, 215, 238), 80px 30px rgb(189, 215, 238), 20px 35px rgb(189, 215, 238), 25px 35px rgb(189, 215, 238), 30px 35px rgb(189, 215, 238), 35px 35px rgb(189, 215, 238), 40px 35px rgb(189, 215, 238), 45px 35px rgb(189, 215, 238), 50px 35px rgb(189, 215, 238), 55px 35px rgb(189, 215, 238), 60px 35px rgb(189, 215, 238), 65px 35px rgb(189, 215, 238), 70px 35px rgb(189, 215, 238), 75px 35px rgb(189, 215, 238), 80px 35px rgb(189, 215, 238), 85px 35px rgb(189, 215, 238), 90px 35px rgb(189, 215, 238), 15px 40px rgb(189, 215, 238), 20px 40px rgb(189, 215, 238), 25px 40px rgb(189, 215, 238), 30px 40px rgb(189, 215, 238), 35px 40px rgb(189, 215, 238), 40px 40px rgb(189, 215, 238), 45px 40px rgb(189, 215, 238), 50px 40px rgb(189, 215, 238), 55px 40px rgb(189, 215, 238), 60px 40px rgb(189, 215, 238), 65px 40px rgb(189, 215, 238), 70px 40px rgb(189, 215, 238), 75px 40px rgb(189, 215, 238), 80px 40px rgb(189, 215, 238), 85px 40px rgb(189, 215, 238), 90px 40px rgb(189, 215, 238), 10px 45px rgb(189, 215, 238), 15px 45px rgb(189, 215, 238), 20px 45px rgb(189, 215, 238), 25px 45px rgb(189, 215, 238), 30px 45px rgb(189, 215, 238), 90px 45px rgb(189, 215, 238), 95px 45px rgb(189, 215, 238), 10px 50px rgb(189, 215, 238), 15px 50px rgb(189, 215, 238), 20px 50px rgb(189, 215, 238), 95px 50px rgb(189, 215, 238), 10px 55px rgb(189, 215, 238), 15px 55px rgb(189, 215, 238), 10px 60px rgb(189, 215, 238), 10px 65px rgb(189, 215, 238), 10px 70px rgb(189, 215, 238), 15px 75px rgb(189, 215, 238), 15px 80px rgb(189, 215, 238), 20px 85px rgb(189, 215, 238), 25px 85px rgb(189, 215, 238), 30px 90px rgb(189, 215, 238), 35px 90px rgb(189, 215, 238), 100px 65px rgb(189, 215, 238), 100px 70px rgb(189, 215, 238), 95px 75px rgb(189, 215, 238), 95px 80px rgb(189, 215, 238), 85px 85px rgb(189, 215, 238), 90px 85px rgb(189, 215, 238), 75px 90px rgb(189, 215, 238), 80px 90px rgb(189, 215, 238), 40px 95px rgb(189, 215, 238), 45px 95px rgb(189, 215, 238), 50px 95px rgb(189, 215, 238), 55px 95px rgb(189, 215, 238), 60px 95px rgb(189, 215, 238), 65px 95px rgb(189, 215, 238), 70px 95px rgb(189, 215, 238), 20px 55px rgb(180, 198, 231), 35px 45px rgb(180, 198, 231), 40px 45px rgb(180, 198, 231), 45px 45px rgb(180, 198, 231), 50px 45px rgb(180, 198, 231), 55px 45px rgb(180, 198, 231), 60px 45px rgb(180, 198, 231), 65px 45px rgb(180, 198, 231), 70px 45px rgb(180, 198, 231), 75px 45px rgb(180, 198, 231), 80px 45px rgb(180, 198, 231), 85px 45px rgb(180, 198, 231), 35px 50px rgb(180, 198, 231), 40px 50px rgb(180, 198, 231), 45px 50px rgb(180, 198, 231), 50px 50px rgb(180, 198, 231), 55px 50px rgb(180, 198, 231), 60px 50px rgb(180, 198, 231), 65px 50px rgb(180, 198, 231), 70px 50px rgb(180, 198, 231), 75px 50px rgb(180, 198, 231), 80px 50px rgb(180, 198, 231), 85px 50px rgb(180, 198, 231), 90px 50px rgb(180, 198, 231), 35px 55px rgb(180, 198, 231), 40px 55px rgb(180, 198, 231), 45px 55px rgb(180, 198, 231), 50px 55px rgb(180, 198, 231), 55px 55px rgb(180, 198, 231), 60px 55px rgb(180, 198, 231), 65px 55px rgb(180, 198, 231), 80px 55px rgb(180, 198, 231), 85px 55px rgb(180, 198, 231), 90px 55px rgb(180, 198, 231), 95px 55px rgb(180, 198, 231), 25px 60px rgb(180, 198, 231), 30px 60px rgb(180, 198, 231), 35px 60px rgb(180, 198, 231), 40px 60px rgb(180, 198, 231), 45px 60px rgb(180, 198, 231), 50px 60px rgb(180, 198, 231), 55px 60px rgb(180, 198, 231), 60px 60px rgb(180, 198, 231), 65px 60px rgb(180, 198, 231), 80px 60px rgb(180, 198, 231), 85px 60px rgb(180, 198, 231), 90px 60px rgb(180, 198, 231), 95px 60px rgb(180, 198, 231), 15px 65px rgb(180, 198, 231), 20px 65px rgb(180, 198, 231), 25px 65px rgb(180, 198, 231), 30px 65px rgb(180, 198, 231), 90px 65px rgb(180, 198, 231), 95px 65px rgb(180, 198, 231), 15px 70px rgb(180, 198, 231), 20px 70px rgb(180, 198, 231), 90px 70px rgb(180, 198, 231), 95px 70px rgb(180, 198, 231), 35px 65px rgb(142, 169, 219), 40px 65px rgb(142, 169, 219), 45px 65px rgb(142, 169, 219), 50px 65px rgb(142, 169, 219), 55px 65px rgb(142, 169, 219), 60px 65px rgb(142, 169, 219), 65px 65px rgb(142, 169, 219), 70px 65px rgb(142, 169, 219), 75px 65px rgb(142, 169, 219), 35px 70px rgb(142, 169, 219), 40px 70px rgb(142, 169, 219), 45px 70px rgb(142, 169, 219), 50px 70px rgb(142, 169, 219), 55px 70px rgb(142, 169, 219), 60px 70px rgb(142, 169, 219), 65px 70px rgb(142, 169, 219), 70px 70px rgb(142, 169, 219), 75px 70px rgb(142, 169, 219), 80px 70px rgb(142, 169, 219), 85px 70px rgb(142, 169, 219), 35px 75px rgb(142, 169, 219), 40px 75px rgb(142, 169, 219), 25px 70px rgb(142, 169, 219), 20px 75px rgb(142, 169, 219), 25px 75px rgb(142, 169, 219), 20px 80px rgb(142, 169, 219), 25px 80px rgb(142, 169, 219), 30px 80px rgb(142, 169, 219), 50px 75px rgb(142, 169, 219), 55px 75px rgb(142, 169, 219), 65px 75px rgb(142, 169, 219), 70px 75px rgb(142, 169, 219), 75px 75px rgb(142, 169, 219), 80px 75px rgb(142, 169, 219), 85px 75px rgb(142, 169, 219), 90px 75px rgb(142, 169, 219), 45px 80px rgb(142, 169, 219), 60px 80px rgb(142, 169, 219), 65px 80px rgb(142, 169, 219), 70px 80px rgb(142, 169, 219), 75px 80px rgb(142, 169, 219), 80px 80px rgb(142, 169, 219), 85px 80px rgb(142, 169, 219), 90px 80px rgb(142, 169, 219), 30px 85px rgb(142, 169, 219), 35px 85px rgb(142, 169, 219), 40px 85px rgb(142, 169, 219), 45px 85px rgb(142, 169, 219), 50px 85px rgb(142, 169, 219), 55px 85px rgb(142, 169, 219), 60px 85px rgb(142, 169, 219), 65px 85px rgb(142, 169, 219), 70px 85px rgb(142, 169, 219), 75px 85px rgb(142, 169, 219), 80px 85px rgb(142, 169, 219), 40px 90px rgb(142, 169, 219), 45px 90px rgb(142, 169, 219), 50px 90px rgb(142, 169, 219), 55px 90px rgb(142, 169, 219), 60px 90px rgb(142, 169, 219), 65px 90px rgb(142, 169, 219), 70px 90px rgb(142, 169, 219), 30px 70px rgb(248, 203, 173), 30px 75px rgb(248, 203, 173), 35px 80px rgb(248, 203, 173), 40px 80px rgb(248, 203, 173), 45px 75px rgb(248, 203, 173), 50px 80px rgb(248, 203, 173), 55px 80px rgb(248, 203, 173), 60px 75px rgb(248, 203, 173), 30px 50px rgb(64, 64, 64), 25px 55px rgb(64, 64, 64), 30px 55px rgb(64, 64, 64), 75px 55px rgb(64, 64, 64), 70px 60px rgb(64, 64, 64), 75px 60px rgb(64, 64, 64);
+      }
+    }
+  </style>
+
+  <div class="site-meta">
+
+    <a href="/" class="" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title"><i class="pixel-slime"></i></p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Newbie Dad, Software Engineer</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://huziliang.com/2025/10/12/dlss4-0%E6%8A%80%E6%9C%AF%E5%88%86%E6%9E%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/computer-chip_gray.svg">
+      <meta itemprop="name" content="Cipher Locke">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Cipher Locke">
+      <meta itemprop="description" content="Just for record">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="DLSS发展历程 | Cipher Locke">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          DLSS发展历程
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2025-10-12 16:08:11 / Modified: 16:14:17" itemprop="dateCreated datePublished" datetime="2025-10-12T16:08:11+08:00">2025-10-12</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><meta name="referrer" content="no-referrer" />
+<h1 id="nvidia-dlss-历年发展技术分析">NVIDIA DLSS 历年发展技术分析</h1>
+<p>近年来，随着实时图形渲染对画质和性能的双重追求，NVIDIA
+推出的深度学习超采样技术（Deep Learning Super Sampling，简称
+DLSS）成为业界热点。从最初的 DLSS 1.0 到最新一代 DLSS
+4.0，技术持续演进，本文将梳理 DLSS
+各代技术路线及其核心升级点，并结合实际应用分析其影响。</p>
+<h2 id="一dlss-1.0深度学习抗锯齿的起点">一、DLSS
+1.0：深度学习抗锯齿的起点</h2>
+<p><strong>发布时间</strong>：2018年末（随RTX 20系列发布）</p>
+<p><strong>主要特性与原理</strong>： -
+采用端到端神经网络，用输入帧与低分辨率深度缓冲生成高分辨率输出图像。 -
+强调“图像重建”与抗锯齿，依赖大量离线预训练数据。 -
+必须针对每一款游戏单独训练，通用性与适配性不足。</p>
+<p><strong>优缺点</strong>： - 在部分游戏和场景下效果优秀（如FFXV等）。
+- 细节重建和运动画面表现不稳定，容易出现图像模糊、鬼影和假影等现象。</p>
+<hr />
+<h2 id="二dlss-2.0通用超分辨率方案">二、DLSS 2.0：通用超分辨率方案</h2>
+<p><strong>发布时间</strong>：2020年3月</p>
+<p><strong>主要升级点</strong>： - 采用基于“时域信息积累”的全新 AI
+超采样架构。 -
+输入信息更加丰富：当前帧低分辨率渲染、运动矢量、深度图，以及历史帧数据。
+-
+引入通用型神经网络，无需为每款游戏单独训练，大大提升适配速度和推广力度。
+- 增加多种质量模式（质量、平衡、性能、超性能）。</p>
+<p><strong>效果提升</strong>： -
+显著提升清晰度和细节还原能力，运动过程中的残影、模糊大幅减少。 -
+大部分场景下接近原生分辨率，甚至部分细节超越原生渲染。</p>
+<p><strong>应用范围</strong>： - 成为主流 3A
+大作首选超分辨率方案，如《赛博朋克2077》、《荒野大镖客2》等大量游戏支持。</p>
+<hr />
+<h2 id="三dlss-3.0ai-帧生成">三、DLSS 3.0：AI 帧生成</h2>
+<p><strong>发布时间</strong>：2022年9月（随 RTX 40 系列 Ada
+架构发布）</p>
+<p><strong>核心创新</strong>： - 新增 Optical Multi Frame
+Generation（光学多帧生成），利用 AI 生成“中间帧”。 -
+不同于前两代仅提升分辨率，DLSS 3.0 可插入 AI
+合成新帧，实现帧率倍增（Frame Generation）。 - 需要专用硬件（Ada
+架构中的 Optical Flow Accelerator）。</p>
+<p><strong>原理简述</strong>： -
+综合历史帧、运动矢量和光流数据预测插值帧，大幅提升帧率尤其在 CPU
+受限场景下效果明显。 - AI 插帧仅处理视觉上属于“镜头中移动对象”，UI
+以及输入延迟等需结合 NVIDIA Reflex 技术共同优化。</p>
+<p><strong>优势与挑战</strong>： -
+提升流畅度和体验，但极端场景下可能出现帧间“插帧假影”、“输入延迟提升”等问题。</p>
+<hr />
+<h2 id="四dlss-3.5全路径光追优化">四、DLSS 3.5：全路径光追优化</h2>
+<p><strong>发布时间</strong>：2023年</p>
+<p><strong>关键进步</strong>： - 引入 Ray Reconstruction（AI
+光追重建）模块，用 AI 网络替代传统的降噪器（Denoiser）。 -
+目标是让低采样路径下的光线追踪画质更接近高采样水平，提升全路径光追场景（如Cyberpunk
+2077：RT Overdrive模式）下清晰度、细节与光照表现。 -
+软硬件适配性增强：DLSS 3.5 的 AI 光追重建可在RTX
+20/30/40全系列显卡上运行。</p>
+<hr />
+<h2 id="五dlss-4.0ai-超分新时代">五、DLSS 4.0：AI 超分新时代</h2>
+<p>根据 <a
+target="_blank" rel="noopener" href="https://www.nvidia.com/en-us/geforce/technologies/dlss/">NVIDIA
+官方 DLSS 技术页面</a>，目前已经披露的 DLSS 4.0 技术细节包括：</p>
+<p><strong>核心特性：</strong> -
+<strong>第四代深度学习超采样网络</strong>：DLSS 4.0 进一步升级了 AI
+模型，提升在极低分辨率和复杂场景下的细节还原能力，使整体画面更加锐利、动态更自然。
+- <strong>多帧与时空融合重建</strong>：结合多帧信息，AI
+网络不仅利用当前帧像素，还利用历史帧数据、运动矢量与高级光流信息，实现更精确的时空超分辨率重建。
+- <strong>新一代光流引擎</strong>（Optical Flow
+Accelerator）：硬件协同优化，极大提升运动估算与插帧精度。 -
+<strong>低延迟帧生成优化</strong>：在 DLSS 3.0 Frame Generation
+基础上进一步降低端到端延迟，提升响应性，改善输入体验，适配 Reflex
+全链路优化。 - <strong>全平台/端到端渲染链路支持</strong>：DLSS 4.0 覆盖
+PC 游戏、云游戏和未来的 XR 应用场景，接口开放且可跨平台适配。</p>
+<p><strong>技术实现要点：</strong> -
+<strong>大规模神经网络升级</strong>：采用更多层次和参数的神经网络，显著提升在复杂光照、运动与极低分辨率场景下的超分还原能力。
+-
+<strong>实时动态权重调节</strong>：根据游戏场景与分辨率动态切换模型权重，兼顾画质与性能。
+-
+<strong>智能时域降噪</strong>：自适应处理高速运动、粒子特效、半透明等极易失真的区域，降低伪影与残影。</p>
+<p><strong>兼容性：</strong> - 预计在下一代 RTX 显卡（如 Blackwell
+架构）上率先支持，未来逐步向更多 GPU 平台扩展。部分功能也与 RTX 20/30/40
+系列兼容（以官方公布为准）。</p>
+<p>更多官方信息可参考：<a
+target="_blank" rel="noopener" href="https://www.nvidia.com/en-us/geforce/technologies/dlss/">NVIDIA
+GeForce DLSS 4 Details</a></p>
+<p>如需详细英文技术白皮书或公开演讲资料，可持续关注 GTC
+及相关开发者文档。</p>
+<hr />
+<h2 id="六总结与展望">六、总结与展望</h2>
+<p>DLSS 已成为 NVIDIA RTX 平台的核心卖点和创新引擎，其从 1.0 到 4.0
+的迭代，展现了 AI
+技术对传统图形渲染方式的变革力量。未来，随着硬件算力提升和神经网络更深度集成，AI
+超采样有望不仅刷新游戏体验，也重塑电影制作、虚拟现实、专业设计等各行各业的图形工作流。</p>
+<blockquote>
+<p><strong>相关链接</strong>：</p>
+<ul>
+<li><a
+target="_blank" rel="noopener" href="https://www.nvidia.com/en-us/geforce/technologies/dlss/">NVIDIA
+DLSS 官方介绍</a></li>
+<li><a
+target="_blank" rel="noopener" href="https://www.eurogamer.net/digitalfoundry-2023-nvidia-dlss-in-depth">Digital
+Foundry 针对 DLSS 的系列评测&amp;分析（英文）</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cyberpunk.net/zh-cn/news">赛博朋克 2077
+技术细节：路径追踪与 AI 超分辨率</a></li>
+</ul>
+</blockquote>
+<p>有任何 DLSS 技术与应用问题，欢迎留言交流！</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E8%B6%85%E5%88%86%E8%BE%A8%E7%8E%87/" rel="tag"># 超分辨率</a>
+              <a href="/tags/AI/" rel="tag"># AI</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2023/12/14/%E6%8E%A2%E7%B4%A2C-%E4%B8%AD%E7%9A%84Lambda%E8%A1%A8%E8%BE%BE%E5%BC%8F/" rel="prev" title="探索C++中的Lambda表达式">
+                  <i class="fa fa-angle-left"></i> 探索C++中的Lambda表达式
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2025/10/12/%E5%85%89%E8%BF%BD%E5%8E%BB%E5%99%AA/" rel="next" title="光追去噪技术深度解析：从理论到实践">
+                  光追去噪技术深度解析：从理论到实践 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">粤ICP备17055045号 </a>
+  </div>
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Cipher Locke</span>
+  </div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="reading-progress-bar"></div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+  <script src="/js/third-party/pace.js"></script>
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"per_page":true,"cdn":"//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML","mhchem":false,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

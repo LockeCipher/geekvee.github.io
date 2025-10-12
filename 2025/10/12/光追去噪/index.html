@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#fff"><meta name="generator" content="Hexo 5.4.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/computer-chip_gray.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/computer-chip_gray.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/computer-chip_gray.svg">
+  <link rel="mask-icon" href="/images/computer-chip_gray.svg" color="#fff">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha256-yIDrPSXHZdOZhAqiBP7CKzIwMQmRCJ8UeB8Jo17YC4o=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/themes/blue/pace-theme-minimal.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/pace.min.js" integrity="sha256-gqd7YTjg/BtfqWSwsJOvndl0Bxc8gFImLEkXQT8+qj0=" crossorigin="anonymous"></script>
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"huziliang.com","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.19.1","exturl":false,"sidebar":{"position":"left","display":"remove","padding":18,"offset":12},"copycode":{"enable":true,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":true,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="引言 光线追踪（Ray Tracing）作为计算机图形学中的核心技术，能够生成高度逼真的图像效果。然而，由于光线追踪的计算复杂度极高，在实时渲染中往往需要大幅减少采样数量，这导致了严重的噪声问题。光追去噪技术应运而生，通过智能的滤波算法在保持视觉质量的同时显著提升渲染性能。 本文将深入探讨光追去噪的技术原理、主要算法、实现细节以及性能优化策略，为读者提供全面的技术视角。 1. 光追噪声的本质与挑">
+<meta property="og:type" content="article">
+<meta property="og:title" content="光追去噪技术深度解析：从理论到实践">
+<meta property="og:url" content="https://huziliang.com/2025/10/12/%E5%85%89%E8%BF%BD%E5%8E%BB%E5%99%AA/index.html">
+<meta property="og:site_name" content="Cipher Locke">
+<meta property="og:description" content="引言 光线追踪（Ray Tracing）作为计算机图形学中的核心技术，能够生成高度逼真的图像效果。然而，由于光线追踪的计算复杂度极高，在实时渲染中往往需要大幅减少采样数量，这导致了严重的噪声问题。光追去噪技术应运而生，通过智能的滤波算法在保持视觉质量的同时显著提升渲染性能。 本文将深入探讨光追去噪的技术原理、主要算法、实现细节以及性能优化策略，为读者提供全面的技术视角。 1. 光追噪声的本质与挑">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2025-10-12T08:17:09.000Z">
+<meta property="article:modified_time" content="2025-10-12T08:35:54.375Z">
+<meta property="article:author" content="Cipher Locke">
+<meta property="article:tag" content="Ray-Tracing">
+<meta property="article:tag" content="Denoising">
+<meta property="article:tag" content="Real-time-Rendering">
+<meta property="article:tag" content="Computer-Graphics">
+<meta property="article:tag" content="GPU-Computing">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://huziliang.com/2025/10/12/%E5%85%89%E8%BF%BD%E5%8E%BB%E5%99%AA/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://huziliang.com/2025/10/12/%E5%85%89%E8%BF%BD%E5%8E%BB%E5%99%AA/","path":"2025/10/12/光追去噪/","title":"光追去噪技术深度解析：从理论到实践"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>光追去噪技术深度解析：从理论到实践 | Cipher Locke</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader" style="padding-top: 50px !important"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <style>
+    .pixel-slime {
+      height: 100px;
+      width: 105px;
+      position: relative;
+      display: inline-block;
+      margin: 20px;
+      &::before {
+        content: "";
+        position: absolute;
+        background: 0 0;
+        width: 5px;
+        height: 5px;
+        top: -5px;
+        left: -5px;
+        box-shadow: 65px 5px rgb(91, 155, 213), 55px 10px rgb(91, 155, 213), 60px 10px rgb(91, 155, 213), 70px 10px rgb(91, 155, 213), 40px 15px rgb(91, 155, 213), 45px 15px rgb(91, 155, 213), 50px 15px rgb(91, 155, 213), 75px 15px rgb(91, 155, 213), 30px 20px rgb(91, 155, 213), 35px 20px rgb(91, 155, 213), 80px 20px rgb(91, 155, 213), 20px 25px rgb(91, 155, 213), 25px 25px rgb(91, 155, 213), 85px 25px rgb(91, 155, 213), 90px 25px rgb(91, 155, 213), 15px 30px rgb(91, 155, 213), 95px 30px rgb(91, 155, 213), 10px 35px rgb(91, 155, 213), 100px 35px rgb(91, 155, 213), 10px 40px rgb(91, 155, 213), 100px 40px rgb(91, 155, 213), 5px 45px rgb(91, 155, 213), 105px 45px rgb(91, 155, 213), 5px 50px rgb(91, 155, 213), 105px 50px rgb(91, 155, 213), 5px 55px rgb(91, 155, 213), 105px 55px rgb(91, 155, 213), 5px 60px rgb(91, 155, 213), 105px 60px rgb(91, 155, 213), 5px 65px rgb(91, 155, 213), 105px 65px rgb(91, 155, 213), 5px 70px rgb(91, 155, 213), 105px 70px rgb(91, 155, 213), 10px 75px rgb(91, 155, 213), 100px 75px rgb(91, 155, 213), 10px 80px rgb(91, 155, 213), 100px 80px rgb(91, 155, 213), 15px 85px rgb(91, 155, 213), 95px 85px rgb(91, 155, 213), 20px 90px rgb(91, 155, 213), 25px 90px rgb(91, 155, 213), 85px 90px rgb(91, 155, 213), 90px 90px rgb(91, 155, 213), 30px 95px rgb(91, 155, 213), 35px 95px rgb(91, 155, 213), 75px 95px rgb(91, 155, 213), 80px 95px rgb(91, 155, 213), 40px 100px rgb(91, 155, 213), 45px 100px rgb(91, 155, 213), 50px 100px rgb(91, 155, 213), 55px 100px rgb(91, 155, 213), 60px 100px rgb(91, 155, 213), 65px 100px rgb(91, 155, 213), 70px 100px rgb(91, 155, 213), 65px 10px rgb(221, 235, 247), 55px 15px rgb(221, 235, 247), 60px 15px rgb(221, 235, 247), 70px 15px rgb(221, 235, 247), 50px 20px rgb(221, 235, 247), 75px 20px rgb(221, 235, 247), 80px 25px rgb(221, 235, 247), 85px 30px rgb(221, 235, 247), 90px 30px rgb(221, 235, 247), 15px 35px rgb(221, 235, 247), 100px 55px rgb(221, 235, 247), 100px 60px rgb(221, 235, 247), 85px 65px rgb(221, 235, 247), 15px 60px rgb(221, 235, 247), 40px 20px rgb(242, 247, 252), 45px 20px rgb(242, 247, 252), 30px 25px rgb(242, 247, 252), 35px 25px rgb(242, 247, 252), 20px 30px rgb(242, 247, 252), 25px 30px rgb(242, 247, 252), 95px 35px rgb(242, 247, 252), 95px 40px rgb(242, 247, 252), 100px 45px rgb(242, 247, 252), 100px 50px rgb(242, 247, 252), 25px 50px rgb(242, 247, 252), 20px 60px rgb(242, 247, 252), 70px 55px rgb(242, 247, 252), 80px 65px rgb(242, 247, 252), 65px 15px rgb(189, 215, 238), 55px 20px rgb(189, 215, 238), 60px 20px rgb(189, 215, 238), 65px 20px rgb(189, 215, 238), 70px 20px rgb(189, 215, 238), 40px 25px rgb(189, 215, 238), 45px 25px rgb(189, 215, 238), 50px 25px rgb(189, 215, 238), 55px 25px rgb(189, 215, 238), 60px 25px rgb(189, 215, 238), 65px 25px rgb(189, 215, 238), 70px 25px rgb(189, 215, 238), 75px 25px rgb(189, 215, 238), 30px 30px rgb(189, 215, 238), 35px 30px rgb(189, 215, 238), 40px 30px rgb(189, 215, 238), 45px 30px rgb(189, 215, 238), 50px 30px rgb(189, 215, 238), 55px 30px rgb(189, 215, 238), 60px 30px rgb(189, 215, 238), 65px 30px rgb(189, 215, 238), 70px 30px rgb(189, 215, 238), 75px 30px rgb(189, 215, 238), 80px 30px rgb(189, 215, 238), 20px 35px rgb(189, 215, 238), 25px 35px rgb(189, 215, 238), 30px 35px rgb(189, 215, 238), 35px 35px rgb(189, 215, 238), 40px 35px rgb(189, 215, 238), 45px 35px rgb(189, 215, 238), 50px 35px rgb(189, 215, 238), 55px 35px rgb(189, 215, 238), 60px 35px rgb(189, 215, 238), 65px 35px rgb(189, 215, 238), 70px 35px rgb(189, 215, 238), 75px 35px rgb(189, 215, 238), 80px 35px rgb(189, 215, 238), 85px 35px rgb(189, 215, 238), 90px 35px rgb(189, 215, 238), 15px 40px rgb(189, 215, 238), 20px 40px rgb(189, 215, 238), 25px 40px rgb(189, 215, 238), 30px 40px rgb(189, 215, 238), 35px 40px rgb(189, 215, 238), 40px 40px rgb(189, 215, 238), 45px 40px rgb(189, 215, 238), 50px 40px rgb(189, 215, 238), 55px 40px rgb(189, 215, 238), 60px 40px rgb(189, 215, 238), 65px 40px rgb(189, 215, 238), 70px 40px rgb(189, 215, 238), 75px 40px rgb(189, 215, 238), 80px 40px rgb(189, 215, 238), 85px 40px rgb(189, 215, 238), 90px 40px rgb(189, 215, 238), 10px 45px rgb(189, 215, 238), 15px 45px rgb(189, 215, 238), 20px 45px rgb(189, 215, 238), 25px 45px rgb(189, 215, 238), 30px 45px rgb(189, 215, 238), 90px 45px rgb(189, 215, 238), 95px 45px rgb(189, 215, 238), 10px 50px rgb(189, 215, 238), 15px 50px rgb(189, 215, 238), 20px 50px rgb(189, 215, 238), 95px 50px rgb(189, 215, 238), 10px 55px rgb(189, 215, 238), 15px 55px rgb(189, 215, 238), 10px 60px rgb(189, 215, 238), 10px 65px rgb(189, 215, 238), 10px 70px rgb(189, 215, 238), 15px 75px rgb(189, 215, 238), 15px 80px rgb(189, 215, 238), 20px 85px rgb(189, 215, 238), 25px 85px rgb(189, 215, 238), 30px 90px rgb(189, 215, 238), 35px 90px rgb(189, 215, 238), 100px 65px rgb(189, 215, 238), 100px 70px rgb(189, 215, 238), 95px 75px rgb(189, 215, 238), 95px 80px rgb(189, 215, 238), 85px 85px rgb(189, 215, 238), 90px 85px rgb(189, 215, 238), 75px 90px rgb(189, 215, 238), 80px 90px rgb(189, 215, 238), 40px 95px rgb(189, 215, 238), 45px 95px rgb(189, 215, 238), 50px 95px rgb(189, 215, 238), 55px 95px rgb(189, 215, 238), 60px 95px rgb(189, 215, 238), 65px 95px rgb(189, 215, 238), 70px 95px rgb(189, 215, 238), 20px 55px rgb(180, 198, 231), 35px 45px rgb(180, 198, 231), 40px 45px rgb(180, 198, 231), 45px 45px rgb(180, 198, 231), 50px 45px rgb(180, 198, 231), 55px 45px rgb(180, 198, 231), 60px 45px rgb(180, 198, 231), 65px 45px rgb(180, 198, 231), 70px 45px rgb(180, 198, 231), 75px 45px rgb(180, 198, 231), 80px 45px rgb(180, 198, 231), 85px 45px rgb(180, 198, 231), 35px 50px rgb(180, 198, 231), 40px 50px rgb(180, 198, 231), 45px 50px rgb(180, 198, 231), 50px 50px rgb(180, 198, 231), 55px 50px rgb(180, 198, 231), 60px 50px rgb(180, 198, 231), 65px 50px rgb(180, 198, 231), 70px 50px rgb(180, 198, 231), 75px 50px rgb(180, 198, 231), 80px 50px rgb(180, 198, 231), 85px 50px rgb(180, 198, 231), 90px 50px rgb(180, 198, 231), 35px 55px rgb(180, 198, 231), 40px 55px rgb(180, 198, 231), 45px 55px rgb(180, 198, 231), 50px 55px rgb(180, 198, 231), 55px 55px rgb(180, 198, 231), 60px 55px rgb(180, 198, 231), 65px 55px rgb(180, 198, 231), 80px 55px rgb(180, 198, 231), 85px 55px rgb(180, 198, 231), 90px 55px rgb(180, 198, 231), 95px 55px rgb(180, 198, 231), 25px 60px rgb(180, 198, 231), 30px 60px rgb(180, 198, 231), 35px 60px rgb(180, 198, 231), 40px 60px rgb(180, 198, 231), 45px 60px rgb(180, 198, 231), 50px 60px rgb(180, 198, 231), 55px 60px rgb(180, 198, 231), 60px 60px rgb(180, 198, 231), 65px 60px rgb(180, 198, 231), 80px 60px rgb(180, 198, 231), 85px 60px rgb(180, 198, 231), 90px 60px rgb(180, 198, 231), 95px 60px rgb(180, 198, 231), 15px 65px rgb(180, 198, 231), 20px 65px rgb(180, 198, 231), 25px 65px rgb(180, 198, 231), 30px 65px rgb(180, 198, 231), 90px 65px rgb(180, 198, 231), 95px 65px rgb(180, 198, 231), 15px 70px rgb(180, 198, 231), 20px 70px rgb(180, 198, 231), 90px 70px rgb(180, 198, 231), 95px 70px rgb(180, 198, 231), 35px 65px rgb(142, 169, 219), 40px 65px rgb(142, 169, 219), 45px 65px rgb(142, 169, 219), 50px 65px rgb(142, 169, 219), 55px 65px rgb(142, 169, 219), 60px 65px rgb(142, 169, 219), 65px 65px rgb(142, 169, 219), 70px 65px rgb(142, 169, 219), 75px 65px rgb(142, 169, 219), 35px 70px rgb(142, 169, 219), 40px 70px rgb(142, 169, 219), 45px 70px rgb(142, 169, 219), 50px 70px rgb(142, 169, 219), 55px 70px rgb(142, 169, 219), 60px 70px rgb(142, 169, 219), 65px 70px rgb(142, 169, 219), 70px 70px rgb(142, 169, 219), 75px 70px rgb(142, 169, 219), 80px 70px rgb(142, 169, 219), 85px 70px rgb(142, 169, 219), 35px 75px rgb(142, 169, 219), 40px 75px rgb(142, 169, 219), 25px 70px rgb(142, 169, 219), 20px 75px rgb(142, 169, 219), 25px 75px rgb(142, 169, 219), 20px 80px rgb(142, 169, 219), 25px 80px rgb(142, 169, 219), 30px 80px rgb(142, 169, 219), 50px 75px rgb(142, 169, 219), 55px 75px rgb(142, 169, 219), 65px 75px rgb(142, 169, 219), 70px 75px rgb(142, 169, 219), 75px 75px rgb(142, 169, 219), 80px 75px rgb(142, 169, 219), 85px 75px rgb(142, 169, 219), 90px 75px rgb(142, 169, 219), 45px 80px rgb(142, 169, 219), 60px 80px rgb(142, 169, 219), 65px 80px rgb(142, 169, 219), 70px 80px rgb(142, 169, 219), 75px 80px rgb(142, 169, 219), 80px 80px rgb(142, 169, 219), 85px 80px rgb(142, 169, 219), 90px 80px rgb(142, 169, 219), 30px 85px rgb(142, 169, 219), 35px 85px rgb(142, 169, 219), 40px 85px rgb(142, 169, 219), 45px 85px rgb(142, 169, 219), 50px 85px rgb(142, 169, 219), 55px 85px rgb(142, 169, 219), 60px 85px rgb(142, 169, 219), 65px 85px rgb(142, 169, 219), 70px 85px rgb(142, 169, 219), 75px 85px rgb(142, 169, 219), 80px 85px rgb(142, 169, 219), 40px 90px rgb(142, 169, 219), 45px 90px rgb(142, 169, 219), 50px 90px rgb(142, 169, 219), 55px 90px rgb(142, 169, 219), 60px 90px rgb(142, 169, 219), 65px 90px rgb(142, 169, 219), 70px 90px rgb(142, 169, 219), 30px 70px rgb(248, 203, 173), 30px 75px rgb(248, 203, 173), 35px 80px rgb(248, 203, 173), 40px 80px rgb(248, 203, 173), 45px 75px rgb(248, 203, 173), 50px 80px rgb(248, 203, 173), 55px 80px rgb(248, 203, 173), 60px 75px rgb(248, 203, 173), 30px 50px rgb(64, 64, 64), 25px 55px rgb(64, 64, 64), 30px 55px rgb(64, 64, 64), 75px 55px rgb(64, 64, 64), 70px 60px rgb(64, 64, 64), 75px 60px rgb(64, 64, 64);
+      }
+    }
+  </style>
+
+  <div class="site-meta">
+
+    <a href="/" class="" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title"><i class="pixel-slime"></i></p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">Newbie Dad, Software Engineer</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://huziliang.com/2025/10/12/%E5%85%89%E8%BF%BD%E5%8E%BB%E5%99%AA/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/computer-chip_gray.svg">
+      <meta itemprop="name" content="Cipher Locke">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Cipher Locke">
+      <meta itemprop="description" content="Just for record">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="光追去噪技术深度解析：从理论到实践 | Cipher Locke">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          光追去噪技术深度解析：从理论到实践
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+      
+
+      <time title="Created: 2025-10-12 16:17:09 / Modified: 16:35:54" itemprop="dateCreated datePublished" datetime="2025-10-12T16:17:09+08:00">2025-10-12</time>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><meta name="referrer" content="no-referrer" />
+<h2 id="引言">引言</h2>
+<p>光线追踪（Ray
+Tracing）作为计算机图形学中的核心技术，能够生成高度逼真的图像效果。然而，由于光线追踪的计算复杂度极高，在实时渲染中往往需要大幅减少采样数量，这导致了严重的噪声问题。光追去噪技术应运而生，通过智能的滤波算法在保持视觉质量的同时显著提升渲染性能。</p>
+<p>本文将深入探讨光追去噪的技术原理、主要算法、实现细节以及性能优化策略，为读者提供全面的技术视角。</p>
+<h2 id="光追噪声的本质与挑战">1. 光追噪声的本质与挑战</h2>
+<h3 id="噪声产生的原因">1.1 噪声产生的原因</h3>
+<p>光线追踪中的噪声主要来源于以下几个方面：</p>
+<ol type="1">
+<li><strong>采样不足</strong>：为了实时性能，每像素的采样数通常限制在1-4个</li>
+<li><strong>随机采样</strong>：蒙特卡洛方法引入的随机性</li>
+<li><strong>高频细节</strong>：镜面反射、焦散等高频现象需要大量采样</li>
+<li><strong>几何复杂性</strong>：复杂场景中的遮挡和反射关系</li>
+</ol>
+<h3 id="噪声的数学表示">1.2 噪声的数学表示</h3>
+<p>对于像素 <span class="math inline">\(i\)</span>，其真实颜色值 <span
+class="math inline">\(C_i\)</span> 可以表示为：</p>
+<p><span class="math display">\[C_i = \frac{1}{N} \sum_{j=1}^{N} f(x_j,
+\omega_j)\]</span></p>
+<p>其中 <span class="math inline">\(N\)</span> 是采样数，<span
+class="math inline">\(f(x_j, \omega_j)\)</span> 是第 <span
+class="math inline">\(j\)</span> 个采样点的辐射度函数。</p>
+<p>由于采样不足，我们只能得到噪声估计：</p>
+<p><span class="math display">\[\hat{C}_i = \frac{1}{N} \sum_{j=1}^{N}
+f(x_j, \omega_j) + \epsilon_i\]</span></p>
+<p>其中 <span class="math inline">\(\epsilon_i\)</span> 是噪声项。</p>
+<h2 id="主要去噪算法">2. 主要去噪算法</h2>
+<h3 id="时空方差引导滤波svgf">2.1 时空方差引导滤波（SVGF）</h3>
+<p>SVGF（Spatiotemporal Variance-Guided
+Filtering）是目前最成功的实时光追去噪算法之一。</p>
+<h4 id="算法原理">2.1.1 算法原理</h4>
+<p>SVGF的核心思想是利用时空信息来指导滤波过程：</p>
+<ol type="1">
+<li><strong>空间滤波</strong>：利用邻域像素的相似性</li>
+<li><strong>时间滤波</strong>：利用历史帧信息</li>
+<li><strong>方差引导</strong>：根据方差自适应调整滤波强度</li>
+</ol>
+<h4 id="数学框架">2.1.2 数学框架</h4>
+<p>对于像素 <span class="math inline">\(p\)</span>，滤波后的颜色为：</p>
+<p><span class="math display">\[C_{filtered}(p) = \frac{\sum_{q \in
+\Omega_p} w(p,q) \cdot C(q)}{\sum_{q \in \Omega_p} w(p,q)}\]</span></p>
+<p>权重函数定义为：</p>
+<p><span class="math display">\[w(p,q) = w_s(p,q) \cdot w_t(p,q) \cdot
+w_v(p,q)\]</span></p>
+<p>其中： - <span class="math inline">\(w_s(p,q)\)</span> 是空间权重 -
+<span class="math inline">\(w_t(p,q)\)</span> 是时间权重<br />
+- <span class="math inline">\(w_v(p,q)\)</span> 是方差权重</p>
+<h4 id="空间权重">2.1.3 空间权重</h4>
+<p>空间权重基于几何和颜色的相似性：</p>
+<p><span class="math display">\[w_s(p,q) =
+\exp\left(-\frac{||p-q||^2}{2\sigma_s^2}\right) \cdot
+\exp\left(-\frac{||C(p)-C(q)||^2}{2\sigma_c^2}\right)\]</span></p>
+<h4 id="时间权重">2.1.4 时间权重</h4>
+<p>时间权重考虑运动向量和颜色变化：</p>
+<p><span class="math display">\[w_t(p,q) = \exp\left(-\frac{||C(p) -
+C_{prev}(p + mv)||^2}{2\sigma_t^2}\right)\]</span></p>
+<p>其中 <span class="math inline">\(mv\)</span> 是运动向量。</p>
+<h3 id="时间抗锯齿taa">2.2 时间抗锯齿（TAA）</h3>
+<p>TAA（Temporal Anti-Aliasing）通过累积历史帧信息来减少噪声。</p>
+<h4 id="历史累积">2.2.1 历史累积</h4>
+<p><span class="math display">\[C_{accum}(p,t) = \alpha \cdot
+C_{current}(p,t) + (1-\alpha) \cdot C_{accum}(p,t-1)\]</span></p>
+<p>其中 <span class="math inline">\(\alpha\)</span> 是混合系数，通常取
+0.1-0.2。</p>
+<h4 id="历史拒绝">2.2.2 历史拒绝</h4>
+<p>为了避免错误的历史信息，需要检测并拒绝不匹配的历史像素：</p>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">float</span> historyWeight = <span class="number">1.0</span>;</span><br><span class="line"><span class="keyword">if</span> (<span class="built_in">abs</span>(currentColor - historyColor) &gt; threshold) &#123;</span><br><span class="line">    historyWeight = <span class="number">0.0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="双边蒙特卡洛滤波bmfr">2.3 双边蒙特卡洛滤波（BMFR）</h3>
+<p>BMFR（Bilateral Monte Carlo
+Filtering）结合了双边滤波和蒙特卡洛方法。</p>
+<h4 id="双边滤波核">2.3.1 双边滤波核</h4>
+<p><span class="math display">\[B(p) = \frac{1}{W_p} \sum_{q \in
+\Omega_p} f_s(||p-q||) \cdot f_r(||I(p)-I(q)||) \cdot I(q)\]</span></p>
+<p>其中： - <span class="math inline">\(f_s\)</span> 是空间核函数 -
+<span class="math inline">\(f_r\)</span> 是范围核函数 - <span
+class="math inline">\(W_p\)</span> 是归一化因子</p>
+<h4 id="自适应采样">2.3.2 自适应采样</h4>
+<p>BMFR根据局部方差自适应调整采样数：</p>
+<p><span class="math display">\[N_{adaptive}(p) = N_{base} \cdot \max(1,
+\frac{\sigma^2(p)}{\sigma_{target}^2})\]</span></p>
+<h2 id="高级去噪技术">3. 高级去噪技术</h2>
+<h3 id="深度学习去噪">3.1 深度学习去噪</h3>
+<h4 id="网络架构">3.1.1 网络架构</h4>
+<p>现代深度学习去噪网络通常采用编码器-解码器架构：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">DenoisingNet</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        <span class="variable language_">self</span>.encoder = nn.Sequential(</span><br><span class="line">            nn.Conv2d(<span class="number">9</span>, <span class="number">64</span>, <span class="number">3</span>, padding=<span class="number">1</span>),  <span class="comment"># RGB + Normal + Depth + Albedo</span></span><br><span class="line">            nn.ReLU(),</span><br><span class="line">            nn.Conv2d(<span class="number">64</span>, <span class="number">128</span>, <span class="number">3</span>, padding=<span class="number">1</span>),</span><br><span class="line">            nn.ReLU(),</span><br><span class="line">            nn.Conv2d(<span class="number">128</span>, <span class="number">256</span>, <span class="number">3</span>, padding=<span class="number">1</span>),</span><br><span class="line">            nn.ReLU()</span><br><span class="line">        )</span><br><span class="line">        </span><br><span class="line">        <span class="variable language_">self</span>.decoder = nn.Sequential(</span><br><span class="line">            nn.Conv2d(<span class="number">256</span>, <span class="number">128</span>, <span class="number">3</span>, padding=<span class="number">1</span>),</span><br><span class="line">            nn.ReLU(),</span><br><span class="line">            nn.Conv2d(<span class="number">128</span>, <span class="number">64</span>, <span class="number">3</span>, padding=<span class="number">1</span>),</span><br><span class="line">            nn.ReLU(),</span><br><span class="line">            nn.Conv2d(<span class="number">64</span>, <span class="number">3</span>, <span class="number">3</span>, padding=<span class="number">1</span>),</span><br><span class="line">            nn.Sigmoid()</span><br><span class="line">        )</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        features = <span class="variable language_">self</span>.encoder(x)</span><br><span class="line">        output = <span class="variable language_">self</span>.decoder(features)</span><br><span class="line">        <span class="keyword">return</span> output</span><br></pre></td></tr></table></figure>
+<h4 id="损失函数">3.1.2 损失函数</h4>
+<p>结合L1损失和感知损失：</p>
+<p><span class="math display">\[L_{total} = \lambda_1 L_{L1} + \lambda_2
+L_{perceptual} + \lambda_3 L_{temporal}\]</span></p>
+<h3 id="自适应采样-1">3.2 自适应采样</h3>
+<h4 id="重要性采样">3.2.1 重要性采样</h4>
+<p>根据场景复杂度自适应分配采样预算：</p>
+<p><span class="math display">\[p(x) \propto
+\frac{f(x)}{q(x)}\]</span></p>
+<p>其中 <span class="math inline">\(f(x)\)</span> 是目标函数，<span
+class="math inline">\(q(x)\)</span> 是重要性分布。</p>
+<h4 id="分层采样">3.2.2 分层采样</h4>
+<p>将采样空间分层，优先采样高方差区域：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">SampleInfo</span> &#123;</span><br><span class="line">    float3 position;</span><br><span class="line">    float3 direction;</span><br><span class="line">    <span class="type">float</span> importance;</span><br><span class="line">    <span class="type">int</span> layer;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">hierarchicalSampling</span><span class="params">(SampleInfo&amp; sample)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 根据重要性选择采样层</span></span><br><span class="line">    <span class="type">int</span> layer = <span class="built_in">selectLayer</span>(sample.importance);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 在选定层内进行采样</span></span><br><span class="line">    sample.position = <span class="built_in">sampleInLayer</span>(layer);</span><br><span class="line">    sample.direction = <span class="built_in">sampleDirection</span>(sample.position);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="实现细节与优化">4. 实现细节与优化</h2>
+<h3 id="gpu实现优化">4.1 GPU实现优化</h3>
+<h4 id="内存访问优化">4.1.1 内存访问优化</h4>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 使用共享内存减少全局内存访问</span></span><br><span class="line"><span class="keyword">shared</span> float3 sharedColors[<span class="number">16</span>][<span class="number">16</span>];</span><br><span class="line"><span class="keyword">shared</span> <span class="type">float</span> sharedDepths[<span class="number">16</span>][<span class="number">16</span>];</span><br><span class="line"></span><br><span class="line"><span class="comment">// 预加载邻域数据</span></span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">16</span>; i++) &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> j = <span class="number">0</span>; j &lt; <span class="number">16</span>; j++) &#123;</span><br><span class="line">        int2 coord = threadID.xy + int2(i<span class="number">-8</span>, j<span class="number">-8</span>);</span><br><span class="line">        sharedColors[i][j] = tex2D(colorTexture, coord);</span><br><span class="line">        sharedDepths[i][j] = tex2D(depthTexture, coord);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="计算优化">4.1.2 计算优化</h4>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 使用快速指数近似</span></span><br><span class="line"><span class="type">float</span> fastExp(<span class="type">float</span> x) &#123;</span><br><span class="line">    x = <span class="number">1.0</span> + x / <span class="number">256.0</span>;</span><br><span class="line">    x *= x; x *= x; x *= x; x *= x;</span><br><span class="line">    x *= x; x *= x; x *= x; x *= x;</span><br><span class="line">    <span class="keyword">return</span> x;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 优化的权重计算</span></span><br><span class="line"><span class="type">float</span> computeWeight(float3 color1, float3 color2, <span class="type">float</span> depth1, <span class="type">float</span> depth2) &#123;</span><br><span class="line">    <span class="type">float</span> colorDiff = <span class="built_in">dot</span>(color1 - color2, color1 - color2);</span><br><span class="line">    <span class="type">float</span> depthDiff = <span class="built_in">abs</span>(depth1 - depth2);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> fastExp(-colorDiff * colorWeight - depthDiff * depthWeight);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="多分辨率处理">4.2 多分辨率处理</h3>
+<h4 id="金字塔分解">4.2.1 金字塔分解</h4>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ImagePyramid</span> &#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    std::vector&lt;Texture2D&gt; levels;</span><br><span class="line">    </span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">buildPyramid</span><span class="params">(Texture2D&amp; input)</span> </span>&#123;</span><br><span class="line">        levels.<span class="built_in">clear</span>();</span><br><span class="line">        levels.<span class="built_in">push_back</span>(input);</span><br><span class="line">        </span><br><span class="line">        Texture2D current = input;</span><br><span class="line">        <span class="keyword">while</span> (current.width &gt; <span class="number">1</span> &amp;&amp; current.height &gt; <span class="number">1</span>) &#123;</span><br><span class="line">            Texture2D downsampled = <span class="built_in">downsample</span>(current);</span><br><span class="line">            levels.<span class="built_in">push_back</span>(downsampled);</span><br><span class="line">            current = downsampled;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function">Texture2D <span class="title">downsample</span><span class="params">(Texture2D&amp; input)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 使用高斯滤波进行下采样</span></span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">gaussianDownsample</span>(input, <span class="number">0.5f</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h4 id="多尺度滤波">4.2.2 多尺度滤波</h4>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">float3 multiScaleFilter(float2 uv) &#123;</span><br><span class="line">    float3 result = float3(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line">    <span class="type">float</span> totalWeight = <span class="number">0.0</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 在不同尺度上进行滤波</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> scale = <span class="number">0</span>; scale &lt; numScales; scale++) &#123;</span><br><span class="line">        <span class="type">float</span> scaleFactor = <span class="built_in">pow</span>(<span class="number">2.0</span>, scale);</span><br><span class="line">        float3 filtered = filterAtScale(uv, scaleFactor);</span><br><span class="line">        <span class="type">float</span> weight = computeScaleWeight(scale);</span><br><span class="line">        </span><br><span class="line">        result += filtered * weight;</span><br><span class="line">        totalWeight += weight;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> result / totalWeight;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="性能分析与调优">5. 性能分析与调优</h2>
+<h3 id="性能瓶颈分析">5.1 性能瓶颈分析</h3>
+<h4 id="内存带宽">5.1.1 内存带宽</h4>
+<p>光追去噪的主要瓶颈通常是内存带宽：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 内存带宽计算</span></span><br><span class="line"><span class="type">float</span> memoryBandwidth = (width * height * channels * <span class="built_in">sizeof</span>(<span class="type">float</span>)) / renderTime;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 优化策略</span></span><br><span class="line"><span class="comment">// 1. 使用纹理压缩</span></span><br><span class="line"><span class="comment">// 2. 减少中间缓冲区</span></span><br><span class="line"><span class="comment">// 3. 优化内存访问模式</span></span><br></pre></td></tr></table></figure>
+<h4 id="计算复杂度">5.1.2 计算复杂度</h4>
+<p>滤波算法的复杂度分析：</p>
+<ul>
+<li><strong>空间滤波</strong>：<span class="math inline">\(O(N \cdot
+K^2)\)</span>，其中 <span class="math inline">\(N\)</span>
+是像素数，<span class="math inline">\(K\)</span> 是核大小</li>
+<li><strong>时间滤波</strong>：<span
+class="math inline">\(O(N)\)</span></li>
+<li><strong>方差计算</strong>：<span class="math inline">\(O(N \cdot
+K^2)\)</span></li>
+</ul>
+<h3 id="自适应优化">5.2 自适应优化</h3>
+<h4 id="动态核大小">5.2.1 动态核大小</h4>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> computeKernelSize(<span class="type">float</span> variance) &#123;</span><br><span class="line">    <span class="comment">// 根据方差动态调整核大小</span></span><br><span class="line">    <span class="keyword">if</span> (variance &gt; highVarianceThreshold) &#123;</span><br><span class="line">        <span class="keyword">return</span> largeKernelSize;</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (variance &gt; mediumVarianceThreshold) &#123;</span><br><span class="line">        <span class="keyword">return</span> mediumKernelSize;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> smallKernelSize;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="质量-性能平衡">5.2.2 质量-性能平衡</h4>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">QualitySettings</span> &#123;</span><br><span class="line">    <span class="type">float</span> temporalWeight;</span><br><span class="line">    <span class="type">float</span> spatialWeight;</span><br><span class="line">    <span class="type">int</span> kernelSize;</span><br><span class="line">    <span class="type">int</span> numSamples;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function">QualitySettings <span class="title">adaptiveQuality</span><span class="params">(<span class="type">float</span> targetFPS, <span class="type">float</span> currentFPS)</span> </span>&#123;</span><br><span class="line">    QualitySettings settings;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (currentFPS &lt; targetFPS * <span class="number">0.9f</span>) &#123;</span><br><span class="line">        <span class="comment">// 性能不足，降低质量</span></span><br><span class="line">        settings.temporalWeight *= <span class="number">0.8f</span>;</span><br><span class="line">        settings.kernelSize = <span class="built_in">max</span>(<span class="number">3</span>, settings.kernelSize - <span class="number">2</span>);</span><br><span class="line">        settings.numSamples = <span class="built_in">max</span>(<span class="number">1</span>, settings.numSamples - <span class="number">1</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (currentFPS &gt; targetFPS * <span class="number">1.1f</span>) &#123;</span><br><span class="line">        <span class="comment">// 性能充足，提升质量</span></span><br><span class="line">        settings.temporalWeight = <span class="built_in">min</span>(<span class="number">1.0f</span>, settings.temporalWeight * <span class="number">1.1f</span>);</span><br><span class="line">        settings.kernelSize = <span class="built_in">min</span>(<span class="number">15</span>, settings.kernelSize + <span class="number">2</span>);</span><br><span class="line">        settings.numSamples = <span class="built_in">min</span>(<span class="number">8</span>, settings.numSamples + <span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> settings;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h2 id="实际应用案例">6. 实际应用案例</h2>
+<h3 id="游戏引擎集成">6.1 游戏引擎集成</h3>
+<h4 id="unity集成">6.1.1 Unity集成</h4>
+<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title">RayTracingDenoiser</span> : <span class="title">MonoBehaviour</span> &#123;</span><br><span class="line">    [<span class="meta">SerializeField</span>] <span class="keyword">private</span> ComputeShader denoiseShader;</span><br><span class="line">    [<span class="meta">SerializeField</span>] <span class="keyword">private</span> RenderTexture noisyTexture;</span><br><span class="line">    [<span class="meta">SerializeField</span>] <span class="keyword">private</span> RenderTexture denoisedTexture;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">Update</span>()</span> &#123;</span><br><span class="line">        <span class="comment">// 设置计算着色器参数</span></span><br><span class="line">        denoiseShader.SetTexture(<span class="number">0</span>, <span class="string">&quot;NoisyTexture&quot;</span>, noisyTexture);</span><br><span class="line">        denoiseShader.SetTexture(<span class="number">0</span>, <span class="string">&quot;DenoisedTexture&quot;</span>, denoisedTexture);</span><br><span class="line">        denoiseShader.SetFloat(<span class="string">&quot;Time&quot;</span>, Time.time);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 执行去噪</span></span><br><span class="line">        <span class="built_in">int</span> threadGroupsX = Mathf.CeilToInt(Screen.width / <span class="number">8.0f</span>);</span><br><span class="line">        <span class="built_in">int</span> threadGroupsY = Mathf.CeilToInt(Screen.height / <span class="number">8.0f</span>);</span><br><span class="line">        denoiseShader.Dispatch(<span class="number">0</span>, threadGroupsX, threadGroupsY, <span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="unreal-engine集成">6.1.2 Unreal Engine集成</h4>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">RAYTRACINGDENOISER_API</span> FRayTracingDenoiserModule : <span class="keyword">public</span> IModuleInterface &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">StartupModule</span><span class="params">()</span> <span class="keyword">override</span></span>;</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">ShutdownModule</span><span class="params">()</span> <span class="keyword">override</span></span>;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">RegisterDenoiser</span><span class="params">()</span></span>;</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">UnregisterDenoiser</span><span class="params">()</span></span>;</span><br><span class="line">    </span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    TSharedPtr&lt;<span class="keyword">class</span> <span class="title class_">FRayTracingDenoiser</span>&gt; Denoiser;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 自定义去噪器实现</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">FRayTracingDenoiser</span> : <span class="keyword">public</span> IScreenSpaceDenoiser &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="type">void</span> <span class="title">Denoise</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">        FRDGBuilder&amp; GraphBuilder,</span></span></span><br><span class="line"><span class="params"><span class="function">        <span class="type">const</span> FViewInfo&amp; View,</span></span></span><br><span class="line"><span class="params"><span class="function">        FRDGTextureRef InputTexture,</span></span></span><br><span class="line"><span class="params"><span class="function">        FRDGTextureRef OutputTexture</span></span></span><br><span class="line"><span class="params"><span class="function">    )</span> <span class="keyword">override</span></span>;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h3 id="工业渲染应用">6.2 工业渲染应用</h3>
+<h4 id="建筑可视化">6.2.1 建筑可视化</h4>
+<p>在建筑可视化中，光追去噪需要处理：</p>
+<ol type="1">
+<li><strong>复杂几何</strong>：建筑细节和装饰</li>
+<li><strong>材质多样性</strong>：玻璃、金属、石材等</li>
+<li><strong>光照复杂性</strong>：室内外混合光照</li>
+</ol>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">ArchitecturalDenoiser</span> &#123;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="keyword">struct</span> <span class="title class_">MaterialInfo</span> &#123;</span><br><span class="line">        <span class="type">float</span> roughness;</span><br><span class="line">        <span class="type">float</span> metallic;</span><br><span class="line">        float3 albedo;</span><br><span class="line">        float3 normal;</span><br><span class="line">    &#125;;</span><br><span class="line">    </span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">float3 <span class="title">denoiseArchitectural</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">        float2 uv,</span></span></span><br><span class="line"><span class="params"><span class="function">        float3 color,</span></span></span><br><span class="line"><span class="params"><span class="function">        MaterialInfo material,</span></span></span><br><span class="line"><span class="params"><span class="function">        float3 worldPos,</span></span></span><br><span class="line"><span class="params"><span class="function">        float3 viewDir</span></span></span><br><span class="line"><span class="params"><span class="function">    )</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 根据材质特性调整滤波参数</span></span><br><span class="line">        <span class="type">float</span> materialWeight = <span class="built_in">computeMaterialWeight</span>(material);</span><br><span class="line">        <span class="type">float</span> geometricWeight = <span class="built_in">computeGeometricWeight</span>(worldPos, viewDir);</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">adaptiveFilter</span>(color, materialWeight, geometricWeight);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h2 id="未来发展趋势">7. 未来发展趋势</h2>
+<h3 id="硬件加速">7.1 硬件加速</h3>
+<h4 id="专用硬件">7.1.1 专用硬件</h4>
+<ul>
+<li><strong>RT Core</strong>：NVIDIA的专用光线追踪硬件</li>
+<li><strong>AI加速器</strong>：用于深度学习去噪的专用芯片</li>
+<li><strong>可编程硬件</strong>：FPGA和ASIC的定制化解决方案</li>
+</ul>
+<h4 id="并行计算架构">7.1.2 并行计算架构</h4>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 利用GPU的并行计算能力</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ParallelDenoiser</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">denoiseParallel</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">        <span class="type">const</span> std::vector&lt;float3&gt;&amp; input,</span></span></span><br><span class="line"><span class="params"><span class="function">        std::vector&lt;float3&gt;&amp; output,</span></span></span><br><span class="line"><span class="params"><span class="function">        <span class="type">int</span> numThreads</span></span></span><br><span class="line"><span class="params"><span class="function">    )</span> </span>&#123;</span><br><span class="line">        std::vector&lt;std::thread&gt; threads;</span><br><span class="line">        <span class="type">int</span> chunkSize = input.<span class="built_in">size</span>() / numThreads;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; numThreads; i++) &#123;</span><br><span class="line">            <span class="type">int</span> start = i * chunkSize;</span><br><span class="line">            <span class="type">int</span> end = (i == numThreads - <span class="number">1</span>) ? input.<span class="built_in">size</span>() : (i + <span class="number">1</span>) * chunkSize;</span><br><span class="line">            </span><br><span class="line">            threads.<span class="built_in">emplace_back</span>([&amp;, start, end]() &#123;</span><br><span class="line">                <span class="keyword">for</span> (<span class="type">int</span> j = start; j &lt; end; j++) &#123;</span><br><span class="line">                    output[j] = <span class="built_in">denoisePixel</span>(input[j], j);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">auto</span>&amp; thread : threads) &#123;</span><br><span class="line">            thread.<span class="built_in">join</span>();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h3 id="算法创新">7.2 算法创新</h3>
+<h4 id="神经辐射场nerf">7.2.1 神经辐射场（NeRF）</h4>
+<p>结合NeRF技术的新型去噪方法：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">NeRFDenoiser</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        <span class="variable language_">self</span>.nerf_network = NeRFNetwork()</span><br><span class="line">        <span class="variable language_">self</span>.denoise_network = DenoiseNetwork()</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, rays, noisy_colors</span>):</span><br><span class="line">        <span class="comment"># 使用NeRF预测几何信息</span></span><br><span class="line">        geometry_features = <span class="variable language_">self</span>.nerf_network(rays)</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 结合几何信息进行去噪</span></span><br><span class="line">        denoised_colors = <span class="variable language_">self</span>.denoise_network(</span><br><span class="line">            torch.cat([noisy_colors, geometry_features], dim=-<span class="number">1</span>)</span><br><span class="line">        )</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">return</span> denoised_colors</span><br></pre></td></tr></table></figure>
+<h4 id="物理约束去噪">7.2.2 物理约束去噪</h4>
+<p>利用物理约束提升去噪质量：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">PhysicsConstrainedDenoiser</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">float3 <span class="title">denoiseWithPhysics</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">        float3 noisyColor,</span></span></span><br><span class="line"><span class="params"><span class="function">        float3 worldPos,</span></span></span><br><span class="line"><span class="params"><span class="function">        float3 normal,</span></span></span><br><span class="line"><span class="params"><span class="function">        float3 viewDir,</span></span></span><br><span class="line"><span class="params"><span class="function">        MaterialProperties material</span></span></span><br><span class="line"><span class="params"><span class="function">    )</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 计算物理约束</span></span><br><span class="line">        float3 radiance = <span class="built_in">computeRadiance</span>(worldPos, normal, viewDir, material);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 在物理约束下进行去噪</span></span><br><span class="line">        float3 denoisedColor = <span class="built_in">physicsAwareFilter</span>(noisyColor, radiance);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 验证物理一致性</span></span><br><span class="line">        <span class="keyword">if</span> (!<span class="built_in">isPhysicallyConsistent</span>(denoisedColor, material)) &#123;</span><br><span class="line">            denoisedColor = radiance; <span class="comment">// 回退到物理预测</span></span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">return</span> denoisedColor;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h2 id="总结与展望">8. 总结与展望</h2>
+<p>光追去噪技术作为实时渲染的关键技术，在过去的几年中取得了显著进展。从传统的滤波方法到现代的深度学习技术，从简单的空间滤波到复杂的时空自适应算法，这一领域正在快速发展。</p>
+<h3 id="技术总结">8.1 技术总结</h3>
+<ol type="1">
+<li><strong>算法成熟度</strong>：SVGF、TAA等算法已经相当成熟，在商业引擎中得到广泛应用</li>
+<li><strong>硬件支持</strong>：RT
+Core等专用硬件的出现为光追去噪提供了强大的计算基础</li>
+<li><strong>深度学习</strong>：AI技术在去噪领域的应用展现出巨大潜力</li>
+<li><strong>性能优化</strong>：各种优化技术使得实时去噪成为可能</li>
+</ol>
+<h3 id="未来挑战">8.2 未来挑战</h3>
+<ol type="1">
+<li><strong>质量与性能平衡</strong>：如何在保持视觉质量的同时进一步提升性能</li>
+<li><strong>复杂场景处理</strong>：如何处理极端复杂的几何和光照条件</li>
+<li><strong>动态场景适应</strong>：如何更好地处理快速变化的场景内容</li>
+<li><strong>跨平台兼容性</strong>：如何在不同硬件平台上实现一致的性能表现</li>
+</ol>
+<h3 id="发展方向">8.3 发展方向</h3>
+<ol type="1">
+<li><strong>端到端优化</strong>：从采样到去噪的全流程优化</li>
+<li><strong>自适应算法</strong>：根据场景内容自动调整算法参数</li>
+<li><strong>多模态融合</strong>：结合多种信息源提升去噪质量</li>
+<li><strong>实时学习</strong>：在运行时学习和适应场景特性</li>
+</ol>
+<p>光追去噪技术将继续在实时渲染领域发挥重要作用，随着硬件技术的进步和算法的不断创新，我们有理由相信这一技术将带来更加逼真和流畅的视觉体验。</p>
+<hr />
+<h2 id="参考文献">参考文献</h2>
+<ol type="1">
+<li><p>Schied, C., et al. "Spatiotemporal variance-guided filtering:
+real-time reconstruction for path-traced global illumination." <em>High
+Performance Graphics</em>. 2017.</p></li>
+<li><p>Karis, B. "High-quality temporal supersampling." <em>Advances in
+Real-Time Rendering in Games, SIGGRAPH Courses</em>. 2014.</p></li>
+<li><p>Bitterli, B., et al. "Reversible jump metropolis light transport
+using inverse mappings." <em>ACM Transactions on Graphics</em>.
+2020.</p></li>
+<li><p>Rousselle, F., et al. "Robust denoising using feature and color
+information." <em>Computer Graphics Forum</em>. 2013.</p></li>
+<li><p>Chaitanya, C. R. A., et al. "Interactive reconstruction of Monte
+Carlo image sequences using a recurrent denoising autoencoder." <em>ACM
+Transactions on Graphics</em>. 2017.</p></li>
+</ol>
+<hr />
+<p><em>本文深入探讨了光追去噪技术的各个方面，从理论基础到实际应用，从传统算法到现代创新，为读者提供了全面的技术视角。希望这篇文章能够帮助读者更好地理解和应用光追去噪技术。</em></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Ray-Tracing/" rel="tag"># Ray-Tracing</a>
+              <a href="/tags/Denoising/" rel="tag"># Denoising</a>
+              <a href="/tags/Real-time-Rendering/" rel="tag"># Real-time-Rendering</a>
+              <a href="/tags/Computer-Graphics/" rel="tag"># Computer-Graphics</a>
+              <a href="/tags/GPU-Computing/" rel="tag"># GPU-Computing</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/10/12/dlss4-0%E6%8A%80%E6%9C%AF%E5%88%86%E6%9E%90/" rel="prev" title="DLSS发展历程">
+                  <i class="fa fa-angle-left"></i> DLSS发展历程
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">粤ICP备17055045号 </a>
+  </div>
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Cipher Locke</span>
+  </div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="reading-progress-bar"></div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+  <script src="/js/third-party/pace.js"></script>
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"per_page":true,"cdn":"//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML","mhchem":false,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>
