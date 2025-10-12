@@ -15,34 +15,35 @@
 
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha256-yIDrPSXHZdOZhAqiBP7CKzIwMQmRCJ8UeB8Jo17YC4o=" crossorigin="anonymous">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/themes/blue/pace-theme-minimal.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/pace.min.js" integrity="sha256-gqd7YTjg/BtfqWSwsJOvndl0Bxc8gFImLEkXQT8+qj0=" crossorigin="anonymous"></script>
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"example.com","root":"/","images":"/images","scheme":"Gemini","darkmode":false,"version":"8.19.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"huziliang.com","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.19.1","exturl":false,"sidebar":{"position":"left","display":"remove","padding":18,"offset":12},"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":true,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="Here&#39;s something encrypted, password is required to continue reading.">
+    <meta name="description" content="对于包围式曝光融合网络, Loss设计如下: \[ L(y, y^{*})&#x3D;\left \| y - y^* \right \|_{1} +  \left \| \nabla y - \nabla y^* \right \|_{1} + \gamma L_{gradsign}(y, y^*) + \eta L_{highsmooth}(y, y^*) \] 其中\(y\)为融合得到的图像, \(">
 <meta property="og:type" content="article">
 <meta property="og:title" content="多曝光融合网络Loss设计">
-<meta property="og:url" content="http://example.com/2023/03/18/%E5%A4%9A%E6%9B%9D%E5%85%89%E8%9E%8D%E5%90%88%E7%BD%91%E7%BB%9CLoss%E8%AE%BE%E8%AE%A1/index.html">
-<meta property="og:site_name" content="Allen Hu">
-<meta property="og:description" content="Here&#39;s something encrypted, password is required to continue reading.">
+<meta property="og:url" content="https://huziliang.com/2023/03/18/%E5%A4%9A%E6%9B%9D%E5%85%89%E8%9E%8D%E5%90%88%E7%BD%91%E7%BB%9CLoss%E8%AE%BE%E8%AE%A1/index.html">
+<meta property="og:site_name" content="Cipher Locke">
+<meta property="og:description" content="对于包围式曝光融合网络, Loss设计如下: \[ L(y, y^{*})&#x3D;\left \| y - y^* \right \|_{1} +  \left \| \nabla y - \nabla y^* \right \|_{1} + \gamma L_{gradsign}(y, y^*) + \eta L_{highsmooth}(y, y^*) \] 其中\(y\)为融合得到的图像, \(">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2023-03-18T11:51:41.000Z">
-<meta property="article:modified_time" content="2023-10-19T12:33:14.000Z">
-<meta property="article:author" content="Allen Hu">
+<meta property="article:modified_time" content="2025-10-12T05:16:42.846Z">
+<meta property="article:author" content="Cipher Locke">
 <meta property="article:tag" content="HDR">
 <meta property="article:tag" content="Deep Learning">
 <meta property="article:tag" content="Loss">
 <meta name="twitter:card" content="summary">
 
 
-<link rel="canonical" href="http://example.com/2023/03/18/%E5%A4%9A%E6%9B%9D%E5%85%89%E8%9E%8D%E5%90%88%E7%BD%91%E7%BB%9CLoss%E8%AE%BE%E8%AE%A1/">
+<link rel="canonical" href="https://huziliang.com/2023/03/18/%E5%A4%9A%E6%9B%9D%E5%85%89%E8%9E%8D%E5%90%88%E7%BD%91%E7%BB%9CLoss%E8%AE%BE%E8%AE%A1/">
 
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"http://example.com/2023/03/18/%E5%A4%9A%E6%9B%9D%E5%85%89%E8%9E%8D%E5%90%88%E7%BD%91%E7%BB%9CLoss%E8%AE%BE%E8%AE%A1/","path":"2023/03/18/多曝光融合网络Loss设计/","title":"多曝光融合网络Loss设计"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://huziliang.com/2023/03/18/%E5%A4%9A%E6%9B%9D%E5%85%89%E8%9E%8D%E5%90%88%E7%BD%91%E7%BB%9CLoss%E8%AE%BE%E8%AE%A1/","path":"2023/03/18/多曝光融合网络Loss设计/","title":"多曝光融合网络Loss设计"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>多曝光融合网络Loss设计 | Allen Hu</title>
+<title>多曝光融合网络Loss设计 | Cipher Locke</title>
   
 
 
@@ -57,12 +58,12 @@
   </noscript>
 </head>
 
-<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+<body itemscope itemtype="http://schema.org/WebPage">
   <div class="headband"></div>
 
   <main class="main">
     <div class="column">
-      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader" style="padding-top: 50px !important"><div class="site-brand-container">
   <div class="site-nav-toggle">
     <div class="toggle" aria-label="Toggle navigation bar" role="button">
         <span class="toggle-line"></span>
@@ -71,14 +72,34 @@
     </div>
   </div>
 
+  <style>
+    .pixel-slime {
+      height: 100px;
+      width: 105px;
+      position: relative;
+      display: inline-block;
+      margin: 20px;
+      &::before {
+        content: "";
+        position: absolute;
+        background: 0 0;
+        width: 5px;
+        height: 5px;
+        top: -5px;
+        left: -5px;
+        box-shadow: 65px 5px rgb(91, 155, 213), 55px 10px rgb(91, 155, 213), 60px 10px rgb(91, 155, 213), 70px 10px rgb(91, 155, 213), 40px 15px rgb(91, 155, 213), 45px 15px rgb(91, 155, 213), 50px 15px rgb(91, 155, 213), 75px 15px rgb(91, 155, 213), 30px 20px rgb(91, 155, 213), 35px 20px rgb(91, 155, 213), 80px 20px rgb(91, 155, 213), 20px 25px rgb(91, 155, 213), 25px 25px rgb(91, 155, 213), 85px 25px rgb(91, 155, 213), 90px 25px rgb(91, 155, 213), 15px 30px rgb(91, 155, 213), 95px 30px rgb(91, 155, 213), 10px 35px rgb(91, 155, 213), 100px 35px rgb(91, 155, 213), 10px 40px rgb(91, 155, 213), 100px 40px rgb(91, 155, 213), 5px 45px rgb(91, 155, 213), 105px 45px rgb(91, 155, 213), 5px 50px rgb(91, 155, 213), 105px 50px rgb(91, 155, 213), 5px 55px rgb(91, 155, 213), 105px 55px rgb(91, 155, 213), 5px 60px rgb(91, 155, 213), 105px 60px rgb(91, 155, 213), 5px 65px rgb(91, 155, 213), 105px 65px rgb(91, 155, 213), 5px 70px rgb(91, 155, 213), 105px 70px rgb(91, 155, 213), 10px 75px rgb(91, 155, 213), 100px 75px rgb(91, 155, 213), 10px 80px rgb(91, 155, 213), 100px 80px rgb(91, 155, 213), 15px 85px rgb(91, 155, 213), 95px 85px rgb(91, 155, 213), 20px 90px rgb(91, 155, 213), 25px 90px rgb(91, 155, 213), 85px 90px rgb(91, 155, 213), 90px 90px rgb(91, 155, 213), 30px 95px rgb(91, 155, 213), 35px 95px rgb(91, 155, 213), 75px 95px rgb(91, 155, 213), 80px 95px rgb(91, 155, 213), 40px 100px rgb(91, 155, 213), 45px 100px rgb(91, 155, 213), 50px 100px rgb(91, 155, 213), 55px 100px rgb(91, 155, 213), 60px 100px rgb(91, 155, 213), 65px 100px rgb(91, 155, 213), 70px 100px rgb(91, 155, 213), 65px 10px rgb(221, 235, 247), 55px 15px rgb(221, 235, 247), 60px 15px rgb(221, 235, 247), 70px 15px rgb(221, 235, 247), 50px 20px rgb(221, 235, 247), 75px 20px rgb(221, 235, 247), 80px 25px rgb(221, 235, 247), 85px 30px rgb(221, 235, 247), 90px 30px rgb(221, 235, 247), 15px 35px rgb(221, 235, 247), 100px 55px rgb(221, 235, 247), 100px 60px rgb(221, 235, 247), 85px 65px rgb(221, 235, 247), 15px 60px rgb(221, 235, 247), 40px 20px rgb(242, 247, 252), 45px 20px rgb(242, 247, 252), 30px 25px rgb(242, 247, 252), 35px 25px rgb(242, 247, 252), 20px 30px rgb(242, 247, 252), 25px 30px rgb(242, 247, 252), 95px 35px rgb(242, 247, 252), 95px 40px rgb(242, 247, 252), 100px 45px rgb(242, 247, 252), 100px 50px rgb(242, 247, 252), 25px 50px rgb(242, 247, 252), 20px 60px rgb(242, 247, 252), 70px 55px rgb(242, 247, 252), 80px 65px rgb(242, 247, 252), 65px 15px rgb(189, 215, 238), 55px 20px rgb(189, 215, 238), 60px 20px rgb(189, 215, 238), 65px 20px rgb(189, 215, 238), 70px 20px rgb(189, 215, 238), 40px 25px rgb(189, 215, 238), 45px 25px rgb(189, 215, 238), 50px 25px rgb(189, 215, 238), 55px 25px rgb(189, 215, 238), 60px 25px rgb(189, 215, 238), 65px 25px rgb(189, 215, 238), 70px 25px rgb(189, 215, 238), 75px 25px rgb(189, 215, 238), 30px 30px rgb(189, 215, 238), 35px 30px rgb(189, 215, 238), 40px 30px rgb(189, 215, 238), 45px 30px rgb(189, 215, 238), 50px 30px rgb(189, 215, 238), 55px 30px rgb(189, 215, 238), 60px 30px rgb(189, 215, 238), 65px 30px rgb(189, 215, 238), 70px 30px rgb(189, 215, 238), 75px 30px rgb(189, 215, 238), 80px 30px rgb(189, 215, 238), 20px 35px rgb(189, 215, 238), 25px 35px rgb(189, 215, 238), 30px 35px rgb(189, 215, 238), 35px 35px rgb(189, 215, 238), 40px 35px rgb(189, 215, 238), 45px 35px rgb(189, 215, 238), 50px 35px rgb(189, 215, 238), 55px 35px rgb(189, 215, 238), 60px 35px rgb(189, 215, 238), 65px 35px rgb(189, 215, 238), 70px 35px rgb(189, 215, 238), 75px 35px rgb(189, 215, 238), 80px 35px rgb(189, 215, 238), 85px 35px rgb(189, 215, 238), 90px 35px rgb(189, 215, 238), 15px 40px rgb(189, 215, 238), 20px 40px rgb(189, 215, 238), 25px 40px rgb(189, 215, 238), 30px 40px rgb(189, 215, 238), 35px 40px rgb(189, 215, 238), 40px 40px rgb(189, 215, 238), 45px 40px rgb(189, 215, 238), 50px 40px rgb(189, 215, 238), 55px 40px rgb(189, 215, 238), 60px 40px rgb(189, 215, 238), 65px 40px rgb(189, 215, 238), 70px 40px rgb(189, 215, 238), 75px 40px rgb(189, 215, 238), 80px 40px rgb(189, 215, 238), 85px 40px rgb(189, 215, 238), 90px 40px rgb(189, 215, 238), 10px 45px rgb(189, 215, 238), 15px 45px rgb(189, 215, 238), 20px 45px rgb(189, 215, 238), 25px 45px rgb(189, 215, 238), 30px 45px rgb(189, 215, 238), 90px 45px rgb(189, 215, 238), 95px 45px rgb(189, 215, 238), 10px 50px rgb(189, 215, 238), 15px 50px rgb(189, 215, 238), 20px 50px rgb(189, 215, 238), 95px 50px rgb(189, 215, 238), 10px 55px rgb(189, 215, 238), 15px 55px rgb(189, 215, 238), 10px 60px rgb(189, 215, 238), 10px 65px rgb(189, 215, 238), 10px 70px rgb(189, 215, 238), 15px 75px rgb(189, 215, 238), 15px 80px rgb(189, 215, 238), 20px 85px rgb(189, 215, 238), 25px 85px rgb(189, 215, 238), 30px 90px rgb(189, 215, 238), 35px 90px rgb(189, 215, 238), 100px 65px rgb(189, 215, 238), 100px 70px rgb(189, 215, 238), 95px 75px rgb(189, 215, 238), 95px 80px rgb(189, 215, 238), 85px 85px rgb(189, 215, 238), 90px 85px rgb(189, 215, 238), 75px 90px rgb(189, 215, 238), 80px 90px rgb(189, 215, 238), 40px 95px rgb(189, 215, 238), 45px 95px rgb(189, 215, 238), 50px 95px rgb(189, 215, 238), 55px 95px rgb(189, 215, 238), 60px 95px rgb(189, 215, 238), 65px 95px rgb(189, 215, 238), 70px 95px rgb(189, 215, 238), 20px 55px rgb(180, 198, 231), 35px 45px rgb(180, 198, 231), 40px 45px rgb(180, 198, 231), 45px 45px rgb(180, 198, 231), 50px 45px rgb(180, 198, 231), 55px 45px rgb(180, 198, 231), 60px 45px rgb(180, 198, 231), 65px 45px rgb(180, 198, 231), 70px 45px rgb(180, 198, 231), 75px 45px rgb(180, 198, 231), 80px 45px rgb(180, 198, 231), 85px 45px rgb(180, 198, 231), 35px 50px rgb(180, 198, 231), 40px 50px rgb(180, 198, 231), 45px 50px rgb(180, 198, 231), 50px 50px rgb(180, 198, 231), 55px 50px rgb(180, 198, 231), 60px 50px rgb(180, 198, 231), 65px 50px rgb(180, 198, 231), 70px 50px rgb(180, 198, 231), 75px 50px rgb(180, 198, 231), 80px 50px rgb(180, 198, 231), 85px 50px rgb(180, 198, 231), 90px 50px rgb(180, 198, 231), 35px 55px rgb(180, 198, 231), 40px 55px rgb(180, 198, 231), 45px 55px rgb(180, 198, 231), 50px 55px rgb(180, 198, 231), 55px 55px rgb(180, 198, 231), 60px 55px rgb(180, 198, 231), 65px 55px rgb(180, 198, 231), 80px 55px rgb(180, 198, 231), 85px 55px rgb(180, 198, 231), 90px 55px rgb(180, 198, 231), 95px 55px rgb(180, 198, 231), 25px 60px rgb(180, 198, 231), 30px 60px rgb(180, 198, 231), 35px 60px rgb(180, 198, 231), 40px 60px rgb(180, 198, 231), 45px 60px rgb(180, 198, 231), 50px 60px rgb(180, 198, 231), 55px 60px rgb(180, 198, 231), 60px 60px rgb(180, 198, 231), 65px 60px rgb(180, 198, 231), 80px 60px rgb(180, 198, 231), 85px 60px rgb(180, 198, 231), 90px 60px rgb(180, 198, 231), 95px 60px rgb(180, 198, 231), 15px 65px rgb(180, 198, 231), 20px 65px rgb(180, 198, 231), 25px 65px rgb(180, 198, 231), 30px 65px rgb(180, 198, 231), 90px 65px rgb(180, 198, 231), 95px 65px rgb(180, 198, 231), 15px 70px rgb(180, 198, 231), 20px 70px rgb(180, 198, 231), 90px 70px rgb(180, 198, 231), 95px 70px rgb(180, 198, 231), 35px 65px rgb(142, 169, 219), 40px 65px rgb(142, 169, 219), 45px 65px rgb(142, 169, 219), 50px 65px rgb(142, 169, 219), 55px 65px rgb(142, 169, 219), 60px 65px rgb(142, 169, 219), 65px 65px rgb(142, 169, 219), 70px 65px rgb(142, 169, 219), 75px 65px rgb(142, 169, 219), 35px 70px rgb(142, 169, 219), 40px 70px rgb(142, 169, 219), 45px 70px rgb(142, 169, 219), 50px 70px rgb(142, 169, 219), 55px 70px rgb(142, 169, 219), 60px 70px rgb(142, 169, 219), 65px 70px rgb(142, 169, 219), 70px 70px rgb(142, 169, 219), 75px 70px rgb(142, 169, 219), 80px 70px rgb(142, 169, 219), 85px 70px rgb(142, 169, 219), 35px 75px rgb(142, 169, 219), 40px 75px rgb(142, 169, 219), 25px 70px rgb(142, 169, 219), 20px 75px rgb(142, 169, 219), 25px 75px rgb(142, 169, 219), 20px 80px rgb(142, 169, 219), 25px 80px rgb(142, 169, 219), 30px 80px rgb(142, 169, 219), 50px 75px rgb(142, 169, 219), 55px 75px rgb(142, 169, 219), 65px 75px rgb(142, 169, 219), 70px 75px rgb(142, 169, 219), 75px 75px rgb(142, 169, 219), 80px 75px rgb(142, 169, 219), 85px 75px rgb(142, 169, 219), 90px 75px rgb(142, 169, 219), 45px 80px rgb(142, 169, 219), 60px 80px rgb(142, 169, 219), 65px 80px rgb(142, 169, 219), 70px 80px rgb(142, 169, 219), 75px 80px rgb(142, 169, 219), 80px 80px rgb(142, 169, 219), 85px 80px rgb(142, 169, 219), 90px 80px rgb(142, 169, 219), 30px 85px rgb(142, 169, 219), 35px 85px rgb(142, 169, 219), 40px 85px rgb(142, 169, 219), 45px 85px rgb(142, 169, 219), 50px 85px rgb(142, 169, 219), 55px 85px rgb(142, 169, 219), 60px 85px rgb(142, 169, 219), 65px 85px rgb(142, 169, 219), 70px 85px rgb(142, 169, 219), 75px 85px rgb(142, 169, 219), 80px 85px rgb(142, 169, 219), 40px 90px rgb(142, 169, 219), 45px 90px rgb(142, 169, 219), 50px 90px rgb(142, 169, 219), 55px 90px rgb(142, 169, 219), 60px 90px rgb(142, 169, 219), 65px 90px rgb(142, 169, 219), 70px 90px rgb(142, 169, 219), 30px 70px rgb(248, 203, 173), 30px 75px rgb(248, 203, 173), 35px 80px rgb(248, 203, 173), 40px 80px rgb(248, 203, 173), 45px 75px rgb(248, 203, 173), 50px 80px rgb(248, 203, 173), 55px 80px rgb(248, 203, 173), 60px 75px rgb(248, 203, 173), 30px 50px rgb(64, 64, 64), 25px 55px rgb(64, 64, 64), 30px 55px rgb(64, 64, 64), 75px 55px rgb(64, 64, 64), 70px 60px rgb(64, 64, 64), 75px 60px rgb(64, 64, 64);
+      }
+    }
+  </style>
+
   <div class="site-meta">
 
-    <a href="/" class="brand" rel="start">
+    <a href="/" class="" rel="start">
       <i class="logo-line"></i>
-      <p class="site-title">Allen Hu</p>
+      <p class="site-title"><i class="pixel-slime"></i></p>
       <i class="logo-line"></i>
     </a>
-      <p class="site-subtitle" itemprop="description">Internet Coding Monkey</p>
+      <p class="site-subtitle" itemprop="description">Newbie Dad, Software Engineer</p>
   </div>
 
   <div class="site-nav-right">
@@ -125,61 +146,6 @@
   </div>
 
 </header>
-        
-  
-  <aside class="sidebar">
-
-    <div class="sidebar-inner sidebar-overview-active">
-      <ul class="sidebar-nav">
-        <li class="sidebar-nav-toc">
-          Table of Contents
-        </li>
-        <li class="sidebar-nav-overview">
-          Overview
-        </li>
-      </ul>
-
-      <div class="sidebar-panel-container">
-        <!--noindex-->
-        <div class="post-toc-wrap sidebar-panel">
-        </div>
-        <!--/noindex-->
-
-        <div class="site-overview-wrap sidebar-panel">
-          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
-    <img class="site-author-image" itemprop="image" alt="Allen Hu"
-      src="/images/computer-chip_gray.svg">
-  <p class="site-author-name" itemprop="name">Allen Hu</p>
-  <div class="site-description" itemprop="description">Just for record</div>
-</div>
-<div class="site-state-wrap animated">
-  <nav class="site-state">
-      <div class="site-state-item site-state-posts">
-        <a href="/archives/">
-          <span class="site-state-item-count">21</span>
-          <span class="site-state-item-name">posts</span>
-        </a>
-      </div>
-      <div class="site-state-item site-state-tags">
-          <a href="/tags/">
-        <span class="site-state-item-count">20</span>
-        <span class="site-state-item-name">tags</span></a>
-      </div>
-  </nav>
-</div>
-
-        </div>
-      </div>
-        <div class="back-to-top animated" role="button" aria-label="Back to top">
-          <i class="fa fa-arrow-up"></i>
-          <span>0%</span>
-        </div>
-    </div>
-
-    
-  </aside>
-
-
     </div>
 
     <div class="main-inner post posts-expand">
@@ -193,20 +159,20 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
-    <link itemprop="mainEntityOfPage" href="http://example.com/2023/03/18/%E5%A4%9A%E6%9B%9D%E5%85%89%E8%9E%8D%E5%90%88%E7%BD%91%E7%BB%9CLoss%E8%AE%BE%E8%AE%A1/">
+    <link itemprop="mainEntityOfPage" href="https://huziliang.com/2023/03/18/%E5%A4%9A%E6%9B%9D%E5%85%89%E8%9E%8D%E5%90%88%E7%BD%91%E7%BB%9CLoss%E8%AE%BE%E8%AE%A1/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/computer-chip_gray.svg">
-      <meta itemprop="name" content="Allen Hu">
+      <meta itemprop="name" content="Cipher Locke">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Allen Hu">
+      <meta itemprop="name" content="Cipher Locke">
       <meta itemprop="description" content="Just for record">
     </span>
 
     <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="多曝光融合网络Loss设计 | Allen Hu">
+      <meta itemprop="name" content="多曝光融合网络Loss设计 | Cipher Locke">
       <meta itemprop="description" content="">
     </span>
       <header class="post-header">
@@ -229,7 +195,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">Edited on</span>
-      <time title="Modified: 2023-10-19 20:33:14" itemprop="dateModified" datetime="2023-10-19T20:33:14+08:00">2023-10-19</time>
+      <time title="Modified: 2025-10-12 13:16:42" itemprop="dateModified" datetime="2025-10-12T13:16:42+08:00">2025-10-12</time>
     </span>
 
   
@@ -241,18 +207,54 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><div class="hbe hbe-container" id="hexo-blog-encrypt" data-wpm="Oh, this is an invalid password. Check and try again, please." data-whm="OOPS, these decrypted content may changed, but you can still have a look.">
-  <script id="hbeData" type="hbeData" data-hmacdigest="984bd138924b1056ff1242b449c75b3314cb7df86249f694a8e123c8e3f43798">68036766acfc1da8ae32adcb6da431294e97773dc586559ee7dc9dd6f0903db2a9b0a7964b9dbfdca1574eb71ef8681c2da495c23549c72cf0470a97f7dac7af91335616e3e7f9c13ad5439d7968ec07c70e0c788aeacb87225c7e46a9b66f17645745080b83aed9921acf9617ab1085243b944ea28ac6b206793418de6023e991358bda6704a1170af1c54a9c9181fe0867a1de0f4a997a12409f130e7eddb319acc1cef09fe80e67556a4479e28bfca900a004465593cf9f48ef95932e080108f9a6d40f2abb64f6d374ec57c7d5c281d6d828905e3bd15289ec32feedac439c434c081bf399eb83a565859cbfc2ed3023211bf71a257e3e997c0359b2e25be5a2b71ce277ff2fbb19ae240b8264834de7ab68fa5304f500411d47cf80fc4cd5ef2634a89cf1e14a93b23f835ee029d6023d20a21215389a1614456580bb0b7816f9720273dabc48c4c43e04ac121ba4cae98b016eef604de414f1bf7d35845073aacf80526b4f2e70c438412edd609130e29a8145e746eb211b4341ccdc22b0be408efe3317fe9254a7944c9d89f4d9f085e44c699c4a47be5663a09a955f6511f552e7b46e50511465ccefc5a9dc05a3ec12b7a5945d7de70416b64e955474596a66bdb87958cefbe8661cacf2008b5f5571821083f719f99c9b54d39515270c9d70beeb9fccbd53ef3642d565d3642fc2c65a1a7ed012ac47728ae46f26574367e0566442fffaa8a1d6f1fc8a791c0b29830d080f82f16a304fb6d0911dd70bc497e911efb6174a85500edd3cb2094f1b981cb07eb2d53dd6308efe779aecbfeabd54a4455da0788844738a367fb2e0338a3bf63e2fb2aac12224d18acc91e93e465fa628ebb35122ba920b08daf11358855d2547c322d92bc2b2dc5b3e7ab8da0bffad4823083972cc53f9c6eb04a474137ee8c97739d874ca8324d6198e70b344e981576b69fa99fad6bb3e46ab4067d14883bbd35a723c10e60f5ec17956e08af5ed191ab2c4e4dd1325384336fcd0499c27ef121ec50f46c0b7aa3b33b4afff284769fcfaf6abc2c35a74689aa1e5067c86b39e787bad1a427869b5480e797b76d10a358bbfe38b01bbdcef9314ad5f7ef48d898381813b5eff4edf01697da87592699ed37e2d4ccf0d84149bc91848419bfde55046d09301497164f5653f2a6726f1d8ebb92c5e2eba172e56c1ebfc43e912c337b3232e14b26292c9fffa454535bd4f2e6fef43478b169d30cd293e9ae727813abbb076c598f2cad55394a974159b33225cc824a15065e3e77252f7a5555f751ae99d1c3ee057d852ca04e1fa9a62e4335e2837b26a3b0409847af138278fb2887647e973337fa65a51aee1ab9cbf558b0518a4b05e09d965fd80bc1b1a08f1d8a55e42e4d48a3518ae019555af2d2fe3d316e786c36b1ed0dc8cbf2e6a2758abb4f6aaad5d33ee8e4a1f4e2a309a459d72f11cff59bbb701a244fe4fc74fb45c06f4c74a7a1fefafc562f7e9c947d98213258567709e673583e6c5299de405ee642d9a696f2c981b5735d5478002b055379e78d841c73e9c0b0f45694ae9376ca026f2d83ac87013875592d32029d71990418fc69f8b6d94d2185f3104d7d94d5039d8336e11d4d060ec1d3ad9ae751e2824a2e3ccfd55f71dfa38187875e91d6b207508ea289e71b206b3e656ba5e01f21946ef6fb9a99fdd59b0e25b5a4d71d10072ce54902fb7c744aee252654263b1da22c3ce74881c3efc132ccbe0d903da4d49ed733a6287f37722bab792d5fa6d3161c0e82c621372b0539f5739560038b68f214fc4810fc9af1e74847eebbcd45fb36a4e471f91aba36c7882654310a2a52053c1b25e99159eece99429f123d4cef9b64239fb1c7ee6524937462a7fc64de8987f2eddd0d824c99c434e7f863ebd9f65ff37c1c07c25282418bf906767dbe949048098789909f77769a382e6c5990a3311321f9a35a50bc7d57f669f95bc7a867ec44e357cfd024c5b9ac405d2fa7549ceeddcb71eca94c296b1e25cc2395279177b7c2ce5de2a335ca83b4d3053396a0b06425498a3b6a1362e38b0f8c3b45f0253d28c17afa29e09fe723aaf4f6f60fe756952f73403fd52e21d26d27a1c025f3b840c542a9f4c1fc200ab47e19669aaf11948215141136a528c323f1b195237e17f7db277538f586cfa0f232df4cfb894cfc3f260624626529c6111f61dc4f1ae89c75083b59eadcc67b243f33bbd27277eeaf1716c3c16c6ff7f67edaca89f3f4405063c8424d4454319f481c4ee5a680086e8989b288227777d5dd393069efbd45c1a918ed1cad6084f41186362c21bb916a745f8b4f03c2ebb891c7e1a2659c6b873b467866bc545062fe11d25029c5c17e8504f4cfd6234d645a4ed4d71b082ed4885d8272dc47f34f1ee6329f3552af542a6aa75c786ac60f3d47206dfb9808ba491a7e72482777c08a56365649c15bf54ddb6e0c731eb9790bfdb62b939d49c119959a44b89bfb816302d47a5d46981ee04b0ecaf01f8112960fe0223b2ea8288cd06bce717e1f7c086255178b3f6966f7b61335eab87e94ce9b4c9e8edb9d68687cde612c272d449206b104a57a8e7b47ce26dcd6a20aef0c31e8a993ef6329356a05bc1652d2782baf92da1f18a36c672d4bfd74d21abb4ae04eb76f16661f4f6ab2e984c74305735bff5a5633a7e78a2220c6a39949e7843a77aee5828b478b13ab556878a77e0f2e61f3175b3c350631dca62e5388af00360264217a078fb409bc3fa9908ffae4136af08ca9124a935e13a4383949990c379e14c2849e5178391578cd5706c069b4bb24cbb31b1908647fd6682003e72f87dd44fc29ea87befdfc7f49322fc1ace29b08e4d8a6e813173e94ea43440bca12f8fe5d0200b72e21dff95de724b14ca9888bba55ec184cb9ef89aa4c93a0841200d621fdd174970ed14f6301c119128de3afa54365efc51d1ca0d535e039c09da676037c186c62732dd503ebabb277047921125b815a6a374270bcb47ce3f0406342aa59acda7ad6db7c12a4d390de140338d06668033c38795bbc9bf87b09a4c9390d3a98acdb67a7aa14a4d5b0e5ef5cd68e277fe26b4888a841a8abb9c33304112a4458549301a6dee1914236c38b44f591a883c55f41c1d9f60bf59fed2acd3f7569a44bac3244688710c998a90b6728733829c2e6ddaec87537d1f34dad1df8682375deecb325ffa4c12b9830abd41a621937aabea6b1685a4ea3213a8469f3b99d0ea74e8bbee4777525538c7986011dda37a3872bba1e3520ba1a4598d63e1050cc86d1b6c387a08ef51568500f7b7a667572ec265bdfe1a9c339c7fc8c2c5a410052a15a57d1a7f63338b2ce36c5aef41a2ff2fdfc3fcdf8978781376811faa3b207eb5bcc6bc3343ed796c65656ee84be3fd7d17b02480a63661ff21d1dc946f41f2b5f820f837fe7759f8a3dad481c26265f51167e5101a2e7cd3ac0f40d3626be040d4b84c1cf0e884b48e0f7f4a9eac687b34e3f7955059c000383af097b77ef4082540e3acd6c514b048fcd9ee8a336b83941ab9d23141ba33655883e9c1bb75af3e6b6ae43f120df4080c0c74c6863ebc40fb9720339b6551a0dfc0ddb4d90f94a12ee75f5a05f708e5ecd5d5f0e557df3ab7a219dacce81b0732c14f6a9b6f5735a0e87dba1685ef20b4ea9c1da2f6aa133b75ef8bb1eabdc71252b4e468d15b4d55b2d1e19fae5f3df36d4ebcc8eb5386d9221e113f1ed24c4d7a1a18362611e47d17d9d9cb626abee63c7c16b3ab8d0d93c1cda4e3744905b52b06a559edc9e7f23ce646f4597fd5c08980e454504b07d00b46a04210e026757dc5a316d74b82a7f01584dff14cfd09042374cf34e98ca6e500ccd477cafc6fd3fffa0fad888ab9cbd35529ecfcbb873d965155ee0f36bd57f9acf7f48aa395b1edb6bbca6227d71e794959ca8b78471e38358c94a232d3ef9a31485c710fc5e48d841b799c72e371349bdf1a7c8afe46d9df280a8c0a9356e19c38d5d3d782093c0d2275bf59ec0ee3e9607dbadf4a5e38decd1c9be35a1cee4d7ecfa377f6a4d83f1e39b0e8f47da3043610739057740f6a3cb786868d5b3ef0c40a18995b860490140b4dc428c41495b304a6888121b4e38be8b6ec7182a2ba1b2ad6bb3b217bf363031886938288270da04f6aea298c016df625153ca1493652dbb47aef173b75591e9d2555d958318670d20b25129989925faf5b03d5d1ab5e176f5948a0f533a251f96103c89194be19393bc947c92215d0e78b1fc9d6f46747cf643adcdb6e50e4373220e637f5dd3e1ab21f0d2951ceaf869fc98ffd4887a2ed793c6e238fe0cc8d45aea26ff81ea2394e7aea4df0ec4473a86c4687e75eb8ca13500e8b458915fca96a7de1489d26f7ef1c40bbdddbb605811edbe6ef092fd6248682953ae71444243fef2c3ddda3f2af6cd3acfdaa91e700db1abc0b9d1c72741e83e2bdb67cc3990d184115244212ddb09182e8309937de6b22b28a18e70fd88e3a78aa23fec88e87203715f83cea4c78ee6021f0e278fa3dacbc2a8b1d83e2bf02a4b483990af19a54a4f5053c2e20440fece6b1b8adf7b36c8be409010c68dc53492828585e521824bad43a1d8946b3dd99a4a95fef6a0516f8d7920583b25006e429ff9271a5d51e24c985cfc08985f87cc062d42bffe171419a0c1d4661cb1116fe87df490141845f60cb3fd3eaa0f125a6f18a923bdeeb9ab34829280d5c833bd4b80495246d92e30f7ab8bf1f4599f2020fcc9350a19836c0f7876d4be44cdcb8712d1b63ef98f086ed2e1440eec656020237120991b79bd07e0122509a3c7eca89f07b07400fd0f787f4c096ed02a4233b02976014827f2761c59c936af8cad81c1f0ca762b343eda37afaaba902155a0e3b776a8cffa35df2ae7a99455a694910eeeb932366ef116ccd6df4a80aae6cb6403620da1692b669fd74f81698a38fa5e9828c37bfb008b27bca76d3a73ea8300ea9a13a9d0b7d326e4ce3778dd4c5c7a43aeedae759cac039350ec9b19184d25736e0e153034745c3d4640749353be8694d0b32ce88b90e6c54be3f824a37e22a8f84320d2d7aefde6c414f59b290e976bef3a3f97efde7fb837f92c713725ac9689f37af5c3e184dccea6ed821e9e8b50b5fe961c208cb6a754f4b9588d60806a0f823d6f971e18700aac859664fb214f438c143681bbcd78740b34455b41df97fed01998583a2b2f2c2a4a845aafa57b97a225b306ba26b1561ab9eac840e3efa9de274c6558add31aa8d49fbf1253fedee871b77d77e5a51f8375a945e768e5941eef0d2ad2031bc52a43a332f4da5f8b0c675909ceddda3820ed9221dc37d3d7ac4068c02935842a1ee835ab65c888fb99e9a567885ba4961aea3b716a8176917753d10417189a8f42161815183a0a927c33ee688e3921f4ec3b9d9eda44da4f85cb25e9d7f342e098e1bd0929573f73dd3aaa00653a8efd3c9993ca35e4a20a5a5d56bd4802a89c68e0366175f808088e15d636069500df7f2579a6dba204c8efb26e6158c70cdff81b0a6473b1e356247607f584e08abe8f85d69fd64e2e76bd110cb43aa8b8f8a37e05f80b65b65bc1c64569bfec0a4bcf1b513f51aca8357b44ecf2a9b292efa31903c936657dd2b18f70f8fb14cd102eaefd9bc2a092953858ae08a5bd5595c79441b7db57bb8dc0f31577578137f9f88dce1a0c9dc15847149a6193f3d08f3a2769eb6c788bd918f96f076515054969d08d460728b635bb8779b44fe777e0664feb867b2caf94d6aa7ae6c68a16b32f8eb323ea0fd3a8cb6855eca0ba020992438814ac2dbb1bec23679bfbad3569039931eb1ac97833a30d530e3d9502cb92e342ffea0da53c96c57c5617fb293d2997c755611882775764e2ef4e8e33d0e1fac5d5c940fe30c8093aba6a0611723af3c92da2b73ba23dde9d1f81b3a72f587883fec32df43eb8d0a6fd0b1f641b01e839c4e9bfa7abe563bd5ac596103c74665c03a010cffa4aca1444cc0457fa72c1d29ef194c5c06a047997bb1669e952e5a4d3c8e739a27015dd92071bb6fcfee0c7713f7be9e57f9439800e78e13e0e90f65928f5e71eb829eb243975421c520a03aa6a58903fc3c2483f5b53e25f55397affc1e8e02e24b5c3767104797b705fe83a6c352e13b69f60c488f891dcb345dfeb8dfdd45af2087731246fab76e436dd233a2b5a77a5e796c1550053bd02ca0c2329fe0a7d1276a2710d1e0381c92fd623c934718338498ecfe75566cce83d41b4c5b8a7d9156cf46a906be8312cd88a2c98c945fc7fd3d6a88727d6f3cdfa4b34e4e3c1d22cacc90fc0f5f2a125b9d2d835b4258625c09a02fd70dd7f554e0d087f452cc8adbb0cbc6d4f0e651fcc2bf45033e0edfcc8026be8cee5d14080864a67c4f0a352a99e7718f74cc66309fbe92263f83ecfd426dcfee228e062668bd3b4776cbdbdf0781a06edfee68fa0e5736b49cf4b08f0d1741beb3cfd51b406cbbabd7305b5388f3add16aae78a7f301bcc8c1ae3e00595d8e7412437b44091e8081d21aef31e51f0cbb467b90766db38cf35c9d9bdb0dcf1f79934c5115661d50885d28ecda021ff66cb89c000565461de16c5409d5753b8ca9f14ac1b6aafb19a39b5045e713f10942d42ea43674ce4a926215afb5e381620448df105e6c5bd74b2107b93073af62b0ddf3caf6fba82c3bf768baae4621574e8a0d5e1a9a8d16183722a6edc1fba4db9910d01c0d41a68a79316e33ec392ceaa79b2e7a17f52bd1e28d1cee1fd4becc2265391ba50bd2835195d47a96406e5ffaaff2fb134a3bd5fe74170343aea3716402102d7f1da689735045c3b345e8f6a018dd8c5d6712c247eb4a02e660e34a6d97e0bfbb88b20cbf0a6010dfcb0bb64c1df91b226a6fa50a97f986bbbecd5289566e1df21bb68eca1622994c1571ad38525b1c55c64616803bd9450f985c55956aea6495828202f0d2406790429b0ff97530867904b2b865ac22dacaa94d025d2aaffdf3a571a7dbada4b3456cb59002c211b31a697bc2187cd4035a37cefbf8c2b4ae0eb09a09fc3f5d9ac2c05a7da1efa84fdbc42d48d173b0e605e40a8409d68f496225ce1d1816fcf726174f0a9f7fe12d1124bd0095a70f941f0c557f5168de29936232725e343e0bacaa98c67e1e93df028fbe597ea5bda6e4131b04f426af91395ed5115c408e1308b6f8b6c853eea117611fa6bd9360edb9ca987269d4ae36c0922448a196fb926ca76575d5ef0453d24d36d34b7e917be5fdd6c058987c8088042e05963d4bac56b5192097895233daf7784cfa92b6d807418ce2152d8233708aea45a04a36747b9896714f1e997133a724599f21cdada5e5393f0ae9ed02f364039f710a255a45bbca3bc6295f8269aa8aa41df58f486816caa8ff27e1f59c7d0f1b536a0c50127a4695d8e653a457319de395549477e1039a5c60412ae3812969e72df08b1ae90d0e2965dce2ea7eee5c7bf1641bd081d729b314db10fdd74446c05d92a192e6928acc69d5433e55d47a85d470d89d75f4a48bfc7b78b4c1b1e0d914ca55399ae042005e2bf73f2c84c898c53d5fa16e286527b8b9926c33f71fa865317cacff763324968d571767c22e91e5774dabb00bcd11950a50c8089f58b61491cec6a0e5f9c9b7ff2e64c92f47a2974f36efbe863fc45911cdaa960e467bbfef0486d297d16fe5c5f9c2d0789f32b09bb4a219f4ec1dcc698d5d5dd1633961120f0dd670030bbe4acbb43a535c91ca478c7854f97ba3af05f8af372d73b6ee9c85c44d169e3cf9cba7e6bfe71c2ddb783e494337e959da05a37a91b8bd3d16e4aa23cc91be5605f04e0207206aaea3dc37e48c82edd923801f61ce627860b379ef2bf3b9cd741509ffd69176be83cebeac04ce3263b9f1046d1480559912fa21156518decfad34d6bbe23b02c8afd76f6706abd64a25918251751aed8f59e092259190865815fe5155d7dfd1a84d8eb88f6e4ffdf139291c8b6f377786c860010b6557af473d1b9cafe795edcde7b8258503b94e022108ca5d3a150b644835a6e3268d1696192d08394485b3b96f0f03a49072ad3a1283c2811033d4da558a7d2405072c8349a72f68bca5744e8802eb8c711300e3536481d7d8354f8029698648e90114658a4b0735d1900ccb0ff45b2b0b8cc06b301cea36d5c5a5e6e8f7956208b762cdddda4e96e76a2fb77948a4cd83c60acdcfd941838cd9007d5d1a41abd6e1bd1fa96e39db8b931baa83123fae4a3e7dffc507d1cd2d928eab8cb064dda253c9ff7af6d7b090a6141e6112860ef083b537e64d3b8c9ad1484277d2d747b5f808a6a1fb18bc7c3e8f848b145af3403e566e8faf936f7c8def66a73c53acb6965204034d2740b191337dfd6d9be17e146f4fac3643aa7cf3b0c36adaa8c185b51fc8aa1971ee71c465893d72a7a3878d0e4e968e1347f858510f958326441fd380a3fdc54535fc7bc46c551a7ac4f11b344bd91d80110c644b39f3c21f6f5a11e1f06a85e163257678464dacf6d6775c39bb0b9585650c55da67832c29e4070528b2853694fb39d2b250876d6269265ddc53fffe22890fd14611887eb63bf9c2a5350999074d07497c594fb01f9967b23a3cc30d7010eade462f51bb423ab1b313e51679e6f4279152f3d77787c07c1a43818c108ce12526eb6be5a6aa8d5286480a680cf8aeb3617ec4a7b03374c8a8089858c8fd9416bd1a68ad7c4d84d3dced9e6ee3bb0753ddfb0923009a55c56ce0f24026c8070d4e2b380b0d7eadb194be21946f4ba89ee991ecaddf52cee22a7620cb9f65b8a4023c353f878c76004096d030bd8b565f9a95cebe8d88201d827b957f66c8f45557527bbf0ee7a4bf7ff5f8cf93c86cbda0ff14c1c8cce452f0bbd58d8ffa34249e35e78853956a6f7194bf5e1a74a95b86cd8961f82778eb93a540e837d244dfea81580cf9ad78343c49fd5adc2b57647c401b14d18fa6ddb775c64e219419159233463b61977dd290cec64e53ae589c45f40527acb5abdccecdde37f95df06d932b149e89006e33696037d4f25615cd804f9d9de8f89bad1b98a727c05f7a6a08904e4d9f2ce6c75972e22c056a9243320750dfa66b77d952b3ab6eb4028c9da8b663c2e1c365a628675512e21fc6379b2870d74bd0521e82a15de1c307a25c86e6b47067636ccdb83baad450333a02df1b1524e8746fa08c5cbc9c6b11572d69807c7d2aa63192999fa58aa634cc0d21b70ca3263bd7a96029d03e682a78a9edcdfc486902569a64799b7ef8305521fb017b13bfa1cd996cae310e6ea30f04f5512a37aa51b18fbb7f872d328d27113fb558bfb329d02d3b2f3cbde62ba36261dad8222b9274b9955c1569681ffc5c1878554ef487ea708c34d93a6121d28f9dc17a5a22e3780269bd924bbb8c37c594b746e7bc5d186ce4d670cc656017b1d61178227ab64427b18ee4bb883354cbde4acf250066fb03495c9a74a789209370249813bd8b066303d818f21ce056f751c149e0d06cdc7be1a0cc3ad74a261d19e3565ca8b5b309a85179689fce916e8e5a76d17b871165ef1ad0bb081d7fa3a2f31be8748fa8c3bf7fe6649d5b7777f2a9610e6347df1ebc82d4e14208534a11dbb8403ffc2f6f646c6a98477c23bdae0e6b887d17b06f5ca61705741eb322c1ccb8ba31af7b76b218f19e186fa28e6a28a4ec44feb9cc35254a012ab651508a5ff0004a4904c614b27fd29975ac626572f4c65e97f10e3219763c12a3e2cdb66cde4b52bd2954581bd4ab0c66046c3281a87ea36b7f3e5a36b1629984d85f639fe782dcac2b3898094ba5521897a576fb99bcef87f8a70bae12583cae57c589a35ba87056e950df2a3c28a370becbe94e6c28d320a16d3969347718fe34c417ce67ef5c045eff2884262f55808f25eb02ed092fb5a939e0f1be118302e33b0f34e88143871ef2bfe92bdc69098f8c6a8bdc826a1b8d19b6f5405ddd13556ac8b8f192cd9446d9abf47ac94f07b502e123cd6553375a71e0f9cb327229cacbae6baa3b7996cf8763d93e7df9e3d19866f6afded0c63b0f1c185c03722e585b1408d0edeaae7c9d4db199d479e998ddf012e7398c4ca5954c1d7dcc00d11d6f7f2f1fe9b4c872c08ed7719a4e0aebcaef39c6296dbbd5dffa9a125e76ada7c8033c73cbdcaecf3d43334d18968c46f08763bc57dc41aa86d52012878594481a11fe43e4e50e65cef3e3a0b933a1000127f5c31fcd062e4c79b481646e3c6980b68ba871af9f039ab3a5983754a0e7424bf2f13c4e0cfeae9b40ec2c143623a4b9f7e186415dbed721f9d201150633364ee9a700e6a60591a7df4d1e5dfb4e7991c7e987fce4ab606f7e01b25cb74f22efad2f461545bfbd4ecddb19739eb5b6f2e1c4b887a65de0a6a8da6fb6f5e490bbadb1bc5de492a6c0ae6fb4078403e7d31ddfe3213f5ec26f5d0a1ad57ecb2682ddcb688ca800d4e11d4fcf32108d3a9a0f42e529cac7eda1b79aea66227fef6d77bc95a2d3e54e8349e1a65e1544d64e4ab97498e4df9dd0a9f635df5be1955985ededcb472f243f5c6879420b6a8ac30135243def6764b45239eeecc5009e499131a098374cdf2f519a9c7f0767e384db02ad90cbaecf04cdad70c14f07ed4df80159c993b8e936b157ba9a45d004968b2203b05bdedb9c01971670248b8034045f737fa4feb6a25f50e405fd2df0102bb008e2af8fab7dbe1bd5219a34bee2ffa02926fbdc89dbc710e3646347b3d412f3fbc36f0c2d9a9e5b4ed5a1a253756efaa8e2d97bd72b7c947af722929a614720e9df983321442399584935f76954760ad334d3caf58fc86b6b702170e517b7b8f3bfced63a1992e45d1086c1029a44ffcae9453143e580a42f43f0f463b798e5c5d534e8bccdb967f3228d959134aaeae874b3fe5b4aca26e8a137236302a74a5bf8ed6453f26b07e28dcd9e61ae7c841351693254efda9de093e2823db8bd127b40e34ad27e907dc1a70b544791e8ac3851cfa83125ee0a1702c4f9f0b1db6c90829d905735d604e17470e10a0ccbe85abcb26a2fa90827c829a0490db5f42b25efb019033a830aeb65c30c0b69dcf3d76f9e64fe3d4241ea26147bfd81be62384458f71a55caced6466610de06cc1c2cfe3d461f052322bfe853cc7b23d780f1981eceffdaf87fb8b46ae3ef866f97d91f8eea9cc99f4286e024272902b45a5dee13e94ef732cd0894358e092fc55b076105d6b164a6ff9d2a68c152d7da15047c6eb0ea4fe3f2f522b4b9b6007f8c9d683d2aa9e59ccb0cc16f4180db5074b647d406f97a7c508652eeadb64f71c1f9fa64fca8f8963e6bc02e6e97f3bba1bedeaa0cf9bfec84d64717e26afacd96261f63bd9be1719cf84aeb5c5e7bdd547a4eaf3b174c69680418ba940ed9191b4d2d9eb7a97434ea19563712e9a5e70c58e7330ae78d1558b5cd6044d284e98ca3542055e74f09cdb47e6bda33b9b52ce6d98291afe1c33be99fb492cd1d3926c07bc92982342e824555487af8b6900bfc81440559168f96065babde7fa8dc6fe03826e825dd5a125981cbd66c4994776ec290f321f61f608e2e098f080ba16b0c18b78b2ee0a93835e9a38b861838f1b02772dee64edc61167bd506aa33d044c27038be5324d7dc05041cd9a4526ff4a6a35e1e944d7e0822ef2899b322202f4af1555b8629f7a4543fb857817986aacb8716b60e7879c9c2a879c36f088015120f4b7c7b6ca72b534e1a9c2967913f6bad212a58e9351f9bc6dab3d0bc5f613caf64060e3b68ba0a51f5a8be1d917c5543b9dea3de2695d13b33f8ed0d906c9daddf7d9f1f20cf721325f62e9be07fd6455760f9b3cbcd1d49d912fe8d73adad44f5165f2d3ee3574c6c83fd2be73097ccb15de4dabc6eca4c5e8177182ba36dcfc83288717ede95b7c739882aa2f1bf39688d20d352a77f6985827a2f6ac2a91c6c46537f75efcc1ceea977d3babf7564fc4c27905cf2551ae4f39fa21a1b6c1e4617a57d6e863e60583c380b4084e7b98cb9c83d38e9031befcdc338e50b0c94b0ebc732d10196a2244a48b902a30575d955e6166d116f5537aae987674a4e4e37a2b9c13abd0b4f12c1d9b0312349ac43360e8388b0f49916d762ca0ad5eda33120a4dace4ab195b92488550cb6c0cf075cce13e203e30e286727a1128b19eecab34a17d6730e65525e94eae55b075348f268ae3ed6fab56789c0fdaa186a4eafc08d0ee407c57f04157e0ad44b80d298490588106a2f5b0618fb26dc6c0d077b72e9c7c06b53ac8c5502a1d7b9dc61bc88229dd813c8a474206e9a481a49ee30d92e5a2385ec1dea519b396e11de7d6c713452a3a2a2598a8139c5aae796147631397d95c146b7ae168b4ff32d68e518239df8ad13f99c06ea88f71fd1c32f4f37bdab65de2813fd0d6d0bafcde7edc8100300daee0c2bce9931dbf63b6e2a7b53dd935cb332abb95785d1542758d907a54c359199ffa84819930c8d711563330b8cb1d720553c802f289c9e05381c02f785d724c84751a6ea53710c87c132f56c989f559be1e7fa072983b7b7ec773b9165bc8bf9f3d8ec41cd65676f74ec79197cc71fce4f2ba72f56dbf565286ac6218c5347b45b0c0d9e9e260756300967cdfcc319ef92c853e41b56f73619b53a0feacc1b5af7126927cfe74c2cab4652fe8f41602d5f041f593046ea1b7bc2a228640ea27ea87e7a07a5b880cd571f173bde98b77b73c9eacb0d332058c95fa336b26d9d4dd2566d11d6dca65ce41ded9d95146c40baeb70922a0bf1b10f206386afb34402bee4bffed6d9ba79df231dcdf88a33d33c72fcd969bc74ee07a1fa97130f524f48db8aef42ed465ff526af9f1bc4e8d772cdbc066c0504716e465d7b71c365a4b425f139169cde1f35bd2ae1cbce8c0d825076d4c8f3c96fc9fea369cfd3ec1c539e4ea05fb0ad3893e7b2103663b4442c406ee4d9f13ffc585a304252e3a2ed1c3be657806c4fb917bba213dc0511f871bb9e262fc6fc44210fa1f06e06723e9a6b5ca042ce9d910710d4dcad60d3b7d08bea8ff8b87d712d898ed226015c3ee7a4335ebd1c08d05c46843261645fccea574a9997ac6d526ff1f15c06ebbadfc3b596d36317bbf2848fd8a6a757103d94a966988d5471b488688ec72f98d08637f755cc0bbf5eee58b974a647af470fbac3205cae8efedc932c877aec7b33cca23c2fe0a59569e334a8d8b52f6a5769df2b1a31acb2a23c2c85ea6721c9c197d85f29ac8546f61edbbcde60dfe636db5d2f8901a93e3a1f92df79960b5b1f904ce993916b7e07a23f0b014b6ae05e3a8d965cfcb9276c5a557976e10f3660c6193bd52d8d714f5ff4c6c4a873d49918731451413c0ef0c2bd4c37047ef5a2acf7dbbc296fe0b0fb7eb6d17b4d9083226575ca965b62c08d7bc81e88afcbbd45de85f86a85e1a44e21ac002e12462979b4d40b6708ed53b79c156b461483c267d7a6356f1500326e4f4982ed29d099227f80458e2583f1190c372fb846b814bd6ab454940fd774782bab0e2e61554c4470fcc4b33c634e3d12c88993ae76f34e4922b601394f4d75e74c978154fd3d23cf74d2c44a0ebd7c38080b1a680d8fa813768ec4bbf4cb2856441e6620e83bff073532545299c1d0e39d219fd2bf73174c517f591663270bb5108b02b086c588bc958cece498af7f9d3b3d19b190b74268fdc68476ebe5fb65fb6d695bd4fdb284385de5fa7ba300021b9d5c08e3b93b9d0086fe3faf5548d6a7ee59f6a0e5030cfdc4087572f4f2dd5f555f3a45ef789ac518287f515b29e32a2b59d139fdf5c1cae6570ea7f8720a2831b7bd72ae715f72908ede2a189c43a89b6b66f6c5044a9f330a8e4efa288232e588125c5399a18387785c9906c5e28b97d76fdfbe991f92a6faaaa60778c8da093311af3aabbdda3db687f432d6f6196558cda547a6c290ffc66f8bf040</script>
-  <div class="hbe hbe-content">
-    <div class="hbe hbe-input hbe-input-default">
-      <input class="hbe hbe-input-field hbe-input-field-default" type="password" id="hbePass">
-      <label class="hbe hbe-input-label hbe-input-label-default" for="hbePass">
-        <span class="hbe hbe-input-label-content hbe-input-label-content-default">Hey, password is required here.</span>
-      </label>
-    </div>
-  </div>
-</div>
-<script data-pjax src="/lib/hbe.js"></script><link href="/css/hbe.style.css" rel="stylesheet" type="text/css">
+    <div class="post-body" itemprop="articleBody"><meta name="referrer" content="no-referrer" />
+<p>对于包围式曝光融合网络, Loss设计如下:</p>
+<p><span class="math display">\[
+L(y, y^{*})=\left \| y - y^* \right \|_{1} +  \left \| \nabla y - \nabla
+y^* \right \|_{1} + \gamma L_{gradsign}(y, y^*) + \eta L_{highsmooth}(y,
+y^*)
+\]</span></p>
+<p>其中<span class="math inline">\(y\)</span>为融合得到的图像, <span
+class="math inline">\(y^*\)</span>表示融合图像的标签, <span
+class="math inline">\(\left \| y - y^* \right \|_{1}\)</span>表示L1范数,
+即向量元素绝对值之和, <span
+class="math inline">\(\nabla\)</span>表示求图像的梯度, <span
+class="math inline">\(𝐿_{𝑔𝑟𝑎𝑑𝑠𝑖𝑔𝑛}\)</span>损失函数的作用是为了学习得到的图像的边缘过渡和真实图像贴合得更好,
+消除由于包围式曝光不连续导致的图像拼接人工痕迹. <span
+class="math inline">\(𝐿_{ℎ𝑖𝑔ℎ𝑠𝑚𝑜𝑜𝑡ℎ}\)</span>损失函数表示加大高亮区域的权重,
+使得高亮区域效果更好, 缓解图像中高亮区域占整张图像比重太小的问题, <span
+class="math inline">\(𝐻_{𝑡ℎ}\)</span>是高亮像素值的阈值; <span
+class="math inline">\(\gamma\)</span>, <span
+class="math inline">\(\eta\)</span>为常数, 表示损失函数权重,
+可依效果需求要求进行调整.</p>
+<p><span class="math display">\[
+L_{gradsign}(y,y*)=ReLU(-\nabla y * \nabla y^{*})
+\]</span></p>
+<p><span class="math display">\[
+L_{highsmooth}(y, y^*)=\left \| \nabla y - \nabla y^* \right \|_1 *
+I(y^*, H_{th})
+\]</span></p>
+<p><span class="math display">\[
+ReLU(x)= \begin{cases}x, x \geqslant 0 \\ 0, else \end {cases}
+\]</span></p>
+<p><span class="math display">\[
+I(x,threshold)= \begin{cases}1, x \geqslant threshold \\ 0, else \end
+{cases}
+\]</span></p>
+<p>另外还有两个Loss函数设计.</p>
+<ol type="1">
+<li><p>LumaGradLoss函数的操作是把prediction和groudtruth分别做一个global
+average pooling操作downsample到8x8的图, 然后在计算L2 loss.
+目的是保证prediction的整体亮度分布和groundtruth一致,
+避免出现亮度反转的情况.</p></li>
+<li><p>BlackRegLoss函数的操作是根据图像亮度值小于某个阈值threshold得到mask,
+然后惩罚这些区域的1/4, 1/16等欠曝图像的融合权重.
+目的是避免暗光区域受到欠曝图片的影响,
+避免出现融合后图像天空等非过曝区域亮度值被拉暗的情况.</p></li>
+</ol>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">def LumaGradLoss(self, prediction, target, input):</span><br><span class="line">    prediction = torch.nn.AdaptiveAvgPool2d((<span class="number">8</span>,<span class="number">8</span>))(prediction)</span><br><span class="line">    target = torch.nn.AdaptiveAvgPool2d((<span class="number">8</span>,<span class="number">8</span>))(input[:,<span class="number">0</span>:<span class="number">4</span>,:,:])</span><br><span class="line"></span><br><span class="line">    target = torch.clamp(target,<span class="number">0.0</span>,<span class="number">1.0</span>)</span><br><span class="line">    prediction = torch.clamp(prediction,<span class="number">0.0</span>,<span class="number">1.0</span>)</span><br><span class="line"></span><br><span class="line">    prediction_x_diff = prediction[:,:, :-<span class="number">1</span>, :-<span class="number">1</span>] - prediction[:, :, :-<span class="number">1</span>, <span class="number">1</span>:]</span><br><span class="line">    prediction_y_diff = prediction[:,:, :-<span class="number">1</span>, :-<span class="number">1</span>] - prediction[:, :, <span class="number">1</span>:, :-<span class="number">1</span>]</span><br><span class="line">    target_x_diff = target[:, :, :-<span class="number">1</span>, :-<span class="number">1</span>] - target[:,:,  :-<span class="number">1</span>, <span class="number">1</span>:]</span><br><span class="line">    target_y_diff = target[:, :, :-<span class="number">1</span>, :-<span class="number">1</span>] - target[:,:, <span class="number">1</span>:, :-<span class="number">1</span>]</span><br><span class="line"></span><br><span class="line">    error =  (target_x_diff-prediction_x_diff) ** <span class="number">2.0</span> + (target_y_diff-prediction_y_diff) ** <span class="number">2.0</span></span><br><span class="line"></span><br><span class="line">    loss = torch.mean(error)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> loss</span><br></pre></td></tr></table></figure>
+<figure class="highlight jsx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">def BlackRegLoss(self, logit, target,input_refs,  weight):</span><br><span class="line">    <span class="string">&#x27;&#x27;</span><span class="string">&#x27;</span></span><br><span class="line"><span class="string">        black region regularization</span></span><br><span class="line"><span class="string">        penalty on 1/4, 1/16 in order to persuade network selecting more on 1/1 images</span></span><br><span class="line"><span class="string">    &#x27;</span><span class="string">&#x27;&#x27;</span></span><br><span class="line"></span><br><span class="line">    input_1 = input_refs[:, -<span class="number">12</span>:-<span class="number">8</span>, :, :]</span><br><span class="line">    raw_grey,_ = torch.max(input_1, dim=<span class="number">1</span>, keepdim=True)</span><br><span class="line"></span><br><span class="line">    low_mask = torch.where(raw_grey &lt;= <span class="number">0.4</span>, torch.ones_like(raw_grey).cuda(), torch.zeros_like(raw_grey).cuda())</span><br><span class="line"></span><br><span class="line">    p2d = [<span class="number">0</span>,<span class="number">0</span>,<span class="number">1</span>,<span class="number">0</span>]</span><br><span class="line">    tv_mask_h = nn.ReflectionPad2d(p2d)(target)</span><br><span class="line">    tv_mask_h = tv_mask_h[:,:,<span class="number">1</span>:,:] - tv_mask_h[:,:,:-<span class="number">1</span>,:]</span><br><span class="line">    p2d = [<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>]</span><br><span class="line">    tv_mask_w = nn.ReflectionPad2d(p2d)(target)</span><br><span class="line">    tv_mask_w = tv_mask_w[:,:,:,<span class="number">1</span>:] - tv_mask_w[:,:,:,:-<span class="number">1</span>]</span><br><span class="line">    tv_mask = torch.max(torch.abs(tv_mask_h), torch.abs(tv_mask_w))</span><br><span class="line">    tv_mask,_ = torch.max(tv_mask, dim = <span class="number">1</span>, keepdim = True)</span><br><span class="line">    tv_mask = <span class="number">1.0</span> - tv_mask</span><br><span class="line"></span><br><span class="line">    low_mask = self.tf_high_light_dilate_blur(low_mask * tv_mask, <span class="number">5</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> weight.shape[<span class="number">1</span>] == <span class="number">3</span> or weight.shape[<span class="number">1</span>] == <span class="number">4</span>:</span><br><span class="line">        <span class="keyword">return</span> torch.sum(weight[:,<span class="number">1</span>:<span class="number">3</span>,:,:] * low_mask) / (torch.sum(low_mask) * (<span class="number">2.0</span> ))  # only loss on <span class="number">1</span>/<span class="number">4</span>, <span class="number">1</span>/<span class="number">16</span> frames</span><br><span class="line">    elif weight.shape[<span class="number">1</span>] == <span class="number">12</span>  or weight.shape[<span class="number">1</span>] == <span class="number">13</span>:</span><br><span class="line">        <span class="keyword">return</span> torch.sum(weight[:,<span class="number">4</span>:<span class="number">4</span>*<span class="number">3</span>,:,:] * low_mask) / (torch.sum(low_mask) * (<span class="number">2.0</span> * <span class="number">4</span>)) # only loss on <span class="number">1</span>/<span class="number">4</span>, <span class="number">1</span>/<span class="number">16</span> frames</span><br><span class="line">    <span class="attr">else</span>:</span><br><span class="line">        raise <span class="string">&#x27;Unsupport weight type&#x27;</span></span><br></pre></td></tr></table></figure>
+
     </div>
 
     
@@ -299,19 +301,20 @@
   </div>
   <div class="copyright">
     &copy; 
-    <span itemprop="copyrightYear">2023</span>
+    <span itemprop="copyrightYear">2025</span>
     <span class="with-love">
       <i class="fa fa-heart"></i>
     </span>
-    <span class="author" itemprop="copyrightHolder">Allen Hu</span>
+    <span class="author" itemprop="copyrightHolder">Cipher Locke</span>
   </div>
-  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a>
   </div>
 
     </div>
   </footer>
 
   
+  <div class="reading-progress-bar"></div>
 
 <noscript>
   <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
@@ -320,7 +323,7 @@
 
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
-<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
 <script src="/js/third-party/search/local-search.js"></script>
@@ -329,6 +332,7 @@
 
 
 
+  <script src="/js/third-party/pace.js"></script>
 
 
   
