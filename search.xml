@@ -1,141 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>ARM常用指令(2)</title>
-    <url>/2022/06/15/ARM%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4-2/</url>
-    <content><![CDATA[<!-- <meta name="referrer" content="no-referrer" /> -->
-<h2 id="算术与移位指令">算术与移位指令</h2>
-<h3 id="加减法指令">加减法指令</h3>
-<ul>
-<li>add指令</li>
-</ul>
-<ol type="1">
-<li><p>立即数加法指令</p>
-<p>ARM文档描述如下</p>
-<blockquote>
-<p>ADD <em>Wd|WSP</em>, <em>Wn|WSP</em>, #<em>imm</em>{, <em>shift</em>}
-; 32-bit</p>
-</blockquote>
-<blockquote>
-<p>ADD <em>Xd|SP</em>, <em>Xn|SP</em>, #<em>imm</em>{, <em>shift</em>} ;
-64-bit</p>
-</blockquote>
-<p><span id="more"></span></p>
-<p>这里要注意的是立即数的范围是0~4095，但是在实际过程中，写出这种语句编译运行也不会报错:
-<span class="math inline">\(add \enspace x0, \enspace x0, \enspace
-4096\)</span></p>
-<p>使用汇编与反汇编来看看编译器如何处理的，具体的汇编反汇编命令，可以查看<a
-href="https://www.huziliang.com/2022/05/12/ARM%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4/">ARM常用指令（1）</a>
-中MOV指令讲解。</p>
-<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">.arch armv8-a</span><br><span class="line">.text</span><br><span class="line">.align	3</span><br><span class="line"></span><br><span class="line">.global	test2</span><br><span class="line">test2:</span><br><span class="line"></span><br><span class="line">    add x0, x0, <span class="comment">#4095</span></span><br><span class="line">    add x2, x2, <span class="comment">#4096</span></span><br><span class="line"></span><br><span class="line">    ret</span><br></pre></td></tr></table></figure></p>
-<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">main.o:     file format elf64-littleaarch64</span><br><span class="line"></span><br><span class="line">Contents of section .text:</span><br><span class="line"> 0000 e10300aa 204040f8 220440f9 00fc3f91  .... @@.<span class="string">&quot;.@...?.</span></span><br><span class="line"><span class="string"> 0010 42044091 c0035fd6                    B.@..._.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">Disassembly of section .text:</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">0000000000000000 &lt;test2&gt;:</span></span><br><span class="line"><span class="string">   0:   aa0003e1        orr     x1, xzr, x0</span></span><br><span class="line"><span class="string">   4:   f8404020        ldur    x0, [x1,#4]</span></span><br><span class="line"><span class="string">   8:   f9400422        ldr     x2, [x1,#8]</span></span><br><span class="line"><span class="string">   c:   913ffc00        add     x0, x0, #0xfff</span></span><br><span class="line"><span class="string">  10:   91400442        add     x2, x2, #0x1, lsl #12</span></span><br><span class="line"><span class="string">  14:   d65f03c0        ret</span></span><br></pre></td></tr></table></figure></p>
-<p>add x0, x0, #4095 实际上为 add x0, x0, #0xfff</p>
-<p>add x2, x2, #4096 实际上为 add x2, x2, #0x1, lsl #12</p>
-<p>但是如果写成 add x0, x0, #4097编译就会报错 immediate out of
-range</p></li>
-<li><p>寄存器加法指令</p>
-<ul>
-<li>加法指令</li>
-</ul>
-<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">add x0, x1, x2, UXTB</span><br><span class="line"><span class="comment">// 类似的extend还有UXTB, UXTH, UXTW, UXTX, SXTB, SXTH, SXTW or SXTX.</span></span><br></pre></td></tr></table></figure></p>
-<p><img src="https://s2.loli.net/2022/05/23/tPV4XZDEi3wkaAU.png" /></p>
-<p>UXT*：零扩展</p>
-<p>SXT*：有符号扩展</p>
-<p>例如：</p>
-<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">mov x1, #<span class="number">1</span></span><br><span class="line">mov x2, #<span class="number">0x108a</span></span><br><span class="line">add x0, x1, x2, UXTB       <span class="comment">//(1)</span></span><br><span class="line">add x0, x1, x2, SXTB       <span class="comment">//(2)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// (1)式结果为0x8B，UXTB取x2寄存器低字节8A做零扩展，与x1寄存器立即数1相加，结果为8B</span></span><br><span class="line"><span class="comment">// (2)式结果为0xFFFFFF8B，SXTB取x2寄存器低字节8A做有符号扩展，与x1寄存器立即数1相加，结果为FFFFFF8B</span></span><br></pre></td></tr></table></figure></p>
-<ul>
-<li>移位加法指令</li>
-</ul>
-<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">add x0, x1, x2, LSL <span class="number">2</span></span><br></pre></td></tr></table></figure></p>
-<blockquote>
-<p>32bit寄存器移位操作数范围为0~31</p>
-</blockquote>
-<blockquote>
-<p>64bit寄存器移位操作数范围为0~63</p>
-</blockquote></li>
-</ol>
-<ul>
-<li><p>减法指令</p>
-<p>减法指令与加法指令类似，也分为立即数减法指令，寄存器减法指令。</p></li>
-</ul>
-<h3 id="cmp指令">cmp指令</h3>
-<p>cmp指令内部调用subs指令实现</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">cmp x1, x2</span><br><span class="line"></span><br><span class="line">=&gt;</span><br><span class="line"></span><br><span class="line">subs    xzr, x1, x2</span><br></pre></td></tr></table></figure>
-<h3 id="移位指令">移位指令</h3>
-<ul>
-<li>LSL：逻辑左移，最高位丢弃，最低位补0</li>
-<li>LSR：逻辑右移，最低位丢弃，最高位补0</li>
-<li>ASR：算术右移，最高位符号扩展，最低位丢弃</li>
-<li>ROR：循环右移，最低位移动到最高位</li>
-</ul>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">ldr w1, =<span class="number">0x8000008a</span></span><br><span class="line"><span class="comment">// w1 二进制表示：0b10000000000000000000000010001010</span></span><br><span class="line"></span><br><span class="line">asr w2, w1, <span class="number">1</span></span><br><span class="line"><span class="comment">// 算术右移1位，高位按照有符号补充，低位丢弃</span></span><br><span class="line"><span class="comment">// w2 二进制表示：0b11000000000000000000000001000101，16进制表示为0xC0000045</span></span><br><span class="line"></span><br><span class="line">lsr w3, w1, <span class="number">1</span></span><br><span class="line"><span class="comment">// 逻辑右移1位，最低位丢弃，最高位补0</span></span><br><span class="line"><span class="comment">// w3 二进制表示为：0b01000000000000000000000001000101，16进制表示为0x40000045</span></span><br><span class="line"></span><br><span class="line">lsl w4, w1, <span class="number">1</span></span><br><span class="line"><span class="comment">// 逻辑左移1位，最高位丢弃，最低位补0</span></span><br><span class="line"><span class="comment">// w4 二进制表示为：0b00000000000000000000000100010100，16进制表示为0x114</span></span><br><span class="line"></span><br><span class="line">ror w5, w1, <span class="number">2</span></span><br><span class="line"><span class="comment">// 循环右移1位，最低位移动到最高位</span></span><br><span class="line"><span class="comment">// w4 二进制表示为：0b10100000000000000000000000100010，16进制表示为0xA0000022</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-<h3 id="位操作指令">位操作指令</h3>
-<ul>
-<li>与操作</li>
-</ul>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">and</span> x0, x1, x2  <span class="comment">// x1 = 6, x2 = 1 =&gt; x0 = 0</span></span><br><span class="line"></span><br><span class="line">ands x0, x1, x2 <span class="comment">// 影响pstate状态位，x1 = 6, x2 = 1 =&gt; x0 = 0</span></span><br><span class="line">mrs x0, nzcv <span class="comment">// x0 = 0x40000，表示z位置为1，说明ands置pstate中z位置为1</span></span><br></pre></td></tr></table></figure>
-<ul>
-<li>或操作</li>
-</ul>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">orr x0, x1, x2  <span class="comment">// x1 = 6, x2 = 1 =&gt; x0 = 7</span></span><br></pre></td></tr></table></figure>
-<ul>
-<li>异或操作</li>
-</ul>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">eor x0, x1, x2  <span class="comment">// x1 = 4, x2 = 1 =&gt; x0 = 5</span></span><br></pre></td></tr></table></figure>
-<p>异或操作真值表</p>
-<table>
-<thead>
-<tr>
-<th>0 ^ 0</th>
-<th>0</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>0 ^ 1</td>
-<td>1</td>
-</tr>
-<tr>
-<td>1 ^ 0</td>
-<td>1</td>
-</tr>
-<tr>
-<td>1 ^ 1</td>
-<td>0</td>
-</tr>
-</tbody>
-</table>
-<ol type="1">
-<li>0异或任何数为任何数本身</li>
-<li>1异或任何数为任何数取反</li>
-<li>任何数异或自己为0</li>
-</ol>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 1. 实现位翻转</span></span><br><span class="line"><span class="comment">// 翻转0b10100001，第2、3位</span></span><br><span class="line"><span class="number">10100001</span> ^ <span class="number">00000110</span> = <span class="number">10100111</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 2. 交换两数</span></span><br><span class="line"><span class="comment">// 交换 a = 10100001和b = 00000110</span></span><br><span class="line">a = a^b <span class="comment">// a = 10100111</span></span><br><span class="line">b = b^a <span class="comment">// b = 10100001</span></span><br><span class="line">a = a^b <span class="comment">// a = 00000110</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 3. 变量设置为0</span></span><br><span class="line">eor x1, x1</span><br><span class="line"></span><br><span class="line"><span class="comment">// 4. 判断变量相等</span></span><br><span class="line">(a ^ b) == <span class="number">0</span></span><br></pre></td></tr></table></figure>
-<ul>
-<li>位清除</li>
-</ul>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 清除x0中第0、1和3位，保持其余的不变</span></span><br><span class="line">mov x0, #<span class="number">0x1111</span></span><br><span class="line">mov x1, #<span class="number">0x1011</span></span><br><span class="line">bic x0, x0, x1 <span class="comment">// x0 = 0x0100</span></span><br></pre></td></tr></table></figure>
-<p>以下为三个目前用的不多的指令</p>
-<ul>
-<li>CLZ指令</li>
-</ul>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 统计最高位1之前还有几个0</span></span><br><span class="line">ldr x1, =<span class="number">0x1100000034578000</span> <span class="comment">// x1 二进制为：0b0001000100000000000000000000000000110100010101111000000000000000</span></span><br><span class="line">clz x0, x1</span><br><span class="line"><span class="comment">// x1 最高位为1是第60位，前面还有三个0，因此x0为3</span></span><br></pre></td></tr></table></figure>
-<ul>
-<li>BFI指令</li>
-</ul>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 用作bit位插入</span></span><br><span class="line"></span><br><span class="line">mov x0, #<span class="number">0</span></span><br><span class="line">mov x1, #<span class="number">0x05</span></span><br><span class="line">bfi x0, x1, #<span class="number">4</span>, #<span class="number">4</span> <span class="comment">//将x0 BIT[4:4+(4-1)]替换为x1[0:0+(4-1)]</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 实际上BFI会被替换成BFM，上述语句等价于下：</span></span><br><span class="line">movz    x0, #<span class="number">0x0</span></span><br><span class="line">movz    x1, #<span class="number">0x5</span></span><br><span class="line">bfm     x0, x1, #<span class="number">60</span>, #<span class="number">3</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 可用来将部分比特位清零</span></span><br><span class="line">bfi x0, XZR, #<span class="number">0</span>, #<span class="number">3</span></span><br></pre></td></tr></table></figure>
-<ul>
-<li>UBFX</li>
-</ul>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 位提取指令</span></span><br><span class="line"><span class="comment">// UBFX 提取后无符号扩展</span></span><br><span class="line"><span class="comment">// SBFX  提取后有符号扩展</span></span><br><span class="line"></span><br><span class="line">mov x1, <span class="number">0x8a</span>   <span class="comment">//  x1 : 10001010</span></span><br><span class="line">ubfx x0, x1, #<span class="number">4</span>, #<span class="number">4</span>   <span class="comment">// x0 : 00001000</span></span><br><span class="line">sbfx x0, x1, #<span class="number">4</span>, #<span class="number">4</span>   <span class="comment">// x0 : 11111000</span></span><br></pre></td></tr></table></figure>
-<p><img src="https://s2.loli.net/2022/05/23/TGHaNA9PEgOQj83.png" /></p>
-]]></content>
-      <tags>
-        <tag>ARM</tag>
-        <tag>汇编</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>ARM常用指令(3)</title>
     <url>/2022/07/27/ARM%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4-3/</url>
     <content><![CDATA[<meta name="referrer" content="no-referrer" />
@@ -370,6 +235,141 @@ STLR
 <li><p>宏伪指令</p>
 <p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">.macro add p1 p2</span><br><span class="line">add x0, \p1, \p2</span><br><span class="line">.endm</span><br></pre></td></tr></table></figure></p></li>
 </ul>
+]]></content>
+      <tags>
+        <tag>ARM</tag>
+        <tag>汇编</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>ARM常用指令(2)</title>
+    <url>/2022/06/15/ARM%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4-2/</url>
+    <content><![CDATA[<!-- <meta name="referrer" content="no-referrer" /> -->
+<h2 id="算术与移位指令">算术与移位指令</h2>
+<h3 id="加减法指令">加减法指令</h3>
+<ul>
+<li>add指令</li>
+</ul>
+<ol type="1">
+<li><p>立即数加法指令</p>
+<p>ARM文档描述如下</p>
+<blockquote>
+<p>ADD <em>Wd|WSP</em>, <em>Wn|WSP</em>, #<em>imm</em>{, <em>shift</em>}
+; 32-bit</p>
+</blockquote>
+<blockquote>
+<p>ADD <em>Xd|SP</em>, <em>Xn|SP</em>, #<em>imm</em>{, <em>shift</em>} ;
+64-bit</p>
+</blockquote>
+<p><span id="more"></span></p>
+<p>这里要注意的是立即数的范围是0~4095，但是在实际过程中，写出这种语句编译运行也不会报错:
+<span class="math inline">\(add \enspace x0, \enspace x0, \enspace
+4096\)</span></p>
+<p>使用汇编与反汇编来看看编译器如何处理的，具体的汇编反汇编命令，可以查看<a
+href="https://www.huziliang.com/2022/05/12/ARM%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4/">ARM常用指令（1）</a>
+中MOV指令讲解。</p>
+<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">.arch armv8-a</span><br><span class="line">.text</span><br><span class="line">.align	3</span><br><span class="line"></span><br><span class="line">.global	test2</span><br><span class="line">test2:</span><br><span class="line"></span><br><span class="line">    add x0, x0, <span class="comment">#4095</span></span><br><span class="line">    add x2, x2, <span class="comment">#4096</span></span><br><span class="line"></span><br><span class="line">    ret</span><br></pre></td></tr></table></figure></p>
+<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">main.o:     file format elf64-littleaarch64</span><br><span class="line"></span><br><span class="line">Contents of section .text:</span><br><span class="line"> 0000 e10300aa 204040f8 220440f9 00fc3f91  .... @@.<span class="string">&quot;.@...?.</span></span><br><span class="line"><span class="string"> 0010 42044091 c0035fd6                    B.@..._.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">Disassembly of section .text:</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">0000000000000000 &lt;test2&gt;:</span></span><br><span class="line"><span class="string">   0:   aa0003e1        orr     x1, xzr, x0</span></span><br><span class="line"><span class="string">   4:   f8404020        ldur    x0, [x1,#4]</span></span><br><span class="line"><span class="string">   8:   f9400422        ldr     x2, [x1,#8]</span></span><br><span class="line"><span class="string">   c:   913ffc00        add     x0, x0, #0xfff</span></span><br><span class="line"><span class="string">  10:   91400442        add     x2, x2, #0x1, lsl #12</span></span><br><span class="line"><span class="string">  14:   d65f03c0        ret</span></span><br></pre></td></tr></table></figure></p>
+<p>add x0, x0, #4095 实际上为 add x0, x0, #0xfff</p>
+<p>add x2, x2, #4096 实际上为 add x2, x2, #0x1, lsl #12</p>
+<p>但是如果写成 add x0, x0, #4097编译就会报错 immediate out of
+range</p></li>
+<li><p>寄存器加法指令</p>
+<ul>
+<li>加法指令</li>
+</ul>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">add x0, x1, x2, UXTB</span><br><span class="line"><span class="comment">// 类似的extend还有UXTB, UXTH, UXTW, UXTX, SXTB, SXTH, SXTW or SXTX.</span></span><br></pre></td></tr></table></figure></p>
+<p><img src="https://s2.loli.net/2022/05/23/tPV4XZDEi3wkaAU.png" /></p>
+<p>UXT*：零扩展</p>
+<p>SXT*：有符号扩展</p>
+<p>例如：</p>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">mov x1, #<span class="number">1</span></span><br><span class="line">mov x2, #<span class="number">0x108a</span></span><br><span class="line">add x0, x1, x2, UXTB       <span class="comment">//(1)</span></span><br><span class="line">add x0, x1, x2, SXTB       <span class="comment">//(2)</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// (1)式结果为0x8B，UXTB取x2寄存器低字节8A做零扩展，与x1寄存器立即数1相加，结果为8B</span></span><br><span class="line"><span class="comment">// (2)式结果为0xFFFFFF8B，SXTB取x2寄存器低字节8A做有符号扩展，与x1寄存器立即数1相加，结果为FFFFFF8B</span></span><br></pre></td></tr></table></figure></p>
+<ul>
+<li>移位加法指令</li>
+</ul>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">add x0, x1, x2, LSL <span class="number">2</span></span><br></pre></td></tr></table></figure></p>
+<blockquote>
+<p>32bit寄存器移位操作数范围为0~31</p>
+</blockquote>
+<blockquote>
+<p>64bit寄存器移位操作数范围为0~63</p>
+</blockquote></li>
+</ol>
+<ul>
+<li><p>减法指令</p>
+<p>减法指令与加法指令类似，也分为立即数减法指令，寄存器减法指令。</p></li>
+</ul>
+<h3 id="cmp指令">cmp指令</h3>
+<p>cmp指令内部调用subs指令实现</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">cmp x1, x2</span><br><span class="line"></span><br><span class="line">=&gt;</span><br><span class="line"></span><br><span class="line">subs    xzr, x1, x2</span><br></pre></td></tr></table></figure>
+<h3 id="移位指令">移位指令</h3>
+<ul>
+<li>LSL：逻辑左移，最高位丢弃，最低位补0</li>
+<li>LSR：逻辑右移，最低位丢弃，最高位补0</li>
+<li>ASR：算术右移，最高位符号扩展，最低位丢弃</li>
+<li>ROR：循环右移，最低位移动到最高位</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">ldr w1, =<span class="number">0x8000008a</span></span><br><span class="line"><span class="comment">// w1 二进制表示：0b10000000000000000000000010001010</span></span><br><span class="line"></span><br><span class="line">asr w2, w1, <span class="number">1</span></span><br><span class="line"><span class="comment">// 算术右移1位，高位按照有符号补充，低位丢弃</span></span><br><span class="line"><span class="comment">// w2 二进制表示：0b11000000000000000000000001000101，16进制表示为0xC0000045</span></span><br><span class="line"></span><br><span class="line">lsr w3, w1, <span class="number">1</span></span><br><span class="line"><span class="comment">// 逻辑右移1位，最低位丢弃，最高位补0</span></span><br><span class="line"><span class="comment">// w3 二进制表示为：0b01000000000000000000000001000101，16进制表示为0x40000045</span></span><br><span class="line"></span><br><span class="line">lsl w4, w1, <span class="number">1</span></span><br><span class="line"><span class="comment">// 逻辑左移1位，最高位丢弃，最低位补0</span></span><br><span class="line"><span class="comment">// w4 二进制表示为：0b00000000000000000000000100010100，16进制表示为0x114</span></span><br><span class="line"></span><br><span class="line">ror w5, w1, <span class="number">2</span></span><br><span class="line"><span class="comment">// 循环右移1位，最低位移动到最高位</span></span><br><span class="line"><span class="comment">// w4 二进制表示为：0b10100000000000000000000000100010，16进制表示为0xA0000022</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h3 id="位操作指令">位操作指令</h3>
+<ul>
+<li>与操作</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">and</span> x0, x1, x2  <span class="comment">// x1 = 6, x2 = 1 =&gt; x0 = 0</span></span><br><span class="line"></span><br><span class="line">ands x0, x1, x2 <span class="comment">// 影响pstate状态位，x1 = 6, x2 = 1 =&gt; x0 = 0</span></span><br><span class="line">mrs x0, nzcv <span class="comment">// x0 = 0x40000，表示z位置为1，说明ands置pstate中z位置为1</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>或操作</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">orr x0, x1, x2  <span class="comment">// x1 = 6, x2 = 1 =&gt; x0 = 7</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>异或操作</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">eor x0, x1, x2  <span class="comment">// x1 = 4, x2 = 1 =&gt; x0 = 5</span></span><br></pre></td></tr></table></figure>
+<p>异或操作真值表</p>
+<table>
+<thead>
+<tr>
+<th>0 ^ 0</th>
+<th>0</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0 ^ 1</td>
+<td>1</td>
+</tr>
+<tr>
+<td>1 ^ 0</td>
+<td>1</td>
+</tr>
+<tr>
+<td>1 ^ 1</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<ol type="1">
+<li>0异或任何数为任何数本身</li>
+<li>1异或任何数为任何数取反</li>
+<li>任何数异或自己为0</li>
+</ol>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 1. 实现位翻转</span></span><br><span class="line"><span class="comment">// 翻转0b10100001，第2、3位</span></span><br><span class="line"><span class="number">10100001</span> ^ <span class="number">00000110</span> = <span class="number">10100111</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 2. 交换两数</span></span><br><span class="line"><span class="comment">// 交换 a = 10100001和b = 00000110</span></span><br><span class="line">a = a^b <span class="comment">// a = 10100111</span></span><br><span class="line">b = b^a <span class="comment">// b = 10100001</span></span><br><span class="line">a = a^b <span class="comment">// a = 00000110</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 3. 变量设置为0</span></span><br><span class="line">eor x1, x1</span><br><span class="line"></span><br><span class="line"><span class="comment">// 4. 判断变量相等</span></span><br><span class="line">(a ^ b) == <span class="number">0</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>位清除</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 清除x0中第0、1和3位，保持其余的不变</span></span><br><span class="line">mov x0, #<span class="number">0x1111</span></span><br><span class="line">mov x1, #<span class="number">0x1011</span></span><br><span class="line">bic x0, x0, x1 <span class="comment">// x0 = 0x0100</span></span><br></pre></td></tr></table></figure>
+<p>以下为三个目前用的不多的指令</p>
+<ul>
+<li>CLZ指令</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 统计最高位1之前还有几个0</span></span><br><span class="line">ldr x1, =<span class="number">0x1100000034578000</span> <span class="comment">// x1 二进制为：0b0001000100000000000000000000000000110100010101111000000000000000</span></span><br><span class="line">clz x0, x1</span><br><span class="line"><span class="comment">// x1 最高位为1是第60位，前面还有三个0，因此x0为3</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>BFI指令</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 用作bit位插入</span></span><br><span class="line"></span><br><span class="line">mov x0, #<span class="number">0</span></span><br><span class="line">mov x1, #<span class="number">0x05</span></span><br><span class="line">bfi x0, x1, #<span class="number">4</span>, #<span class="number">4</span> <span class="comment">//将x0 BIT[4:4+(4-1)]替换为x1[0:0+(4-1)]</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 实际上BFI会被替换成BFM，上述语句等价于下：</span></span><br><span class="line">movz    x0, #<span class="number">0x0</span></span><br><span class="line">movz    x1, #<span class="number">0x5</span></span><br><span class="line">bfm     x0, x1, #<span class="number">60</span>, #<span class="number">3</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 可用来将部分比特位清零</span></span><br><span class="line">bfi x0, XZR, #<span class="number">0</span>, #<span class="number">3</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>UBFX</li>
+</ul>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 位提取指令</span></span><br><span class="line"><span class="comment">// UBFX 提取后无符号扩展</span></span><br><span class="line"><span class="comment">// SBFX  提取后有符号扩展</span></span><br><span class="line"></span><br><span class="line">mov x1, <span class="number">0x8a</span>   <span class="comment">//  x1 : 10001010</span></span><br><span class="line">ubfx x0, x1, #<span class="number">4</span>, #<span class="number">4</span>   <span class="comment">// x0 : 00001000</span></span><br><span class="line">sbfx x0, x1, #<span class="number">4</span>, #<span class="number">4</span>   <span class="comment">// x0 : 11111000</span></span><br></pre></td></tr></table></figure>
+<p><img src="https://s2.loli.net/2022/05/23/TGHaNA9PEgOQj83.png" /></p>
 ]]></content>
       <tags>
         <tag>ARM</tag>
@@ -1565,6 +1565,53 @@ Lambda 表达式。通过 Lambda 表达式，C++
 ]]></content>
   </entry>
   <entry>
+    <title>超分辨率Loss设计记录(1)</title>
+    <url>/2022/11/19/%E8%B6%85%E5%88%86%E8%BE%A8%E7%8E%87Loss%E8%AE%BE%E8%AE%A1%E8%AE%B0%E5%BD%95-1/</url>
+    <content><![CDATA[<meta name="referrer" content="no-referrer" />
+<p>在超分辨率(Super-Resolution)网络训练中使用均方误差(MSE)损失函数确实存在一个常见问题,
+即可能导致生成的结果过于平滑和模糊
+这是因为MSE损失函数鼓励模型生成像素值,
+以使其与目标图像的像素值之间的平方差最小化这种最小化平方差的方法有时会导致图像细节的丢失,
+使得生成的高分辨率图像看起来过于平滑.</p>
+<span id="more"></span>
+<p><img src="https://s2.loli.net/2023/10/19/WEjclfagntGVxbo.png" /></p>
+<p>相关材料可以查看<a
+href="https://arxiv.org/pdf/1609.04802v5.pdf">SRGAN</a>中Figure2以及1.1.3小节.
+虽然直接优化MSE可以产生较高的PSNR/SSIM, 但是在zoom scale较大的情况下,
+MSE作为loss function引导的学习无法使得重建图像捕获细节信息,
+从论文Figure2中可以看到, 左二图有较高的PSNR/SSIM, 但是从观感上判断,
+左三图明显具有更多的细节.</p>
+<p>为了解决这个问题, 通常在超分辨率网络中使用其他损失函数或技术,
+以更好地保留细节和纹理 以下是一些替代方法：</p>
+<ol type="1">
+<li><p><strong>感知损失(Perceptual Loss)</strong>：使用感知损失,
+通常是使用预训练的深度卷积神经网络(如VGG)来计算生成图像与目标图像之间的特征表示的差异
+这种方法更强调图像的结构和纹理, 而不仅仅是像素值
+这有助于生成更具细节和真实感的图像</p></li>
+<li><p><strong>对抗性损失(Adversarial
+Loss)</strong>：引入生成对抗网络(GAN)的方法,
+其中生成器网络和判别器网络相互竞争 生成器的目标是欺骗判别器,
+而判别器的目标是区分生成图像和真实图像
+这种对抗性训练有助于生成更逼真的图像</p></li>
+<li><p><strong>内容和风格损失(Content and Style
+Loss)</strong>：结合感知损失和风格损失,
+以确保生成的图像在内容和风格上都与目标图像相似</p></li>
+<li><p><strong>自适应权重调整</strong>：使用动态权重或损失加权方法,
+以平衡不同类型的损失函数,
+以便在训练过程中更好地控制平滑度和细节</p></li>
+</ol>
+<p>这些方法可以帮助超分辨率网络生成更锐利和更具细节的高分辨率图像,
+而不仅仅是通过最小化像素级差异来生成图像
+选择哪种方法取决于具体的问题和数据集, 以及对生成图像的期望质量</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">import</span> torch.nn <span class="keyword">as</span> nn</span><br><span class="line"><span class="keyword">import</span> torchvision.models <span class="keyword">as</span> models</span><br><span class="line"></span><br><span class="line"><span class="comment">#SRGAN使用预训练好的VGG19，用生成器的结果以及原始图像通过VGG后分别得到的特征图计算MSE，具体解释推荐看SRGAN的相关资料</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">VGG</span>(<span class="params">nn.Module</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, device</span>):</span></span><br><span class="line">        <span class="built_in">super</span>(VGG, self).__init__()</span><br><span class="line">        vgg = models.vgg19(<span class="literal">True</span>)</span><br><span class="line">        <span class="keyword">for</span> pa <span class="keyword">in</span> vgg.parameters():</span><br><span class="line">            pa.requires_grad = <span class="literal">False</span></span><br><span class="line">        self.vgg = vgg.features[:<span class="number">16</span>]</span><br><span class="line">        self.vgg = self.vgg.to(device)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span>(<span class="params">self, x</span>):</span></span><br><span class="line">        out = self.vgg(x)</span><br><span class="line">        <span class="keyword">return</span> out</span><br><span class="line"></span><br><span class="line"><span class="comment">#内容损失</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ContentLoss</span>(<span class="params">nn.Module</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, device</span>):</span></span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        self.mse = nn.MSELoss()</span><br><span class="line">        self.vgg19 = VGG(device)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span>(<span class="params">self, fake, real</span>):</span></span><br><span class="line">        feature_fake = self.vgg19(fake)</span><br><span class="line">        feature_real = self.vgg19(real)</span><br><span class="line">        loss = self.mse(feature_fake, feature_real)</span><br><span class="line">        <span class="keyword">return</span> loss</span><br><span class="line"></span><br><span class="line"><span class="comment">#对抗损失</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">AdversarialLoss</span>(<span class="params">nn.Module</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span>(<span class="params">self, x</span>):</span></span><br><span class="line">        loss = torch.<span class="built_in">sum</span>(-torch.log(x))</span><br><span class="line">        <span class="keyword">return</span> loss</span><br><span class="line"></span><br><span class="line"><span class="comment">#感知损失</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">PerceptualLoss</span>(<span class="params">nn.Module</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, device</span>):</span></span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        self.vgg_loss = ContentLoss(device)</span><br><span class="line">        self.adversarial = AdversarialLoss()</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span>(<span class="params">self, fake, real, x</span>):</span></span><br><span class="line">        vgg_loss = self.vgg_loss(fake, real)</span><br><span class="line">        adversarial_loss = self.adversarial(x)</span><br><span class="line">        <span class="keyword">return</span> vgg_loss + <span class="number">1e-3</span>*adversarial_loss</span><br><span class="line"></span><br><span class="line"><span class="comment">#正则项，需要说明的是，在SRGAN的后续版本的论文中，这个正则项被删除了</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">RegularizationLoss</span>(<span class="params">nn.Module</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span>(<span class="params">self, x</span>):</span></span><br><span class="line">        a = torch.square(</span><br><span class="line">            x[:, :, :x.shape[<span class="number">2</span>]-<span class="number">1</span>, :x.shape[<span class="number">3</span>]-<span class="number">1</span>] - x[:, :, <span class="number">1</span>:x.shape[<span class="number">2</span>], :x.shape[<span class="number">3</span>]-<span class="number">1</span>]</span><br><span class="line">        )</span><br><span class="line">        b = torch.square(</span><br><span class="line">            x[:, :, :x.shape[<span class="number">2</span>]-<span class="number">1</span>, :x.shape[<span class="number">3</span>]-<span class="number">1</span>] - x[:, :, :x.shape[<span class="number">2</span>]-<span class="number">1</span>, <span class="number">1</span>:x.shape[<span class="number">3</span>]]</span><br><span class="line">        )</span><br><span class="line">        loss = torch.<span class="built_in">sum</span>(torch.<span class="built_in">pow</span>(a+b, <span class="number">1.25</span>))</span><br><span class="line">        <span class="keyword">return</span> loss</span><br></pre></td></tr></table></figure>
+]]></content>
+      <tags>
+        <tag>Deep Learning</tag>
+        <tag>Loss</tag>
+        <tag>SR</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>经典多层金字塔锐化(Multi-Level Pyramid Edge Enhancement)</title>
     <url>/2023/10/24/%E7%BB%8F%E5%85%B8%E5%A4%9A%E5%B1%82%E9%87%91%E5%AD%97%E5%A1%94%E9%94%90%E5%8C%96-Multi-Level-Pyramid-Edge-Enhancement/</url>
     <content><![CDATA[<meta name="referrer" content="no-referrer" />
@@ -1579,8 +1626,8 @@ Lambda 表达式。通过 Lambda 表达式，C++
 ]]></content>
       <tags>
         <tag>OpenCV</tag>
-        <tag>Sharpening</tag>
         <tag>SR</tag>
+        <tag>Sharpening</tag>
       </tags>
   </entry>
   <entry>
@@ -1717,53 +1764,6 @@ threshold的2倍</p>
 ]]></content>
       <tags>
         <tag>ISP</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>超分辨率Loss设计记录(1)</title>
-    <url>/2022/11/19/%E8%B6%85%E5%88%86%E8%BE%A8%E7%8E%87Loss%E8%AE%BE%E8%AE%A1%E8%AE%B0%E5%BD%95-1/</url>
-    <content><![CDATA[<meta name="referrer" content="no-referrer" />
-<p>在超分辨率(Super-Resolution)网络训练中使用均方误差(MSE)损失函数确实存在一个常见问题,
-即可能导致生成的结果过于平滑和模糊
-这是因为MSE损失函数鼓励模型生成像素值,
-以使其与目标图像的像素值之间的平方差最小化这种最小化平方差的方法有时会导致图像细节的丢失,
-使得生成的高分辨率图像看起来过于平滑.</p>
-<span id="more"></span>
-<p><img src="https://s2.loli.net/2023/10/19/WEjclfagntGVxbo.png" /></p>
-<p>相关材料可以查看<a
-href="https://arxiv.org/pdf/1609.04802v5.pdf">SRGAN</a>中Figure2以及1.1.3小节.
-虽然直接优化MSE可以产生较高的PSNR/SSIM, 但是在zoom scale较大的情况下,
-MSE作为loss function引导的学习无法使得重建图像捕获细节信息,
-从论文Figure2中可以看到, 左二图有较高的PSNR/SSIM, 但是从观感上判断,
-左三图明显具有更多的细节.</p>
-<p>为了解决这个问题, 通常在超分辨率网络中使用其他损失函数或技术,
-以更好地保留细节和纹理 以下是一些替代方法：</p>
-<ol type="1">
-<li><p><strong>感知损失(Perceptual Loss)</strong>：使用感知损失,
-通常是使用预训练的深度卷积神经网络(如VGG)来计算生成图像与目标图像之间的特征表示的差异
-这种方法更强调图像的结构和纹理, 而不仅仅是像素值
-这有助于生成更具细节和真实感的图像</p></li>
-<li><p><strong>对抗性损失(Adversarial
-Loss)</strong>：引入生成对抗网络(GAN)的方法,
-其中生成器网络和判别器网络相互竞争 生成器的目标是欺骗判别器,
-而判别器的目标是区分生成图像和真实图像
-这种对抗性训练有助于生成更逼真的图像</p></li>
-<li><p><strong>内容和风格损失(Content and Style
-Loss)</strong>：结合感知损失和风格损失,
-以确保生成的图像在内容和风格上都与目标图像相似</p></li>
-<li><p><strong>自适应权重调整</strong>：使用动态权重或损失加权方法,
-以平衡不同类型的损失函数,
-以便在训练过程中更好地控制平滑度和细节</p></li>
-</ol>
-<p>这些方法可以帮助超分辨率网络生成更锐利和更具细节的高分辨率图像,
-而不仅仅是通过最小化像素级差异来生成图像
-选择哪种方法取决于具体的问题和数据集, 以及对生成图像的期望质量</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">import</span> torch.nn <span class="keyword">as</span> nn</span><br><span class="line"><span class="keyword">import</span> torchvision.models <span class="keyword">as</span> models</span><br><span class="line"></span><br><span class="line"><span class="comment">#SRGAN使用预训练好的VGG19，用生成器的结果以及原始图像通过VGG后分别得到的特征图计算MSE，具体解释推荐看SRGAN的相关资料</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">VGG</span>(<span class="params">nn.Module</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, device</span>):</span></span><br><span class="line">        <span class="built_in">super</span>(VGG, self).__init__()</span><br><span class="line">        vgg = models.vgg19(<span class="literal">True</span>)</span><br><span class="line">        <span class="keyword">for</span> pa <span class="keyword">in</span> vgg.parameters():</span><br><span class="line">            pa.requires_grad = <span class="literal">False</span></span><br><span class="line">        self.vgg = vgg.features[:<span class="number">16</span>]</span><br><span class="line">        self.vgg = self.vgg.to(device)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span>(<span class="params">self, x</span>):</span></span><br><span class="line">        out = self.vgg(x)</span><br><span class="line">        <span class="keyword">return</span> out</span><br><span class="line"></span><br><span class="line"><span class="comment">#内容损失</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ContentLoss</span>(<span class="params">nn.Module</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, device</span>):</span></span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        self.mse = nn.MSELoss()</span><br><span class="line">        self.vgg19 = VGG(device)</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span>(<span class="params">self, fake, real</span>):</span></span><br><span class="line">        feature_fake = self.vgg19(fake)</span><br><span class="line">        feature_real = self.vgg19(real)</span><br><span class="line">        loss = self.mse(feature_fake, feature_real)</span><br><span class="line">        <span class="keyword">return</span> loss</span><br><span class="line"></span><br><span class="line"><span class="comment">#对抗损失</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">AdversarialLoss</span>(<span class="params">nn.Module</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span>(<span class="params">self, x</span>):</span></span><br><span class="line">        loss = torch.<span class="built_in">sum</span>(-torch.log(x))</span><br><span class="line">        <span class="keyword">return</span> loss</span><br><span class="line"></span><br><span class="line"><span class="comment">#感知损失</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">PerceptualLoss</span>(<span class="params">nn.Module</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self, device</span>):</span></span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        self.vgg_loss = ContentLoss(device)</span><br><span class="line">        self.adversarial = AdversarialLoss()</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span>(<span class="params">self, fake, real, x</span>):</span></span><br><span class="line">        vgg_loss = self.vgg_loss(fake, real)</span><br><span class="line">        adversarial_loss = self.adversarial(x)</span><br><span class="line">        <span class="keyword">return</span> vgg_loss + <span class="number">1e-3</span>*adversarial_loss</span><br><span class="line"></span><br><span class="line"><span class="comment">#正则项，需要说明的是，在SRGAN的后续版本的论文中，这个正则项被删除了</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">RegularizationLoss</span>(<span class="params">nn.Module</span>):</span></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span>(<span class="params">self</span>):</span></span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">forward</span>(<span class="params">self, x</span>):</span></span><br><span class="line">        a = torch.square(</span><br><span class="line">            x[:, :, :x.shape[<span class="number">2</span>]-<span class="number">1</span>, :x.shape[<span class="number">3</span>]-<span class="number">1</span>] - x[:, :, <span class="number">1</span>:x.shape[<span class="number">2</span>], :x.shape[<span class="number">3</span>]-<span class="number">1</span>]</span><br><span class="line">        )</span><br><span class="line">        b = torch.square(</span><br><span class="line">            x[:, :, :x.shape[<span class="number">2</span>]-<span class="number">1</span>, :x.shape[<span class="number">3</span>]-<span class="number">1</span>] - x[:, :, :x.shape[<span class="number">2</span>]-<span class="number">1</span>, <span class="number">1</span>:x.shape[<span class="number">3</span>]]</span><br><span class="line">        )</span><br><span class="line">        loss = torch.<span class="built_in">sum</span>(torch.<span class="built_in">pow</span>(a+b, <span class="number">1.25</span>))</span><br><span class="line">        <span class="keyword">return</span> loss</span><br></pre></td></tr></table></figure>
-]]></content>
-      <tags>
-        <tag>Deep Learning</tag>
-        <tag>Loss</tag>
-        <tag>SR</tag>
       </tags>
   </entry>
 </search>

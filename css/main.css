@@ -2407,11 +2407,11 @@ header.header {
   }
 }
 .post-block:first-of-type {
-  padding-top: 70px;
+  padding-top: 35px;
 }
 @media (max-width: 767px) {
   .post-block:first-of-type {
-    padding-top: 35px;
+    padding-top: 20px;
   }
 }
 .custom-logo-image {
@@ -2534,7 +2534,7 @@ header.header {
   vertical-align: middle;
 }
 .links-of-author a::before {
-  background: #40c6e2;
+  background: #8cb68c;
   display: inline-block;
   margin-right: 3px;
   transform: translateY(-2px);
