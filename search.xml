@@ -508,62 +508,129 @@ test.o对main.o进行反汇编</p>
       </tags>
   </entry>
   <entry>
-    <title>Android Toolchain编译与GDB调试</title>
-    <url>/2022/08/26/Android-Toolchain%E7%BC%96%E8%AF%91%E4%B8%8EGDB%E8%B0%83%E8%AF%95/</url>
-    <content><![CDATA[<meta name="referrer" content="no-referrer" />
-<p>在进行linux主机上进行arm跨平台进行pure c++开发时，可能混有Neon
-intrinsic或者ARM
-assembly代码，此时进行代码编译和调试，可以使用standalone
-toolchain进行编译，使用gdb+gdbserver进行调试。</p>
+    <title>Guided Filter</title>
+    <url>/2021/10/13/Guided-Filter/</url>
+    <content><![CDATA[<p>输入图p，导向图I， 输出图q，<span class="math inline">\(\Rightarrow
+q_i = \sum_jW_{ij}(I)p_j\)</span>，其中i，j为pixel index，<span
+class="math inline">\(W_{ij}\)</span>是导向图I的一个函数，与输入图p独立。</p>
+<p>假设输出图q在一个窗口<span
+class="math inline">\(w_i\)</span>中是导向图I的相信变换，即：<span
+class="math inline">\(q_i = a_kI_i + b_k, \forall i \in w_k\)</span></p>
 <span id="more"></span>
-<p>首先需要在NDK
-website上下载一个NDK工具包并解压，本人使用的是r14b版本，链接：<a
-href="https://dl.google.com/android/repository/android-ndk-r14b-linux-x86_64.zip">https://dl.google.com/android/repository/android-ndk-r14b-linux-x86_64.zip</a></p>
-<ul>
-<li><p>Standalone Toolchain的编译</p>
-<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> android-ndk-r14b/build/tools/</span><br><span class="line">./make-standalone-toolchain.sh --platform=android-21 --install-dir=./android-aarch64 --<span class="built_in">arch</span>=arm64</span><br><span class="line">./make-standalone-toolchain.sh --platform=android-21 --install-dir=./android-armv7 --<span class="built_in">arch</span>=arm</span><br></pre></td></tr></table></figure></p>
-<p>通过以上命令，会生成android-aarch64，android-armv7两个目录，可以将生成的standalone
-toolchain拷贝至固定目录</p>
-<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> <span class="built_in">cp</span> -r android-ndk-r14b/build/tools/android-aarch64 /opt</span><br><span class="line"><span class="built_in">sudo</span> <span class="built_in">cp</span> -r android-ndk-r14b/build/tools/android-armv7 /opt</span><br></pre></td></tr></table></figure></p>
-<p>以上完成standalone toolchain生成</p></li>
-<li><p>Linux主机编译arm跨平台pure c++程序</p>
-<ol type="1">
-<li>在Linux主机上准备main.cpp源代码文件</li>
-</ol>
-<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment">#include &lt;iostream&gt;</span></span><br><span class="line"></span><br><span class="line">int <span class="function"><span class="title">main</span></span>() &#123;</span><br><span class="line">		std::cout &lt;&lt; <span class="string">&quot;hello world&quot;</span> &lt;&lt; <span class="string">std::endl;</span></span><br><span class="line"><span class="string">    return 0;</span></span><br><span class="line"><span class="string">&#125;</span></span><br></pre></td></tr></table></figure></p>
-<ol type="1">
-<li>编写CMakeLists.txt文件</li>
-</ol>
-<p><figure class="highlight makefile"><table><tr><td class="code"><pre><span class="line">cmake_minimum_required(VERSION 3.17)</span><br><span class="line"></span><br><span class="line">project(ARM)</span><br><span class="line"></span><br><span class="line">enable_language(ASM)</span><br><span class="line"></span><br><span class="line">set(CMAKE_CXX_STANDARD 11)</span><br><span class="line">set(CMAKE_CXX_STANDARD_REQUIRED ON)</span><br><span class="line">add_definitions(-w)</span><br><span class="line">SET(CMAKE_BUILD_TYPE <span class="string">&quot;Debug&quot;</span>)</span><br><span class="line">SET(CMAKE_CXX_FLAGS_DEBUG <span class="string">&quot;$ENV&#123;CXXFLAGS&#125; -O0 -Wall -g2 -ggdb&quot;</span>)</span><br><span class="line">SET(CMAKE_CXX_FLAGS_RELEASE <span class="string">&quot;$ENV&#123;CXXFLAGS&#125; -O3 -Wall&quot;</span>)</span><br><span class="line"></span><br><span class="line">set(TARGET_CPU aarch64)</span><br><span class="line"></span><br><span class="line">set(CMAKE_CXX_FLAGS <span class="string">&quot;$&#123;CMAKE_CXX_FLAGS&#125; -static -fPIE -flax-vector-conversions&quot;</span>)</span><br><span class="line">if(TARGET_CPU STREQUAL <span class="string">&quot;aarch64&quot;</span>)</span><br><span class="line">    include_directories(/opt/android-ndk-r14b/android-aarch64/lib64/clang/7.0.2/<span class="keyword">include</span>)</span><br><span class="line"><span class="keyword">else</span>()</span><br><span class="line">    set(CMAKE_CXX_FLAGS <span class="string">&quot;$&#123;CMAKE_CXX_FLAGS&#125; -mfloat-abi=softfp -mfpu=neon&quot;</span>)</span><br><span class="line">    include_directories(/opt/android-ndk-r14b/android-armv7/lib64/clang/7.0.2/<span class="keyword">include</span>)</span><br><span class="line"><span class="keyword">endif</span>()</span><br><span class="line"></span><br><span class="line">set(SOURCES</span><br><span class="line">    main.cpp</span><br><span class="line">    <span class="comment"># main.s</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">add_executable(main $&#123;SOURCES&#125;)</span><br></pre></td></tr></table></figure></p>
-<ol type="1">
-<li>编译ARM平台可执行文件</li>
-</ol>
-<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">CXX_COMPILER=/opt/android-ndk-r14b/android-aarch64/bin/aarch64-linux-android-g++</span><br><span class="line">CC_COMPILER=/opt/android-ndk-r14b/android-aarch64/bin/aarch64-linux-android-gcc</span><br><span class="line"><span class="built_in">cd</span> cmake-build-debug</span><br><span class="line">cmake .. -DCMAKE_C_COMPILER=<span class="variable">$CC_COMPILER</span> -DCMAKE_CXX_COMPILER=<span class="variable">$CXX_COMPILER</span></span><br></pre></td></tr></table></figure></p>
-<ol type="1">
-<li>ARM平台程序的执行</li>
-</ol>
-<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">adb push main /data/local/tmp</span><br><span class="line">adb shell ./data/local/tmp/main</span><br></pre></td></tr></table></figure></p></li>
-<li><p>GDB+GDBServer调试</p>
-<ol type="1">
-<li>准备GDBServer</li>
-</ol>
-<p>测试手机一般出厂不会自带gdbserver，可以将NDK工具包中对应平台gdbserver推入手机</p>
-<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">adb push android-ndk-r14b/prebuilt/android-arm64/gdbserver/gdbserver /data/local/tmp</span><br></pre></td></tr></table></figure></p>
-<ol type="1">
-<li>启动GDBServer</li>
-</ol>
-<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">adb shell <span class="comment"># 进入手机shell命令行</span></span><br><span class="line"><span class="built_in">cd</span> /data/local/tmp</span><br><span class="line">./gdbserver tcp:9090 main</span><br><span class="line"></span><br><span class="line"><span class="comment"># 正常输出如下：</span></span><br><span class="line">Process main created; pid = 7201</span><br><span class="line">gdbserver: Unable to determine the number of hardware watchpoints available.</span><br><span class="line">gdbserver: Unable to determine the number of hardware breakpoints available.</span><br><span class="line">Listening on port 9090</span><br></pre></td></tr></table></figure></p>
-<ol type="1">
-<li>在主机平台启动gdb调试程序</li>
-</ol>
-<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> android-ndk-r14b/prebuilt/linux-x86_64/bin <span class="comment"># 进入ndk gdb程序目录</span></span><br><span class="line">adb forward tcp:9090 tcp:9090 <span class="comment"># 端口转发</span></span><br><span class="line">./gdb <span class="comment"># 进入gdb程序</span></span><br><span class="line">target remote localhost:9090 <span class="comment"># 开始获取信息并开始调试</span></span><br><span class="line">b main <span class="comment"># 设置断点</span></span><br><span class="line"><span class="comment"># 后续与普通GDB调试相同</span></span><br></pre></td></tr></table></figure></p>
-<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">n  <span class="comment"># 下一步，不进入函数内部</span></span><br><span class="line">s  <span class="comment"># 下一步，进入函数内部</span></span><br><span class="line">l  <span class="comment"># 代码列表</span></span><br><span class="line">info r    <span class="comment"># 查看寄存器</span></span><br></pre></td></tr></table></figure></p></li>
-</ul>
+<p>这种模型保证了仅有在导向图I有边缘的时候，输出图也有边缘，<span
+class="math inline">\(\nabla q = a\nabla I\)</span>，原理可以按照<a
+href="https://sci-hubtw.hkvisa.net/10.1109/acv.2002.1182150">https://sci-hubtw.hkvisa.net/10.1109/acv.2002.1182150</a></p>
+<p>为了确定<span
+class="math inline">\(a_k,b_k\)</span>系数，有如下的优化函数。</p>
+<p><span class="math inline">\(E(a_k, b_k) = \sum_{i \in
+\omega_k}((a_kI_i + b_k - p_i)^2 + \epsilon a_k^2)\)</span></p>
+<p>最终得到<span class="math inline">\(a_k,b_k\)</span>如下：</p>
+<p><span class="math inline">\(a_k =
+\frac{\frac{1}{\lvert\epsilon\rvert}\sum{i\in\omega_k(I_ip_i -
+\mu_k\overline{p}_k)}}{\sigma_k^2 + \omega}\)</span></p>
+<p><span class="math inline">\(b_k = \overline{p_k} -
+a_k\mu_k\)</span></p>
+<p>以偏导的方式求解<span class="math inline">\(a_k，b_k\)</span></p>
+<p>对于输出图q，可以认为是输入图p减去其噪声，<span
+class="math inline">\(q_i = p_i - n_i\)</span>，<span
+class="math inline">\(n_i\)</span>表示噪声</p>
+<p>对于输出图q与导向图I，有如下公式：<span class="math inline">\(\nabla
+q_i = a \nabla I_i\)</span>， <span class="math inline">\(q_i = aI_i +
+b\)</span></p>
+<p>最小化输出图q与输入图p的差异，求解系数：</p>
+<p><span class="math inline">\(\frac{\partial E}{\partial a_k} =
+2\sum_{i}^{N}((a_kI_i + b_k - p_i)I_i + \epsilon a_k)\)</span></p>
+<p><span class="math inline">\(\frac{\partial E}{\partial b_k} =
+-2\sum_{i}^{N}(p_i - a_kI_i - b_k)\)</span></p>
+<p>求解<span class="math inline">\(b_k\)</span></p>
+<p><span class="math display">\[\begin{aligned}
+&amp;\ \frac{\partial E}{\partial b_k} = -2\sum_{i}^{N}(p_i - a_kI_i -
+b_k) = 0 \\
+&amp;\ \Rightarrow Nb_k = \sum_{i}^n(p_i - a_kI_i) \\
+&amp;\ \Rightarrow b_k =  \frac{1}{N} \sum_{i}^n(p_i - a_kI_i) \\
+&amp;\ \Rightarrow b_k =  \frac{1}{N} \sum_{i}^np_i - a_k\frac{1}{N}
+\sum_{i}^nI_i \\
+&amp;\ \Rightarrow b_k =  p_k - a_k u_k \\
+\end{aligned}\]</span></p>
+<p><span class="math inline">\(p_k\)</span>和<span
+class="math inline">\(u_k\)</span>是窗口<span
+class="math inline">\(w_i\)</span>内，输入图<span
+class="math inline">\(p_i\)</span>和导向图<span
+class="math inline">\(I_i\)</span>的均值。</p>
+<p>求解<span class="math inline">\(a_k\)</span></p>
+<p><span class="math display">\[\begin{aligned}
+&amp;\ \frac{\partial E}{\partial a_k} = 2\sum_{i}^{N}((a_kI_i + b_k -
+p_i)I_i + \epsilon a_k) = 0 \\
+&amp;\ \Rightarrow -\sum_{i}^Np_iI_i + \sum_{i}^Nb_kI_i +
+\sum_{i}^Na_kI_i^2 + \sum_{i}^N \epsilon a_k = 0 \\
+&amp;\ \Rightarrow \sum_{i}^Np_iI_i - \sum_{i}^Nb_kI_i =
+\sum_{i}^Na_kI_i^2 + \sum_{i}^2\epsilon a_k \\
+&amp;\ \Rightarrow \sum_{i}^Np_iI_i - \sum_{i}^N(p_k-a_ku_k)I_i =
+a_k\sum_{i}^N(I_i^2 + \epsilon) \\
+&amp;\ \Rightarrow \sum_{i}^Np_iI_i - \sum_{i}^Np_kI_i +
+\sum_{i}^Na_ku_kI_i = a_k\sum_{i}^N(I_i^2 + \epsilon) \\
+&amp;\ \Rightarrow \sum_{i}^Np_iI_i - p_k\sum_{i}^NI_i =
+a_k\sum_{i}^N(I_i^2 + \epsilon - u_kI_i) \\
+&amp;\ \Rightarrow a_k = \frac{\sum_{i}^Np_iI_i -
+p_k\sum_{i}^NI_i}{\sum_{i}^N(I_i^2 + \epsilon - u_kI_i)} \\
+&amp;\ \Rightarrow a_k = \frac{\sum_{i}^Np_iI_i -
+\frac{1}{N}\sum_{i}^Np_i\sum_{i}^NI_i}{\sum_{i}^NI_i^2 -
+\frac{1}{N}\sum_{i}^NI_i\sum_{i}^NI_i + \epsilon} \\
+&amp;\ \Rightarrow a_k = \frac{\frac{1}{N}\sum_{i}^Np_iI_i -
+\frac{1}{N}\sum_{i}^Np_i\frac{1}{N}\sum_{i}^NI_i}{\frac{1}{N}\sum_{i}^NI_i^2
+- \frac{1}{N}\sum_{i}^NI_i\frac{1}{N}\sum_{i}^NI_i + \epsilon} \\
+\end{aligned}\]</span></p>
+<p>根据协方差公式</p>
+<p><span class="math inline">\(var(X) = \frac{\sum_{i}^{N}(X_i-\overline
+X)(X_i - \overline X)}{n-1}\)</span></p>
+<p><span class="math inline">\(cov(X, Y) = E[(X - E[X])(Y -
+E[Y])]\)</span></p>
+<p><span class="math inline">\(cov(X, Y) = E[XY] - E[X][Y]\)</span></p>
+<p><span class="math inline">\(a_k = \frac{cov(p_i, I_i)}{\sigma_k^2 +
+\epsilon}\)</span></p>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="attr">cv</span>::<span class="title class_">Mat</span> <span class="title function_">guidedFilter</span>(<span class="params">cv::Mat I, cv::Mat p, int r, double eps</span>)</span><br><span class="line">&#123;</span><br><span class="line">  <span class="comment">/*</span></span><br><span class="line"><span class="comment">  % GUIDEDFILTER   O(1) time implementation of guided filter.</span></span><br><span class="line"><span class="comment">  %</span></span><br><span class="line"><span class="comment">  % - guidance image: I (should be a gray-scale/single channel image)</span></span><br><span class="line"><span class="comment">  % - filtering input image: p (should be a gray-scale/single channel image)</span></span><br><span class="line"><span class="comment">  % - local window radius: r</span></span><br><span class="line"><span class="comment">  % - regularization parameter: eps</span></span><br><span class="line"><span class="comment">  */</span></span><br><span class="line">  <span class="attr">cv</span>::<span class="title class_">Mat</span> _I;</span><br><span class="line">  I.<span class="title function_">convertTo</span>(_I, <span class="variable constant_">CV_64FC1</span>);</span><br><span class="line">  I = _I;</span><br><span class="line">  <span class="attr">cv</span>::<span class="title class_">Mat</span> _p;</span><br><span class="line">  p.<span class="title function_">convertTo</span>(_p, <span class="variable constant_">CV_64FC1</span>);</span><br><span class="line">  p = _p;</span><br><span class="line">  <span class="comment">//[hei, wid] = size(I);</span></span><br><span class="line">  int hei = I.<span class="property">rows</span>;</span><br><span class="line">  int wid = I.<span class="property">cols</span>;</span><br><span class="line">  <span class="comment">//N = boxfilter(ones(hei, wid), r); % the size of each local patch; N=(2r+1)^2 except for boundary pixels.</span></span><br><span class="line">  <span class="attr">cv</span>::<span class="title class_">Mat</span> N;</span><br><span class="line">  <span class="attr">cv</span>::<span class="title function_">boxFilter</span>(<span class="attr">cv</span>::<span class="title class_">Mat</span>::<span class="title function_">ones</span>(hei, wid,I.<span class="title function_">type</span>()), N, <span class="variable constant_">CV_64FC1</span>, <span class="attr">cv</span>::<span class="title class_">Size</span>(r, r));</span><br><span class="line">  <span class="comment">//mean_I = boxfilter(I, r) ./ N;</span></span><br><span class="line">  <span class="attr">cv</span>::<span class="title class_">Mat</span> mean_I;</span><br><span class="line">  <span class="attr">cv</span>::<span class="title function_">boxFilter</span>(I, mean_I, <span class="variable constant_">CV_64FC1</span>, <span class="attr">cv</span>::<span class="title class_">Size</span>(r,r));</span><br><span class="line">  <span class="comment">//mean_p = boxfilter(p, r) ./ N;</span></span><br><span class="line">  <span class="attr">cv</span>::<span class="title class_">Mat</span> mean_p;</span><br><span class="line">  <span class="attr">cv</span>::<span class="title function_">boxFilter</span>(p, mean_p, <span class="variable constant_">CV_64FC1</span>, <span class="attr">cv</span>::<span class="title class_">Size</span>(r,r));</span><br><span class="line">  <span class="comment">//mean_Ip = boxfilter(I.*p, r) ./ N;</span></span><br><span class="line">  <span class="attr">cv</span>::<span class="title class_">Mat</span> mean_Ip;</span><br><span class="line">  <span class="attr">cv</span>::<span class="title function_">boxFilter</span>(I.<span class="title function_">mul</span>(p), mean_Ip, <span class="variable constant_">CV_64FC1</span>,</span><br><span class="line">  <span class="attr">cv</span>::<span class="title class_">Size</span>(r, r));</span><br><span class="line">  <span class="comment">//cov_Ip = mean_Ip - mean_I .* mean_p; % this is the covariance of (I, p) in each local patch.</span></span><br><span class="line">  <span class="attr">cv</span>::<span class="title class_">Mat</span> cov_Ip = mean_Ip - mean_I.<span class="title function_">mul</span>(mean_p);</span><br><span class="line">  <span class="comment">//mean_II = boxfilter(I.*I, r) ./ N;</span></span><br><span class="line">  <span class="attr">cv</span>::<span class="title class_">Mat</span> mean_II;</span><br><span class="line">  <span class="attr">cv</span>::<span class="title function_">boxFilter</span>(I.<span class="title function_">mul</span>(I), mean_II, <span class="variable constant_">CV_64FC1</span>,</span><br><span class="line">  <span class="attr">cv</span>::<span class="title class_">Size</span>(r, r));</span><br><span class="line">  <span class="comment">//var_I = mean_II - mean_I .* mean_I;</span></span><br><span class="line">  <span class="attr">cv</span>::<span class="title class_">Mat</span> var_I = mean_II - mean_I.<span class="title function_">mul</span>(mean_I);</span><br><span class="line">  <span class="comment">//a = cov_Ip ./ (var_I + eps); % Eqn. (5) in the paper;</span></span><br><span class="line">  <span class="attr">cv</span>::<span class="title class_">Mat</span> a = cov_Ip / (var_I + eps);</span><br><span class="line">  <span class="comment">//b = mean_p - a .* mean_I; % Eqn. (6) in the paper;</span></span><br><span class="line">  <span class="attr">cv</span>::<span class="title class_">Mat</span> b = mean_p - a.<span class="title function_">mul</span>(mean_I);</span><br><span class="line">  <span class="comment">//mean_a = boxfilter(a, r) ./ N;</span></span><br><span class="line">  <span class="attr">cv</span>::<span class="title class_">Mat</span> mean_a;</span><br><span class="line">  <span class="attr">cv</span>::<span class="title function_">boxFilter</span>(a, mean_a, <span class="variable constant_">CV_64FC1</span>, <span class="attr">cv</span>::<span class="title class_">Size</span>(r,r));</span><br><span class="line">  mean_a = mean_a / N;</span><br><span class="line">  <span class="comment">//mean_b = boxfilter(b, r) ./ N;</span></span><br><span class="line">  <span class="attr">cv</span>::<span class="title class_">Mat</span> mean_b;</span><br><span class="line">  <span class="attr">cv</span>::<span class="title function_">boxFilter</span>(b, mean_b, <span class="variable constant_">CV_64FC1</span>, <span class="attr">cv</span>::<span class="title class_">Size</span>(r,r));</span><br><span class="line">  mean_b = mean_b / N;</span><br><span class="line">  <span class="comment">//q = mean_a .* I + mean_b; % Eqn. (8) in the paper;</span></span><br><span class="line">  <span class="attr">cv</span>::<span class="title class_">Mat</span> q = mean_a.<span class="title function_">mul</span>(I) + mean_b;</span><br><span class="line">  <span class="keyword">return</span> q;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 ]]></content>
       <tags>
-        <tag>Android</tag>
-        <tag>Toolchain</tag>
-        <tag>GDB</tag>
+        <tag>图像处理</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>C++ Tips</title>
+    <url>/2022/03/05/C-Tips/</url>
+    <content><![CDATA[<ol type="1">
+<li>自定义class，存在析构函数，那么需要同时定义或者删除拷贝构造函数和拷贝赋值函数。原因是，在拷贝构造或者拷贝复制的过程中，为浅拷贝，当程序结束，析构函数介入时，可能存在析构两次的情况。</li>
+</ol>
+<span id="more"></span>
+<ol start="2" type="1">
+<li><p>右值，int &amp;&amp;可以自动转换为int const &amp;。</p></li>
+<li><p>__restrict关键字，告诉编译器，指针不存在重叠的情况，编译器可以进行优化，所有的非const指针都可以加上__restrict关键字，如：int
+* __restrict a。对于vector容器，__restrict关键字不生效，可以尝试#pragma
+omp simd或者#pragma GCC ivdep</p></li>
+<li><p>关于malloc和new</p>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> *a = <span class="keyword">new</span> <span class="type">int</span>[<span class="number">102400</span>];</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> *a = (<span class="type">int</span> *)<span class="built_in">malloc</span>(<span class="number">102400</span> * <span class="built_in">sizeof</span>(<span class="type">int</span>));</span><br></pre></td></tr></table></figure></p>
+<p>以上申请内存的两种语句，在实际生产环境，执行时并不会真正的分配内存，而是将这一段内存标记为不可用，即：invalid。待需要用到a数组：赋值或者其他操作时，会触发缺页中断，page
+fault。此时进入内核，查询此段内存是否之前malloc过，如果查询到，那么内存标记为可用，此时程序正常运行，如果未查询到malloc记录，那么触发段错误，segmentation
+fault。</p>
+<p>以上两种申请内存的语句，不会进行置零操作，初始化数组时，内存被写入，此时操作系统才进行实际的内存分配，因此测试两次内存赋值操作会发现时间不同。对于new操作符有一个简便方法</p>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> *a = <span class="keyword">new</span> <span class="type">int</span>[<span class="number">102400</span>]&#123;&#125;;</span><br></pre></td></tr></table></figure></p>
+<p>常见的自定义String类中，无参数构造函数也可以进行以下简单的定义：注意new
+char[1]后面的一对大括号</p>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">String::<span class="built_in">String</span>() : m_length&#123;<span class="number">0</span>&#125;, m_string&#123;<span class="keyword">new</span> <span class="type">char</span>[<span class="number">1</span>]&#123;&#125;&#125;&#123;&#125;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>原子操作</p>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">type __sync_fetch_and_add (type *ptr, type value, ...) <span class="comment">// 将value加到*ptr上，结果更新到*ptr，并返回操作之前*ptr的值</span></span><br><span class="line">type __sync_fetch_and_sub (type *ptr, type value, ...) <span class="comment">// 从*ptr减去value，结果更新到*ptr，并返回操作之前*ptr的值</span></span><br><span class="line">type __sync_fetch_and_or (type *ptr, type value, ...) <span class="comment">// 将*ptr与value相或，结果更新到*ptr， 并返回操作之前*ptr的值</span></span><br><span class="line">type __sync_fetch_and_and (type *ptr, type value, ...) <span class="comment">// 将*ptr与value相与，结果更新到*ptr，并返回操作之前*ptr的值</span></span><br><span class="line">type __sync_fetch_and_xor (type *ptr, type value, ...) <span class="comment">// 将*ptr与value异或，结果更新到*ptr，并返回操作之前*ptr的值</span></span><br><span class="line">type __sync_fetch_and_nand (type *ptr, type value, ...) <span class="comment">// 将*ptr取反后，与value相与，结果更新到*ptr，并返回操作之前*ptr的值</span></span><br><span class="line">type __sync_add_and_fetch (type *ptr, type value, ...) <span class="comment">// 将value加到*ptr上，结果更新到*ptr，并返回操作之后新*ptr的值</span></span><br><span class="line">type __sync_sub_and_fetch (type *ptr, type value, ...) <span class="comment">// 从*ptr减去value，结果更新到*ptr，并返回操作之后新*ptr的值</span></span><br><span class="line">type __sync_or_and_fetch (type *ptr, type value, ...) <span class="comment">// 将*ptr与value相或， 结果更新到*ptr，并返回操作之后新*ptr的值</span></span><br><span class="line">type __sync_and_and_fetch (type *ptr, type value, ...) <span class="comment">// 将*ptr与value相与，结果更新到*ptr，并返回操作之后新*ptr的值</span></span><br><span class="line">type __sync_xor_and_fetch (type *ptr, type value, ...) <span class="comment">// 将*ptr与value异或，结果更新到*ptr，并返回操作之后新*ptr的值</span></span><br><span class="line">type __sync_nand_and_fetch (type *ptr, type value, ...) <span class="comment">// 将*ptr取反后，与value相与，结果更新到*ptr，并返回操作之后新*ptr的值</span></span><br><span class="line"><span class="type">bool</span> __sync_bool_compare_and_swap (type *ptr, type oldval type newval, ...) <span class="comment">// 比较*ptr与oldval的值，如果两者相等，则将newval更新到*ptr并返回true</span></span><br><span class="line">type __sync_val_compare_and_swap (type *ptr, type oldval type newval, ...) <span class="comment">// 比较*ptr与oldval的值，如果两者相等，则将newval更新到*ptr并返回操作之前*ptr的值</span></span><br><span class="line">__sync_synchronize (...) <span class="comment">// 发出完整内存栅栏，内存屏障</span></span><br><span class="line">type __sync_lock_test_and_set (type *ptr, type value, ...) <span class="comment">// 将value写入*ptr，对*ptr加锁，并返回操作之前*ptr的值</span></span><br><span class="line"><span class="type">void</span> __sync_lock_release (type *ptr, ...) <span class="comment">// 将0写入到*ptr，（类似对*ptr解锁）</span></span><br></pre></td></tr></table></figure></p>
+<p>c++11中atomic</p>
+<ol type="1">
+<li>atomic_flag</li>
+</ol>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">std::atomic_flag LOCK = ATOMIC_FLAG_INIT; <span class="comment">// 原子布尔类型</span></span><br><span class="line">LOCK.<span class="built_in">test_and_set</span>(); <span class="comment">//被设置，则返回true; 否则，返回false</span></span><br><span class="line">LOCK.<span class="built_in">clear</span>(); <span class="comment">// 清除atomic_flag对象</span></span><br></pre></td></tr></table></figure></p>
+<ol type="1">
+<li>atomic对int, char, bool等数据结构进行原子性封装</li>
+</ol>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function">std::atomic&lt;<span class="type">int</span>&gt; <span class="title">counter</span><span class="params">(<span class="number">2</span>)</span></span>; <span class="comment">// 等同于counter.load(2);</span></span><br><span class="line"><span class="type">int</span> old = counter.<span class="built_in">fetch_add</span>(<span class="number">2</span>); <span class="comment">// 等同于counter+=2; 注意：counter = counter + 1;并不是原子操作; fetch_add会返回旧值</span></span><br><span class="line">counter.<span class="built_in">load</span>(); <span class="comment">// 读取，等同于std::cout &lt;&lt; counter &lt;&lt; std::endl;</span></span><br><span class="line"><span class="type">int</span> old = counter.<span class="built_in">exchange</span>(<span class="number">3</span>); <span class="comment">// 交换并返回旧值，old = 2</span></span><br><span class="line"><span class="type">bool</span> equal = counter.<span class="built_in">compare_exchange_strong</span>(old, <span class="keyword">new</span>); <span class="comment">// equal with old, counter = new, 返回true, 此处的old为引用，不能直接传入右值2</span></span><br></pre></td></tr></table></figure></p></li>
+</ol>
+]]></content>
+      <tags>
+        <tag>C++</tag>
       </tags>
   </entry>
   <entry>
@@ -594,6 +661,121 @@ toolchain拷贝至固定目录</p>
 ]]></content>
       <tags>
         <tag>CUDA</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>ISP尝试解决高Gain下暗部发紫问题</title>
+    <url>/2022/09/23/ISP%E5%B0%9D%E8%AF%95%E8%A7%A3%E5%86%B3%E9%AB%98Gain%E4%B8%8B%E6%9A%97%E9%83%A8%E5%8F%91%E7%B4%AB%E9%97%AE%E9%A2%98/</url>
+    <content><![CDATA[<meta name="referrer" content="no-referrer" />
+<h1 id="暗部发紫解决方案">暗部发紫解决方案</h1>
+<p>在黑暗环境(iso 9000 ~ iso 25600下拍摄的图像出现紫色现象，sensor:
+imx586, 平台: SM8150, 仿真器版本: Qualcomm Spectra 380</p>
+<span id="more"></span>
+<p><img src="https://s2.loli.net/2023/10/16/jQlLTVtrhDxMNXC.png" /></p>
+<p>左侧为原始图像, 右边为提亮后的图像, 可以看到明显紫色现象.</p>
+<p>当增益大幅拉高时(gain 90 ~ gain 256),
+灰度接近0的像素的噪点也会随之提升. BLC和ABF模块无法正确处理这些像素,
+并且在经过AWB, Gamma, Color等所有增强阶段后, 会产生偏差.</p>
+<p>下面的模拟显示了暗区去噪之前BPS与暗区去噪之后BPS的效果。</p>
+<p>Pipeline 1: BLS → AWB → Denoise → Purple Bias Created</p>
+<style>
+td, th {
+   border: none !important;
+}
+table tr:hover {
+    background-color: background-color:rgba(0, 0, 0, 0) !important;
+}
+tbody tr:nth-of-type(odd) {
+    background-color: background-color:rgba(0, 0, 0, 0) !important;
+    }
+</style>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
+<tr>
+<td><img src="https://s2.loli.net/2023/10/16/ON7EKP5zpqGWoLA.png"></td>
+<td><img src="https://s2.loli.net/2023/10/16/SC74Yf2Xkn6eDiB.png"></td>
+</tr>
+<tr>
+<td>1 - linearization后的图像, R, G, B
+噪声相同(噪声标准差具有类似的高斯形状)</td>
+<td>2 - BLS后的图像: 小于BL值的像素设置为0</td>
+</tr>
+</tbody>
+</table>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
+<tr>
+<td><img src="https://s2.loli.net/2023/10/16/e6BytVLcvIJnUdN.png"></td>
+<td><img src="https://s2.loli.net/2023/10/16/XGLRlqeC5IaWFNE.png"></td>
+</tr>
+<tr>
+<td>3 - AWB后的图像，红色和蓝色通道高斯比绿色通道的高斯大</td>
+<td>4 - Denoise后的图像，产生了紫色偏差</td>
+</tr>
+</tbody>
+</table>
+<p>Pipeline 2: Denoise → BLS → AWB → Purple Bias Not Created</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
+<tr>
+<td><img src="https://s2.loli.net/2023/10/16/ON7EKP5zpqGWoLA.png"></td>
+<td><img src="https://s2.loli.net/2023/10/16/vbz6SKUCLmYa8MN.png"></td>
+</tr>
+<tr>
+<td>1 - linearization后的图像, R, G, B
+噪声相同(噪声标准差具有类似的高斯形状)</td>
+<td>2 - Denoise后的图像，高斯STD明显减小</td>
+</tr>
+</tbody>
+</table>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
+<tr>
+<td><img src="https://s2.loli.net/2023/10/16/EPW5T7dCKxveMOI.png"></td>
+<td><img src="https://s2.loli.net/2023/10/16/HZxQ7ek4NTKvmrF.png"></td>
+</tr>
+<tr>
+<td>3 - BLS后的图像: 没有小于BL值的像素设置为 0</td>
+<td>4 - AWB后的图像, 未产生紫色偏差</td>
+</tr>
+</tbody>
+</table>
+<p>改进pedestal去除之前的暗区去噪, 唯一可用的模块是ABF,
+因此除了修改其他ABF参数外,
+启用ABF中的暗部去饱和功能并增加ABF的noise_std_lut的第一个值.</p>
+<p>紫色问题经过验证可以部分改善, 但是如果想要完全去除紫色像素时,
+细节被严重破坏, 图像显得比以前更绿,
+因此只能在细节和紫色噪声之间找到平衡.</p>
+<p>目前高通平台上Raw Domain去噪模块(ABF)还不能很好地处理此类问题.
+ABF可以通过更强的去噪来缓解紫色问题, 但同时细节也会丢失.
+因此需要有更好的Raw Domain去噪算法, 一方面可以控制噪声,
+另一方面可以尽可能保留细节.</p>
+<p>还有第二套方案可供选择.</p>
+<p>BLS模块: 目标手机拍摄几张黑图, 导入demux模块进行BLS calibrition,
+得到一组BLS参数, 然后分别对RGGB四个通道分别增加一点BLS的值.</p>
+<p>AWB模块: fine tune 3A中AWB的值</p>
+<p>此方案的原因分析: 在极暗光环境下,
+BLS的calibrition的值本就容易估算错误, 而后经过AWB放大之后,
+紫色会更加明显.</p>
+]]></content>
+      <tags>
+        <tag>ISP</tag>
       </tags>
   </entry>
   <entry>
@@ -813,331 +995,6 @@ Core变成FP64，INT，FP32，TENSOR Core。</p>
       </tags>
   </entry>
   <entry>
-    <title>Guided Filter</title>
-    <url>/2021/10/13/Guided-Filter/</url>
-    <content><![CDATA[<p>输入图p，导向图I， 输出图q，<span class="math inline">\(\Rightarrow
-q_i = \sum_jW_{ij}(I)p_j\)</span>，其中i，j为pixel index，<span
-class="math inline">\(W_{ij}\)</span>是导向图I的一个函数，与输入图p独立。</p>
-<p>假设输出图q在一个窗口<span
-class="math inline">\(w_i\)</span>中是导向图I的相信变换，即：<span
-class="math inline">\(q_i = a_kI_i + b_k, \forall i \in w_k\)</span></p>
-<span id="more"></span>
-<p>这种模型保证了仅有在导向图I有边缘的时候，输出图也有边缘，<span
-class="math inline">\(\nabla q = a\nabla I\)</span>，原理可以按照<a
-href="https://sci-hubtw.hkvisa.net/10.1109/acv.2002.1182150">https://sci-hubtw.hkvisa.net/10.1109/acv.2002.1182150</a></p>
-<p>为了确定<span
-class="math inline">\(a_k,b_k\)</span>系数，有如下的优化函数。</p>
-<p><span class="math inline">\(E(a_k, b_k) = \sum_{i \in
-\omega_k}((a_kI_i + b_k - p_i)^2 + \epsilon a_k^2)\)</span></p>
-<p>最终得到<span class="math inline">\(a_k,b_k\)</span>如下：</p>
-<p><span class="math inline">\(a_k =
-\frac{\frac{1}{\lvert\epsilon\rvert}\sum{i\in\omega_k(I_ip_i -
-\mu_k\overline{p}_k)}}{\sigma_k^2 + \omega}\)</span></p>
-<p><span class="math inline">\(b_k = \overline{p_k} -
-a_k\mu_k\)</span></p>
-<p>以偏导的方式求解<span class="math inline">\(a_k，b_k\)</span></p>
-<p>对于输出图q，可以认为是输入图p减去其噪声，<span
-class="math inline">\(q_i = p_i - n_i\)</span>，<span
-class="math inline">\(n_i\)</span>表示噪声</p>
-<p>对于输出图q与导向图I，有如下公式：<span class="math inline">\(\nabla
-q_i = a \nabla I_i\)</span>， <span class="math inline">\(q_i = aI_i +
-b\)</span></p>
-<p>最小化输出图q与输入图p的差异，求解系数：</p>
-<p><span class="math inline">\(\frac{\partial E}{\partial a_k} =
-2\sum_{i}^{N}((a_kI_i + b_k - p_i)I_i + \epsilon a_k)\)</span></p>
-<p><span class="math inline">\(\frac{\partial E}{\partial b_k} =
--2\sum_{i}^{N}(p_i - a_kI_i - b_k)\)</span></p>
-<p>求解<span class="math inline">\(b_k\)</span></p>
-<p><span class="math display">\[\begin{aligned}
-&amp;\ \frac{\partial E}{\partial b_k} = -2\sum_{i}^{N}(p_i - a_kI_i -
-b_k) = 0 \\
-&amp;\ \Rightarrow Nb_k = \sum_{i}^n(p_i - a_kI_i) \\
-&amp;\ \Rightarrow b_k =  \frac{1}{N} \sum_{i}^n(p_i - a_kI_i) \\
-&amp;\ \Rightarrow b_k =  \frac{1}{N} \sum_{i}^np_i - a_k\frac{1}{N}
-\sum_{i}^nI_i \\
-&amp;\ \Rightarrow b_k =  p_k - a_k u_k \\
-\end{aligned}\]</span></p>
-<p><span class="math inline">\(p_k\)</span>和<span
-class="math inline">\(u_k\)</span>是窗口<span
-class="math inline">\(w_i\)</span>内，输入图<span
-class="math inline">\(p_i\)</span>和导向图<span
-class="math inline">\(I_i\)</span>的均值。</p>
-<p>求解<span class="math inline">\(a_k\)</span></p>
-<p><span class="math display">\[\begin{aligned}
-&amp;\ \frac{\partial E}{\partial a_k} = 2\sum_{i}^{N}((a_kI_i + b_k -
-p_i)I_i + \epsilon a_k) = 0 \\
-&amp;\ \Rightarrow -\sum_{i}^Np_iI_i + \sum_{i}^Nb_kI_i +
-\sum_{i}^Na_kI_i^2 + \sum_{i}^N \epsilon a_k = 0 \\
-&amp;\ \Rightarrow \sum_{i}^Np_iI_i - \sum_{i}^Nb_kI_i =
-\sum_{i}^Na_kI_i^2 + \sum_{i}^2\epsilon a_k \\
-&amp;\ \Rightarrow \sum_{i}^Np_iI_i - \sum_{i}^N(p_k-a_ku_k)I_i =
-a_k\sum_{i}^N(I_i^2 + \epsilon) \\
-&amp;\ \Rightarrow \sum_{i}^Np_iI_i - \sum_{i}^Np_kI_i +
-\sum_{i}^Na_ku_kI_i = a_k\sum_{i}^N(I_i^2 + \epsilon) \\
-&amp;\ \Rightarrow \sum_{i}^Np_iI_i - p_k\sum_{i}^NI_i =
-a_k\sum_{i}^N(I_i^2 + \epsilon - u_kI_i) \\
-&amp;\ \Rightarrow a_k = \frac{\sum_{i}^Np_iI_i -
-p_k\sum_{i}^NI_i}{\sum_{i}^N(I_i^2 + \epsilon - u_kI_i)} \\
-&amp;\ \Rightarrow a_k = \frac{\sum_{i}^Np_iI_i -
-\frac{1}{N}\sum_{i}^Np_i\sum_{i}^NI_i}{\sum_{i}^NI_i^2 -
-\frac{1}{N}\sum_{i}^NI_i\sum_{i}^NI_i + \epsilon} \\
-&amp;\ \Rightarrow a_k = \frac{\frac{1}{N}\sum_{i}^Np_iI_i -
-\frac{1}{N}\sum_{i}^Np_i\frac{1}{N}\sum_{i}^NI_i}{\frac{1}{N}\sum_{i}^NI_i^2
-- \frac{1}{N}\sum_{i}^NI_i\frac{1}{N}\sum_{i}^NI_i + \epsilon} \\
-\end{aligned}\]</span></p>
-<p>根据协方差公式</p>
-<p><span class="math inline">\(var(X) = \frac{\sum_{i}^{N}(X_i-\overline
-X)(X_i - \overline X)}{n-1}\)</span></p>
-<p><span class="math inline">\(cov(X, Y) = E[(X - E[X])(Y -
-E[Y])]\)</span></p>
-<p><span class="math inline">\(cov(X, Y) = E[XY] - E[X][Y]\)</span></p>
-<p><span class="math inline">\(a_k = \frac{cov(p_i, I_i)}{\sigma_k^2 +
-\epsilon}\)</span></p>
-<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line"><span class="attr">cv</span>::<span class="title class_">Mat</span> <span class="title function_">guidedFilter</span>(<span class="params">cv::Mat I, cv::Mat p, int r, double eps</span>)</span><br><span class="line">&#123;</span><br><span class="line">  <span class="comment">/*</span></span><br><span class="line"><span class="comment">  % GUIDEDFILTER   O(1) time implementation of guided filter.</span></span><br><span class="line"><span class="comment">  %</span></span><br><span class="line"><span class="comment">  % - guidance image: I (should be a gray-scale/single channel image)</span></span><br><span class="line"><span class="comment">  % - filtering input image: p (should be a gray-scale/single channel image)</span></span><br><span class="line"><span class="comment">  % - local window radius: r</span></span><br><span class="line"><span class="comment">  % - regularization parameter: eps</span></span><br><span class="line"><span class="comment">  */</span></span><br><span class="line">  <span class="attr">cv</span>::<span class="title class_">Mat</span> _I;</span><br><span class="line">  I.<span class="title function_">convertTo</span>(_I, <span class="variable constant_">CV_64FC1</span>);</span><br><span class="line">  I = _I;</span><br><span class="line">  <span class="attr">cv</span>::<span class="title class_">Mat</span> _p;</span><br><span class="line">  p.<span class="title function_">convertTo</span>(_p, <span class="variable constant_">CV_64FC1</span>);</span><br><span class="line">  p = _p;</span><br><span class="line">  <span class="comment">//[hei, wid] = size(I);</span></span><br><span class="line">  int hei = I.<span class="property">rows</span>;</span><br><span class="line">  int wid = I.<span class="property">cols</span>;</span><br><span class="line">  <span class="comment">//N = boxfilter(ones(hei, wid), r); % the size of each local patch; N=(2r+1)^2 except for boundary pixels.</span></span><br><span class="line">  <span class="attr">cv</span>::<span class="title class_">Mat</span> N;</span><br><span class="line">  <span class="attr">cv</span>::<span class="title function_">boxFilter</span>(<span class="attr">cv</span>::<span class="title class_">Mat</span>::<span class="title function_">ones</span>(hei, wid,I.<span class="title function_">type</span>()), N, <span class="variable constant_">CV_64FC1</span>, <span class="attr">cv</span>::<span class="title class_">Size</span>(r, r));</span><br><span class="line">  <span class="comment">//mean_I = boxfilter(I, r) ./ N;</span></span><br><span class="line">  <span class="attr">cv</span>::<span class="title class_">Mat</span> mean_I;</span><br><span class="line">  <span class="attr">cv</span>::<span class="title function_">boxFilter</span>(I, mean_I, <span class="variable constant_">CV_64FC1</span>, <span class="attr">cv</span>::<span class="title class_">Size</span>(r,r));</span><br><span class="line">  <span class="comment">//mean_p = boxfilter(p, r) ./ N;</span></span><br><span class="line">  <span class="attr">cv</span>::<span class="title class_">Mat</span> mean_p;</span><br><span class="line">  <span class="attr">cv</span>::<span class="title function_">boxFilter</span>(p, mean_p, <span class="variable constant_">CV_64FC1</span>, <span class="attr">cv</span>::<span class="title class_">Size</span>(r,r));</span><br><span class="line">  <span class="comment">//mean_Ip = boxfilter(I.*p, r) ./ N;</span></span><br><span class="line">  <span class="attr">cv</span>::<span class="title class_">Mat</span> mean_Ip;</span><br><span class="line">  <span class="attr">cv</span>::<span class="title function_">boxFilter</span>(I.<span class="title function_">mul</span>(p), mean_Ip, <span class="variable constant_">CV_64FC1</span>,</span><br><span class="line">  <span class="attr">cv</span>::<span class="title class_">Size</span>(r, r));</span><br><span class="line">  <span class="comment">//cov_Ip = mean_Ip - mean_I .* mean_p; % this is the covariance of (I, p) in each local patch.</span></span><br><span class="line">  <span class="attr">cv</span>::<span class="title class_">Mat</span> cov_Ip = mean_Ip - mean_I.<span class="title function_">mul</span>(mean_p);</span><br><span class="line">  <span class="comment">//mean_II = boxfilter(I.*I, r) ./ N;</span></span><br><span class="line">  <span class="attr">cv</span>::<span class="title class_">Mat</span> mean_II;</span><br><span class="line">  <span class="attr">cv</span>::<span class="title function_">boxFilter</span>(I.<span class="title function_">mul</span>(I), mean_II, <span class="variable constant_">CV_64FC1</span>,</span><br><span class="line">  <span class="attr">cv</span>::<span class="title class_">Size</span>(r, r));</span><br><span class="line">  <span class="comment">//var_I = mean_II - mean_I .* mean_I;</span></span><br><span class="line">  <span class="attr">cv</span>::<span class="title class_">Mat</span> var_I = mean_II - mean_I.<span class="title function_">mul</span>(mean_I);</span><br><span class="line">  <span class="comment">//a = cov_Ip ./ (var_I + eps); % Eqn. (5) in the paper;</span></span><br><span class="line">  <span class="attr">cv</span>::<span class="title class_">Mat</span> a = cov_Ip / (var_I + eps);</span><br><span class="line">  <span class="comment">//b = mean_p - a .* mean_I; % Eqn. (6) in the paper;</span></span><br><span class="line">  <span class="attr">cv</span>::<span class="title class_">Mat</span> b = mean_p - a.<span class="title function_">mul</span>(mean_I);</span><br><span class="line">  <span class="comment">//mean_a = boxfilter(a, r) ./ N;</span></span><br><span class="line">  <span class="attr">cv</span>::<span class="title class_">Mat</span> mean_a;</span><br><span class="line">  <span class="attr">cv</span>::<span class="title function_">boxFilter</span>(a, mean_a, <span class="variable constant_">CV_64FC1</span>, <span class="attr">cv</span>::<span class="title class_">Size</span>(r,r));</span><br><span class="line">  mean_a = mean_a / N;</span><br><span class="line">  <span class="comment">//mean_b = boxfilter(b, r) ./ N;</span></span><br><span class="line">  <span class="attr">cv</span>::<span class="title class_">Mat</span> mean_b;</span><br><span class="line">  <span class="attr">cv</span>::<span class="title function_">boxFilter</span>(b, mean_b, <span class="variable constant_">CV_64FC1</span>, <span class="attr">cv</span>::<span class="title class_">Size</span>(r,r));</span><br><span class="line">  mean_b = mean_b / N;</span><br><span class="line">  <span class="comment">//q = mean_a .* I + mean_b; % Eqn. (8) in the paper;</span></span><br><span class="line">  <span class="attr">cv</span>::<span class="title class_">Mat</span> q = mean_a.<span class="title function_">mul</span>(I) + mean_b;</span><br><span class="line">  <span class="keyword">return</span> q;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-]]></content>
-      <tags>
-        <tag>图像处理</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>C++ Tips</title>
-    <url>/2022/03/05/C-Tips/</url>
-    <content><![CDATA[<ol type="1">
-<li>自定义class，存在析构函数，那么需要同时定义或者删除拷贝构造函数和拷贝赋值函数。原因是，在拷贝构造或者拷贝复制的过程中，为浅拷贝，当程序结束，析构函数介入时，可能存在析构两次的情况。</li>
-</ol>
-<span id="more"></span>
-<ol start="2" type="1">
-<li><p>右值，int &amp;&amp;可以自动转换为int const &amp;。</p></li>
-<li><p>__restrict关键字，告诉编译器，指针不存在重叠的情况，编译器可以进行优化，所有的非const指针都可以加上__restrict关键字，如：int
-* __restrict a。对于vector容器，__restrict关键字不生效，可以尝试#pragma
-omp simd或者#pragma GCC ivdep</p></li>
-<li><p>关于malloc和new</p>
-<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> *a = <span class="keyword">new</span> <span class="type">int</span>[<span class="number">102400</span>];</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> *a = (<span class="type">int</span> *)<span class="built_in">malloc</span>(<span class="number">102400</span> * <span class="built_in">sizeof</span>(<span class="type">int</span>));</span><br></pre></td></tr></table></figure></p>
-<p>以上申请内存的两种语句，在实际生产环境，执行时并不会真正的分配内存，而是将这一段内存标记为不可用，即：invalid。待需要用到a数组：赋值或者其他操作时，会触发缺页中断，page
-fault。此时进入内核，查询此段内存是否之前malloc过，如果查询到，那么内存标记为可用，此时程序正常运行，如果未查询到malloc记录，那么触发段错误，segmentation
-fault。</p>
-<p>以上两种申请内存的语句，不会进行置零操作，初始化数组时，内存被写入，此时操作系统才进行实际的内存分配，因此测试两次内存赋值操作会发现时间不同。对于new操作符有一个简便方法</p>
-<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> *a = <span class="keyword">new</span> <span class="type">int</span>[<span class="number">102400</span>]&#123;&#125;;</span><br></pre></td></tr></table></figure></p>
-<p>常见的自定义String类中，无参数构造函数也可以进行以下简单的定义：注意new
-char[1]后面的一对大括号</p>
-<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">String::<span class="built_in">String</span>() : m_length&#123;<span class="number">0</span>&#125;, m_string&#123;<span class="keyword">new</span> <span class="type">char</span>[<span class="number">1</span>]&#123;&#125;&#125;&#123;&#125;</span><br></pre></td></tr></table></figure></p></li>
-<li><p>原子操作</p>
-<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">type __sync_fetch_and_add (type *ptr, type value, ...) <span class="comment">// 将value加到*ptr上，结果更新到*ptr，并返回操作之前*ptr的值</span></span><br><span class="line">type __sync_fetch_and_sub (type *ptr, type value, ...) <span class="comment">// 从*ptr减去value，结果更新到*ptr，并返回操作之前*ptr的值</span></span><br><span class="line">type __sync_fetch_and_or (type *ptr, type value, ...) <span class="comment">// 将*ptr与value相或，结果更新到*ptr， 并返回操作之前*ptr的值</span></span><br><span class="line">type __sync_fetch_and_and (type *ptr, type value, ...) <span class="comment">// 将*ptr与value相与，结果更新到*ptr，并返回操作之前*ptr的值</span></span><br><span class="line">type __sync_fetch_and_xor (type *ptr, type value, ...) <span class="comment">// 将*ptr与value异或，结果更新到*ptr，并返回操作之前*ptr的值</span></span><br><span class="line">type __sync_fetch_and_nand (type *ptr, type value, ...) <span class="comment">// 将*ptr取反后，与value相与，结果更新到*ptr，并返回操作之前*ptr的值</span></span><br><span class="line">type __sync_add_and_fetch (type *ptr, type value, ...) <span class="comment">// 将value加到*ptr上，结果更新到*ptr，并返回操作之后新*ptr的值</span></span><br><span class="line">type __sync_sub_and_fetch (type *ptr, type value, ...) <span class="comment">// 从*ptr减去value，结果更新到*ptr，并返回操作之后新*ptr的值</span></span><br><span class="line">type __sync_or_and_fetch (type *ptr, type value, ...) <span class="comment">// 将*ptr与value相或， 结果更新到*ptr，并返回操作之后新*ptr的值</span></span><br><span class="line">type __sync_and_and_fetch (type *ptr, type value, ...) <span class="comment">// 将*ptr与value相与，结果更新到*ptr，并返回操作之后新*ptr的值</span></span><br><span class="line">type __sync_xor_and_fetch (type *ptr, type value, ...) <span class="comment">// 将*ptr与value异或，结果更新到*ptr，并返回操作之后新*ptr的值</span></span><br><span class="line">type __sync_nand_and_fetch (type *ptr, type value, ...) <span class="comment">// 将*ptr取反后，与value相与，结果更新到*ptr，并返回操作之后新*ptr的值</span></span><br><span class="line"><span class="type">bool</span> __sync_bool_compare_and_swap (type *ptr, type oldval type newval, ...) <span class="comment">// 比较*ptr与oldval的值，如果两者相等，则将newval更新到*ptr并返回true</span></span><br><span class="line">type __sync_val_compare_and_swap (type *ptr, type oldval type newval, ...) <span class="comment">// 比较*ptr与oldval的值，如果两者相等，则将newval更新到*ptr并返回操作之前*ptr的值</span></span><br><span class="line">__sync_synchronize (...) <span class="comment">// 发出完整内存栅栏，内存屏障</span></span><br><span class="line">type __sync_lock_test_and_set (type *ptr, type value, ...) <span class="comment">// 将value写入*ptr，对*ptr加锁，并返回操作之前*ptr的值</span></span><br><span class="line"><span class="type">void</span> __sync_lock_release (type *ptr, ...) <span class="comment">// 将0写入到*ptr，（类似对*ptr解锁）</span></span><br></pre></td></tr></table></figure></p>
-<p>c++11中atomic</p>
-<ol type="1">
-<li>atomic_flag</li>
-</ol>
-<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">std::atomic_flag LOCK = ATOMIC_FLAG_INIT; <span class="comment">// 原子布尔类型</span></span><br><span class="line">LOCK.<span class="built_in">test_and_set</span>(); <span class="comment">//被设置，则返回true; 否则，返回false</span></span><br><span class="line">LOCK.<span class="built_in">clear</span>(); <span class="comment">// 清除atomic_flag对象</span></span><br></pre></td></tr></table></figure></p>
-<ol type="1">
-<li>atomic对int, char, bool等数据结构进行原子性封装</li>
-</ol>
-<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function">std::atomic&lt;<span class="type">int</span>&gt; <span class="title">counter</span><span class="params">(<span class="number">2</span>)</span></span>; <span class="comment">// 等同于counter.load(2);</span></span><br><span class="line"><span class="type">int</span> old = counter.<span class="built_in">fetch_add</span>(<span class="number">2</span>); <span class="comment">// 等同于counter+=2; 注意：counter = counter + 1;并不是原子操作; fetch_add会返回旧值</span></span><br><span class="line">counter.<span class="built_in">load</span>(); <span class="comment">// 读取，等同于std::cout &lt;&lt; counter &lt;&lt; std::endl;</span></span><br><span class="line"><span class="type">int</span> old = counter.<span class="built_in">exchange</span>(<span class="number">3</span>); <span class="comment">// 交换并返回旧值，old = 2</span></span><br><span class="line"><span class="type">bool</span> equal = counter.<span class="built_in">compare_exchange_strong</span>(old, <span class="keyword">new</span>); <span class="comment">// equal with old, counter = new, 返回true, 此处的old为引用，不能直接传入右值2</span></span><br></pre></td></tr></table></figure></p></li>
-</ol>
-]]></content>
-      <tags>
-        <tag>C++</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Sensor Noise Model Calibration</title>
-    <url>/2021/09/26/Sensor-Noise-Model-Calibration/</url>
-    <content><![CDATA[<figure>
-<img src="https://s2.loli.net/2022/05/23/sroq9vQ7fJOWNC8.png"
-alt="image-20210927104516396" />
-<figcaption aria-hidden="true">image-20210927104516396</figcaption>
-</figure>
-<p>图片来源：<a
-href="http://graphics.cs.cmu.edu/courses/15-463/2020_fall/lectures/lecture2.pdf">CMU
-Computational Photography, Fall 2020</a></p>
-<span id="more"></span>
-<p>Pipeline中绿色框部分会引入噪声，具体如下:</p>
-<figure>
-<img src="https://s2.loli.net/2022/05/23/l3LasJfYkmROzWy.png"
-alt="image-20210927105235305" />
-<figcaption aria-hidden="true">image-20210927105235305</figcaption>
-</figure>
-<p>图片来源：<a
-href="http://graphics.cs.cmu.edu/courses/15-463/2020_fall/lectures/lecture2.pdf">CMU
-Computational Photography, Fall 2020</a></p>
-<p>具体而言会有以下三种noise：</p>
-<ol type="1">
-<li><p>Photon noise，也称Shot noise
-光粒子到达的随机性，符合泊松分布</p></li>
-<li><p>Dark noise</p>
-<p>暗电流的影响，即便没有光粒子到达，也会因为元器件本身的特性产生噪声，一般而言温度越高，噪声越大，符合均值0的高斯分布</p></li>
-<li><p>Read noise</p>
-<p>信号放大过程中、模数转换过程中引入的噪声，俗称：gain、ADC；符合均值0的高斯分布</p></li>
-</ol>
-<p>因此可以在Raw denoise的相关论文中找到以下noise model。</p>
-<blockquote>
-<p><a
-href="https://openaccess.thecvf.com/content_cvpr_2018/papers/Mildenhall_Burst_Denoising_With_CVPR_2018_paper.pdf">Google:
-Burst Denoising with Kernel Prediction Networks</a></p>
-</blockquote>
-<p><span class="math display">\[
-x_p \sim N(y_p, \sigma_r^2 + \sigma_s y_p)
-\]</span></p>
-<blockquote>
-<p><a href="https://arxiv.org/abs/1811.11127">Google: Unprocessing
-Images for Learned Raw Denoising</a></p>
-</blockquote>
-<p><span class="math display">\[
-y \sim N(\mu=x, \sigma^2=\lambda_{read} + \lambda_{shot} x) \to
-N(\mu=x,\sigma^2=g_d^2\sigma_r^2 + g_dg_ax)
-\]</span></p>
-<p>其中digital gain <span class="math inline">\(g_d\)</span>， analog
-gain <span class="math inline">\(g_a\)</span>，read noise的固定方差<span
-class="math inline">\(\sigma^2\)</span> <span class="math display">\[
-\lambda_{read}=g_d^2 \sigma_r^2, \ \lambda_{shot} = g_d g_a
-\]</span></p>
-<p>以下对上面的噪声联合分布进行推导。</p>
-<p>(Photon)Shot noise与环境照度，曝光有关。令环境照度$ $ ，光电转换效率$
-$，曝光时间t, 暗电流强度D</p>
-<p>Shot noise满足泊松分布 <span class="math display">\[
-n \sim Possion(\varphi, \alpha, t) = Possion(\varphi \cdot \alpha \cdot
-t)
-\]</span> Dark
-noise与曝光有关，曝光时间越长，元器件温度越高，暗电流影响越大，与环境光无关，满足泊松分布
-<span class="math display">\[
-n \sim Possion(D \cdot t)
-\]</span> 那么电信号L满足泊松分布，Shot noise和Dark noise的联合分布
-<span class="math display">\[
-L \sim Possion(t \cdot (\alpha \cdot \varphi + D))
-\]</span> 信号放大过程中产生Read noise，模数转换过程中产生ADC
-noise，两种noise满足均值为0的高斯分布</p>
-<p><span class="math display">\[
-n_{read} \sim Normal(0, \sigma_{read})
-\]</span></p>
-<p><span class="math display">\[
-n_{ADC} \sim Normal(0, \sigma_{ADC})
-\]</span></p>
-<p>电信号L放大后表示为G，放大的增益g，g与ISO有关 <span
-class="math inline">\(g = k \cdot ISO\)</span>，<span
-class="math inline">\(G = L \cdot g + n_{read} \cdot g\)</span>，</p>
-<p>经过ADC后信号：<span class="math inline">\(I = G +
-n_{ADC}\)</span></p>
-<p>最终信号I表示为： <span class="math display">\[
-I = L \cdot g + n_{read} \cdot g + n_{ADC}
-\]</span> 计算信号的均值和方差 <span class="math display">\[
-E(I) = g \cdot E(L) + g \cdot E(n_{read}) + E(n_{ADC})
-\]</span> 由于read noise和ADC noise均符合均值为0的高斯分布，因此 <span
-class="math display">\[
-E(I) = g \cdot E(L) = g \cdot t \cdot (\alpha \cdot \varphi + D)
-\]</span> 方差 <span class="math display">\[
-\begin{aligned}
-\sigma(I)^2 &amp;= \sigma(L \cdot g)^2 + \sigma(n_{read} \cdot g)^2 +
-\sigma(n_{ADC})^2 \\
-&amp;= g^2 \cdot t \cdot (\alpha \cdot \varphi + D) + g^2 \cdot
-\sigma(n_{read})^2 + \sigma(n_{ADC})^2
-\end{aligned}
-\]</span> read noise和ADC noise都属于加性噪声，可以合并 <span
-class="math display">\[
-I = L \cdot g + n_{read} + n_{ADC} = L \cdot g + n_{Add}
-\]</span></p>
-<p><span class="math display">\[
-n_{Add} = n_{read} \cdot g + n_{ADC}
-\]</span></p>
-<p>方差可以表示为： <span class="math display">\[
-\sigma(I)^2 = g^2 \cdot t \cdot (\alpha \cdot \varphi + D) +
-\sigma(n_{Add})^2
-\]</span> 一直暗电流，即：black level，那么可以消除暗电流D <span
-class="math display">\[
-E(I) = g \cdot t \cdot (\alpha \cdot \varphi + D) = g \cdot t \cdot
-(\alpha \cdot 0 + D) = g \cdot t \cdot D
-\]</span> 估计出暗电流的影响，可以将其从信号中减去，得到以下表达： <span
-class="math display">\[
-E(I) = g \cdot t \cdot \alpha \cdot \varphi
-\]</span></p>
-<p><span class="math display">\[
-\begin{aligned}
-\sigma(I)^2 &amp;= g^2 \cdot t \cdot \alpha \cdot \varphi +
-\sigma(n_{Add})^2 \\
-&amp;= g \cdot E(I) + \sigma(n_{Add})^2
-\end{aligned}
-\]</span></p>
-<p>因此可以看出联合分布的方差是一个线性关系，可与通过最小二乘法进行拟合。</p>
-<p>在实际的噪声估计中当做是 <span class="math inline">\(pixel \ value
-\to x\)</span>，最终得到开头的推导：<span class="math inline">\(g \to
-\lambda_{shot}, \sigma(n_{add})^2 \to \lambda_{read} \to
-g_d^2\sigma_r^2\)</span> <span class="math display">\[
-y \sim N(\mu=x, \sigma^2=\lambda_{read} + \lambda_{shot} x)
-\]</span></p>
-<p>实际上，<span class="math inline">\(\lambda_{read}\)</span>和 <span
-class="math inline">\(\lambda_{shot}\)</span>都是与ISO强相关的，在噪声标定1.0版本，需要对ISO
-100，300，500，800，1600，3200进行标定，得到RGB三通道<span
-class="math inline">\(\lambda_{read}\)</span>和<span
-class="math inline">\(\lambda_{shot}\)</span>共3*2*6=36组参数，在其它ISO值时，需要对齐进行插值。可能会引入不必要的误差，因此在噪声标定2.0版本中，将ISO作为参数引入标定过程。针对Sony
-sensor，有一个比较通用的公式：<span class="math inline">\(g_d \cdot g_a
-= \frac{ISO}{100}\)</span>，此时我们<span
-class="math inline">\(\lambda_{read}\)</span>和<span
-class="math inline">\(\lambda_{shot}\)</span>进行二次拟合，拟合的目标如下：
-<span class="math display">\[
-\lambda_{shot} = S \cdot g_d \cdot g_a = S \cdot \frac{ISO}{100}
-\]</span></p>
-<p><span class="math display">\[
-\lambda_{read} = R_0 \cdot (g_d \cdot g_a)^2 + R_1 = R_0 \cdot
-\frac{ISO}{100} + R_1
-\]</span></p>
-<p>此时将ISO作为参数引入标定过程，未来在噪声估计时会更精准。</p>
-<p>总结不同噪声在不同场景下的主导地位：</p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">regime</th>
-<th>dominant noise</th>
-<th>notes</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;">bright noise</td>
-<td>photon noise</td>
-<td>scene-dependent</td>
-</tr>
-<tr>
-<td style="text-align: left;">dark noise</td>
-<td>read and ADC noise</td>
-<td>scene-independent</td>
-</tr>
-<tr>
-<td style="text-align: left;">low iso</td>
-<td>ADC noise</td>
-<td>post-gain</td>
-</tr>
-<tr>
-<td style="text-align: left;">high iso</td>
-<td>photon and read noise</td>
-<td>pre-gain</td>
-</tr>
-<tr>
-<td style="text-align: left;">long exposure</td>
-<td>dark noise</td>
-<td>thermal dependence</td>
-</tr>
-</tbody>
-</table>
-]]></content>
-      <tags>
-        <tag>Sensor</tag>
-        <tag>Noise</tag>
-        <tag>Model</tag>
-        <tag>Calibration</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>图像平坦区域检测(Flat Area Detection)</title>
-    <url>/2023/10/24/%E5%9B%BE%E5%83%8F%E5%B9%B3%E5%9D%A6%E5%8C%BA%E5%9F%9F%E6%A3%80%E6%B5%8B-Flat-Area-Detection/</url>
-    <content><![CDATA[<meta name="referrer" content="no-referrer" />
-<p>使用opecv进行平坦区域检测</p>
-<span id="more"></span>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;opencv2/opencv.hpp&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> cv;</span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> CLAMP(x, a, b) (MAX(a, MIN(x, b)))</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">flat_gradient_cpu</span><span class="params">(Mat &amp;src, Mat &amp;dst, <span class="type">const</span> <span class="type">float</span> flatGradientThresh, <span class="type">bool</span> ones = <span class="literal">false</span>)</span> </span>&#123;</span><br><span class="line">    <span class="type">int</span> width  = src.cols;</span><br><span class="line">    <span class="type">int</span> height = src.rows;</span><br><span class="line">    <span class="type">int</span> one    = (ones) ? <span class="number">1</span> : <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="type">float</span> *data_src = (<span class="type">float</span> *) src.data;</span><br><span class="line">    <span class="type">float</span> *data_dst = (<span class="type">float</span> *) dst.data;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; height; i++) &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> j = <span class="number">0</span>; j &lt; width; j++) &#123;</span><br><span class="line"></span><br><span class="line">            <span class="type">int</span> x   = j;</span><br><span class="line">            <span class="type">int</span> y   = i;</span><br><span class="line">            <span class="type">int</span> pos = y * width + x;</span><br><span class="line"></span><br><span class="line">            data_dst[pos] = <span class="number">1.0f</span>;</span><br><span class="line">            <span class="keyword">if</span> (<span class="number">0</span> == x || <span class="number">0</span> == y || (width - <span class="number">1</span>) == x || (height - <span class="number">1</span>) == y) &#123;</span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="type">float</span> lrGrad   = (<span class="built_in">fabs</span>(data_src[pos + <span class="number">1</span>] - data_src[pos - <span class="number">1</span>]));</span><br><span class="line">            <span class="type">float</span> tbGrad   = (<span class="built_in">fabs</span>(data_src[(y + <span class="number">1</span>) * width + x] - data_src[(y - <span class="number">1</span>) * width + x]));</span><br><span class="line">            <span class="type">float</span> trblGrad = (<span class="built_in">fabs</span>(data_src[(y - <span class="number">1</span>) * width + x + <span class="number">1</span>] - data_src[(y + <span class="number">1</span>) * width + x - <span class="number">1</span>]));</span><br><span class="line">            <span class="type">float</span> tlbrGrad = (<span class="built_in">fabs</span>(data_src[(y - <span class="number">1</span>) * width + x - <span class="number">1</span>] - data_src[(y + <span class="number">1</span>) * width + x + <span class="number">1</span>]));</span><br><span class="line"></span><br><span class="line">            <span class="type">float</span> minGradClip = (<span class="built_in">min</span>(tbGrad, <span class="built_in">min</span>(trblGrad, tlbrGrad)));</span><br><span class="line">            <span class="type">float</span> minGrad     = (<span class="built_in">min</span>(lrGrad, minGradClip));</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (minGrad &gt; flatGradientThresh) &#123;</span><br><span class="line">                <span class="type">float</span> invGrad = <span class="number">1.0f</span> / (minGrad - flatGradientThresh);</span><br><span class="line">                data_dst[pos] = <span class="built_in">CLAMP</span>(invGrad, <span class="number">0.0f</span>, <span class="number">1.0f</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">flat_3dark_thresh</span><span class="params">(Mat &amp;src, Mat &amp;src2, Mat &amp;src3, Mat &amp;net, <span class="type">const</span> <span class="type">float</span> dark_thresh)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> width  = src.cols;</span><br><span class="line">    <span class="type">int</span> height = src.rows;</span><br><span class="line"></span><br><span class="line">    <span class="type">float</span> *data_src  = (<span class="type">float</span> *) src.data;</span><br><span class="line">    <span class="type">float</span> *data_src2 = (<span class="type">float</span> *) src<span class="number">2.</span>data;</span><br><span class="line">    <span class="type">float</span> *data_src3 = (<span class="type">float</span> *) src<span class="number">3.</span>data;</span><br><span class="line">    <span class="type">float</span> *data_Net  = (<span class="type">float</span> *) net.data;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; height; i++) &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> j = <span class="number">0</span>; j &lt; width; j++) &#123;</span><br><span class="line">            <span class="type">int</span> pos = i * width + j;</span><br><span class="line"></span><br><span class="line">            <span class="type">float</span> elem1 = (<span class="number">1.0f</span> - data_src[pos]);</span><br><span class="line">            <span class="type">float</span> elem2 = (<span class="number">1.0f</span> - data_src2[pos]);</span><br><span class="line">            <span class="type">float</span> elem3 = (<span class="number">1.0f</span> - data_src3[pos]);</span><br><span class="line"></span><br><span class="line">            elem1 = (elem1 + elem2 + elem3);</span><br><span class="line">            elem1 = <span class="number">1.0f</span> - (<span class="built_in">CLAMP</span>(elem1, <span class="number">0.0f</span>, <span class="number">1.0f</span>));</span><br><span class="line"></span><br><span class="line">            data_src[pos] = (data_Net[pos] &lt; dark_thresh) ? <span class="number">1.0f</span> : elem1;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">flat_denoise_mask</span><span class="params">(Mat &amp;netDst, Mat &amp;flat_mask)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="type">float</span> flat_grad_thresh = <span class="number">0.5</span>;</span><br><span class="line"></span><br><span class="line">    Mat netDownX2  = <span class="built_in">Mat</span>(netDst.<span class="built_in">size</span>() / <span class="number">2</span>, netDst.<span class="built_in">type</span>());</span><br><span class="line">    Mat maskDownX2 = <span class="built_in">Mat</span>(flat_mask.<span class="built_in">size</span>() / <span class="number">2</span>, flat_mask.<span class="built_in">type</span>());</span><br><span class="line">    Mat netDownX4  = <span class="built_in">Mat</span>(netDownX<span class="number">2.</span><span class="built_in">size</span>() / <span class="number">2</span>, netDownX<span class="number">2.</span><span class="built_in">type</span>());</span><br><span class="line">    Mat maskDownX4 = <span class="built_in">Mat</span>(maskDownX<span class="number">2.</span><span class="built_in">size</span>() / <span class="number">2</span>, maskDownX<span class="number">2.</span><span class="built_in">type</span>());</span><br><span class="line"></span><br><span class="line">    Mat flatMaskUpBy2 = <span class="built_in">Mat</span>(flat_mask.<span class="built_in">size</span>(), flat_mask.<span class="built_in">type</span>());</span><br><span class="line">    Mat flatMaskUpBy4 = <span class="built_in">Mat</span>(flat_mask.<span class="built_in">size</span>(), flat_mask.<span class="built_in">type</span>());</span><br><span class="line"></span><br><span class="line">    <span class="built_in">flat_gradient_cpu</span>(netDst, flat_mask, flat_grad_thresh, <span class="literal">true</span>);</span><br><span class="line">    <span class="built_in">resize</span>(netDst, netDownX2, netDownX<span class="number">2.</span><span class="built_in">size</span>(), <span class="number">0</span>, <span class="number">0</span>, INTER_NEAREST);</span><br><span class="line">    <span class="built_in">flat_gradient_cpu</span>(netDownX2, maskDownX2, flat_grad_thresh, <span class="literal">true</span>);</span><br><span class="line">    <span class="built_in">resize</span>(netDownX2, netDownX4, netDownX<span class="number">4.</span><span class="built_in">size</span>(), <span class="number">0</span>, <span class="number">0</span>, INTER_NEAREST);</span><br><span class="line">    <span class="built_in">flat_gradient_cpu</span>(netDownX4, maskDownX4, flat_grad_thresh, <span class="literal">true</span>);</span><br><span class="line">    <span class="built_in">resize</span>(maskDownX2, flatMaskUpBy2, flatMaskUpBy<span class="number">2.</span><span class="built_in">size</span>(), <span class="number">0</span>, <span class="number">0</span>, INTER_NEAREST);</span><br><span class="line">    <span class="built_in">resize</span>(maskDownX4, flatMaskUpBy4, flatMaskUpBy<span class="number">4.</span><span class="built_in">size</span>(), <span class="number">0</span>, <span class="number">0</span>, INTER_NEAREST);</span><br><span class="line">    <span class="built_in">flat_3dark_thresh</span>(flat_mask, flatMaskUpBy2, flatMaskUpBy4, netDst, flat_grad_thresh);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    Mat img = <span class="built_in">imread</span>(<span class="string">&quot;/Users/huziliang/Documents/C++/funny/flat_area.png&quot;</span>, IMREAD_GRAYSCALE);</span><br><span class="line">    Mat img_f, dst_f;</span><br><span class="line">    img.<span class="built_in">convertTo</span>(img_f, CV_32FC1);</span><br><span class="line">    <span class="built_in">boxFilter</span>(img_f, img_f, <span class="number">-1</span>, <span class="built_in">Size</span>(<span class="number">3</span>, <span class="number">3</span>));</span><br><span class="line">    dst_f = Mat::<span class="built_in">zeros</span>(img_f.<span class="built_in">size</span>(), img_f.<span class="built_in">type</span>());</span><br><span class="line">    <span class="built_in">flat_denoise_mask</span>(img_f, dst_f);</span><br><span class="line">    <span class="built_in">imwrite</span>(<span class="string">&quot;/Users/huziliang/Documents/C++/funny/flat_area_result.png&quot;</span>, dst_f * <span class="number">255.0f</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-]]></content>
-      <tags>
-        <tag>OpenCV</tag>
-        <tag>Detection</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>DLSS发展历程</title>
     <url>/2025/10/12/dlss4-0%E6%8A%80%E6%9C%AF%E5%88%86%E6%9E%90/</url>
     <content><![CDATA[<meta name="referrer" content="no-referrer" />
@@ -1248,178 +1105,6 @@ Foundry 针对 DLSS 的系列评测&amp;分析（英文）</a></li>
       <tags>
         <tag>超分辨率</tag>
         <tag>AI</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>ISP尝试解决高Gain下暗部发紫问题</title>
-    <url>/2022/09/23/ISP%E5%B0%9D%E8%AF%95%E8%A7%A3%E5%86%B3%E9%AB%98Gain%E4%B8%8B%E6%9A%97%E9%83%A8%E5%8F%91%E7%B4%AB%E9%97%AE%E9%A2%98/</url>
-    <content><![CDATA[<meta name="referrer" content="no-referrer" />
-<h1 id="暗部发紫解决方案">暗部发紫解决方案</h1>
-<p>在黑暗环境(iso 9000 ~ iso 25600下拍摄的图像出现紫色现象，sensor:
-imx586, 平台: SM8150, 仿真器版本: Qualcomm Spectra 380</p>
-<span id="more"></span>
-<p><img src="https://s2.loli.net/2023/10/16/jQlLTVtrhDxMNXC.png" /></p>
-<p>左侧为原始图像, 右边为提亮后的图像, 可以看到明显紫色现象.</p>
-<p>当增益大幅拉高时(gain 90 ~ gain 256),
-灰度接近0的像素的噪点也会随之提升. BLC和ABF模块无法正确处理这些像素,
-并且在经过AWB, Gamma, Color等所有增强阶段后, 会产生偏差.</p>
-<p>下面的模拟显示了暗区去噪之前BPS与暗区去噪之后BPS的效果。</p>
-<p>Pipeline 1: BLS → AWB → Denoise → Purple Bias Created</p>
-<style>
-td, th {
-   border: none !important;
-}
-table tr:hover {
-    background-color: background-color:rgba(0, 0, 0, 0) !important;
-}
-tbody tr:nth-of-type(odd) {
-    background-color: background-color:rgba(0, 0, 0, 0) !important;
-    }
-</style>
-<table>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
-<tbody>
-<tr>
-<td><img src="https://s2.loli.net/2023/10/16/ON7EKP5zpqGWoLA.png"></td>
-<td><img src="https://s2.loli.net/2023/10/16/SC74Yf2Xkn6eDiB.png"></td>
-</tr>
-<tr>
-<td>1 - linearization后的图像, R, G, B
-噪声相同(噪声标准差具有类似的高斯形状)</td>
-<td>2 - BLS后的图像: 小于BL值的像素设置为0</td>
-</tr>
-</tbody>
-</table>
-<table>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
-<tbody>
-<tr>
-<td><img src="https://s2.loli.net/2023/10/16/e6BytVLcvIJnUdN.png"></td>
-<td><img src="https://s2.loli.net/2023/10/16/XGLRlqeC5IaWFNE.png"></td>
-</tr>
-<tr>
-<td>3 - AWB后的图像，红色和蓝色通道高斯比绿色通道的高斯大</td>
-<td>4 - Denoise后的图像，产生了紫色偏差</td>
-</tr>
-</tbody>
-</table>
-<p>Pipeline 2: Denoise → BLS → AWB → Purple Bias Not Created</p>
-<table>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
-<tbody>
-<tr>
-<td><img src="https://s2.loli.net/2023/10/16/ON7EKP5zpqGWoLA.png"></td>
-<td><img src="https://s2.loli.net/2023/10/16/vbz6SKUCLmYa8MN.png"></td>
-</tr>
-<tr>
-<td>1 - linearization后的图像, R, G, B
-噪声相同(噪声标准差具有类似的高斯形状)</td>
-<td>2 - Denoise后的图像，高斯STD明显减小</td>
-</tr>
-</tbody>
-</table>
-<table>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
-<tbody>
-<tr>
-<td><img src="https://s2.loli.net/2023/10/16/EPW5T7dCKxveMOI.png"></td>
-<td><img src="https://s2.loli.net/2023/10/16/HZxQ7ek4NTKvmrF.png"></td>
-</tr>
-<tr>
-<td>3 - BLS后的图像: 没有小于BL值的像素设置为 0</td>
-<td>4 - AWB后的图像, 未产生紫色偏差</td>
-</tr>
-</tbody>
-</table>
-<p>改进pedestal去除之前的暗区去噪, 唯一可用的模块是ABF,
-因此除了修改其他ABF参数外,
-启用ABF中的暗部去饱和功能并增加ABF的noise_std_lut的第一个值.</p>
-<p>紫色问题经过验证可以部分改善, 但是如果想要完全去除紫色像素时,
-细节被严重破坏, 图像显得比以前更绿,
-因此只能在细节和紫色噪声之间找到平衡.</p>
-<p>目前高通平台上Raw Domain去噪模块(ABF)还不能很好地处理此类问题.
-ABF可以通过更强的去噪来缓解紫色问题, 但同时细节也会丢失.
-因此需要有更好的Raw Domain去噪算法, 一方面可以控制噪声,
-另一方面可以尽可能保留细节.</p>
-<p>还有第二套方案可供选择.</p>
-<p>BLS模块: 目标手机拍摄几张黑图, 导入demux模块进行BLS calibrition,
-得到一组BLS参数, 然后分别对RGGB四个通道分别增加一点BLS的值.</p>
-<p>AWB模块: fine tune 3A中AWB的值</p>
-<p>此方案的原因分析: 在极暗光环境下,
-BLS的calibrition的值本就容易估算错误, 而后经过AWB放大之后,
-紫色会更加明显.</p>
-]]></content>
-      <tags>
-        <tag>ISP</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>多曝光融合网络Loss设计</title>
-    <url>/2023/03/18/%E5%A4%9A%E6%9B%9D%E5%85%89%E8%9E%8D%E5%90%88%E7%BD%91%E7%BB%9CLoss%E8%AE%BE%E8%AE%A1/</url>
-    <content><![CDATA[<meta name="referrer" content="no-referrer" />
-<p>对于包围式曝光融合网络, Loss设计如下:</p>
-<p><span class="math display">\[
-L(y, y^{*})=\left \| y - y^* \right \|_{1} +  \left \| \nabla y - \nabla
-y^* \right \|_{1} + \gamma L_{gradsign}(y, y^*) + \eta L_{highsmooth}(y,
-y^*)
-\]</span></p>
-<p>其中<span class="math inline">\(y\)</span>为融合得到的图像, <span
-class="math inline">\(y^*\)</span>表示融合图像的标签, <span
-class="math inline">\(\left \| y - y^* \right \|_{1}\)</span>表示L1范数,
-即向量元素绝对值之和, <span
-class="math inline">\(\nabla\)</span>表示求图像的梯度, <span
-class="math inline">\(𝐿_{𝑔𝑟𝑎𝑑𝑠𝑖𝑔𝑛}\)</span>损失函数的作用是为了学习得到的图像的边缘过渡和真实图像贴合得更好,
-消除由于包围式曝光不连续导致的图像拼接人工痕迹. <span
-class="math inline">\(𝐿_{ℎ𝑖𝑔ℎ𝑠𝑚𝑜𝑜𝑡ℎ}\)</span>损失函数表示加大高亮区域的权重,
-使得高亮区域效果更好, 缓解图像中高亮区域占整张图像比重太小的问题, <span
-class="math inline">\(𝐻_{𝑡ℎ}\)</span>是高亮像素值的阈值; <span
-class="math inline">\(\gamma\)</span>, <span
-class="math inline">\(\eta\)</span>为常数, 表示损失函数权重,
-可依效果需求要求进行调整.</p>
-<p><span class="math display">\[
-L_{gradsign}(y,y*)=ReLU(-\nabla y * \nabla y^{*})
-\]</span></p>
-<p><span class="math display">\[
-L_{highsmooth}(y, y^*)=\left \| \nabla y - \nabla y^* \right \|_1 *
-I(y^*, H_{th})
-\]</span></p>
-<p><span class="math display">\[
-ReLU(x)= \begin{cases}x, x \geqslant 0 \\ 0, else \end {cases}
-\]</span></p>
-<p><span class="math display">\[
-I(x,threshold)= \begin{cases}1, x \geqslant threshold \\ 0, else \end
-{cases}
-\]</span></p>
-<p>另外还有两个Loss函数设计.</p>
-<ol type="1">
-<li><p>LumaGradLoss函数的操作是把prediction和groudtruth分别做一个global
-average pooling操作downsample到8x8的图, 然后在计算L2 loss.
-目的是保证prediction的整体亮度分布和groundtruth一致,
-避免出现亮度反转的情况.</p></li>
-<li><p>BlackRegLoss函数的操作是根据图像亮度值小于某个阈值threshold得到mask,
-然后惩罚这些区域的1/4, 1/16等欠曝图像的融合权重.
-目的是避免暗光区域受到欠曝图片的影响,
-避免出现融合后图像天空等非过曝区域亮度值被拉暗的情况.</p></li>
-</ol>
-<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line">def <span class="title class_">LumaGradLoss</span>(self, prediction, target, input):</span><br><span class="line">    prediction = torch.<span class="property">nn</span>.<span class="title class_">AdaptiveAvgPool2</span>d((<span class="number">8</span>,<span class="number">8</span>))(prediction)</span><br><span class="line">    target = torch.<span class="property">nn</span>.<span class="title class_">AdaptiveAvgPool2</span>d((<span class="number">8</span>,<span class="number">8</span>))(input[:,<span class="number">0</span>:<span class="number">4</span>,:,:])</span><br><span class="line"></span><br><span class="line">    target = torch.<span class="title function_">clamp</span>(target,<span class="number">0.0</span>,<span class="number">1.0</span>)</span><br><span class="line">    prediction = torch.<span class="title function_">clamp</span>(prediction,<span class="number">0.0</span>,<span class="number">1.0</span>)</span><br><span class="line"></span><br><span class="line">    prediction_x_diff = prediction[:,:, :-<span class="number">1</span>, :-<span class="number">1</span>] - prediction[:, :, :-<span class="number">1</span>, <span class="number">1</span>:]</span><br><span class="line">    prediction_y_diff = prediction[:,:, :-<span class="number">1</span>, :-<span class="number">1</span>] - prediction[:, :, <span class="number">1</span>:, :-<span class="number">1</span>]</span><br><span class="line">    target_x_diff = target[:, :, :-<span class="number">1</span>, :-<span class="number">1</span>] - target[:,:,  :-<span class="number">1</span>, <span class="number">1</span>:]</span><br><span class="line">    target_y_diff = target[:, :, :-<span class="number">1</span>, :-<span class="number">1</span>] - target[:,:, <span class="number">1</span>:, :-<span class="number">1</span>]</span><br><span class="line"></span><br><span class="line">    error =  (target_x_diff-prediction_x_diff) ** <span class="number">2.0</span> + (target_y_diff-prediction_y_diff) ** <span class="number">2.0</span></span><br><span class="line"></span><br><span class="line">    loss = torch.<span class="title function_">mean</span>(error)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> loss</span><br></pre></td></tr></table></figure>
-<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line">def <span class="title class_">BlackRegLoss</span>(self, logit, target,input_refs,  weight):</span><br><span class="line">    <span class="string">&#x27;&#x27;</span><span class="string">&#x27;</span></span><br><span class="line"><span class="string">        black region regularization</span></span><br><span class="line"><span class="string">        penalty on 1/4, 1/16 in order to persuade network selecting more on 1/1 images</span></span><br><span class="line"><span class="string">    &#x27;</span><span class="string">&#x27;&#x27;</span></span><br><span class="line"></span><br><span class="line">    input_1 = input_refs[:, -<span class="number">12</span>:-<span class="number">8</span>, :, :]</span><br><span class="line">    raw_grey,_ = torch.<span class="title function_">max</span>(input_1, dim=<span class="number">1</span>, keepdim=<span class="title class_">True</span>)</span><br><span class="line"></span><br><span class="line">    low_mask = torch.<span class="title function_">where</span>(raw_grey &lt;= <span class="number">0.4</span>, torch.<span class="title function_">ones_like</span>(raw_grey).<span class="title function_">cuda</span>(), torch.<span class="title function_">zeros_like</span>(raw_grey).<span class="title function_">cuda</span>())</span><br><span class="line"></span><br><span class="line">    p2d = [<span class="number">0</span>,<span class="number">0</span>,<span class="number">1</span>,<span class="number">0</span>]</span><br><span class="line">    tv_mask_h = nn.<span class="title class_">ReflectionPad2</span>d(p2d)(target)</span><br><span class="line">    tv_mask_h = tv_mask_h[:,:,<span class="number">1</span>:,:] - tv_mask_h[:,:,:-<span class="number">1</span>,:]</span><br><span class="line">    p2d = [<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>]</span><br><span class="line">    tv_mask_w = nn.<span class="title class_">ReflectionPad2</span>d(p2d)(target)</span><br><span class="line">    tv_mask_w = tv_mask_w[:,:,:,<span class="number">1</span>:] - tv_mask_w[:,:,:,:-<span class="number">1</span>]</span><br><span class="line">    tv_mask = torch.<span class="title function_">max</span>(torch.<span class="title function_">abs</span>(tv_mask_h), torch.<span class="title function_">abs</span>(tv_mask_w))</span><br><span class="line">    tv_mask,_ = torch.<span class="title function_">max</span>(tv_mask, dim = <span class="number">1</span>, keepdim = <span class="title class_">True</span>)</span><br><span class="line">    tv_mask = <span class="number">1.0</span> - tv_mask</span><br><span class="line"></span><br><span class="line">    low_mask = self.<span class="title function_">tf_high_light_dilate_blur</span>(low_mask * tv_mask, <span class="number">5</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> weight.<span class="property">shape</span>[<span class="number">1</span>] == <span class="number">3</span> or weight.<span class="property">shape</span>[<span class="number">1</span>] == <span class="number">4</span>:</span><br><span class="line">        <span class="keyword">return</span> torch.<span class="title function_">sum</span>(weight[:,<span class="number">1</span>:<span class="number">3</span>,:,:] * low_mask) / (torch.<span class="title function_">sum</span>(low_mask) * (<span class="number">2.0</span> ))  # only loss on <span class="number">1</span>/<span class="number">4</span>, <span class="number">1</span>/<span class="number">16</span> frames</span><br><span class="line">    elif weight.<span class="property">shape</span>[<span class="number">1</span>] == <span class="number">12</span>  or weight.<span class="property">shape</span>[<span class="number">1</span>] == <span class="number">13</span>:</span><br><span class="line">        <span class="keyword">return</span> torch.<span class="title function_">sum</span>(weight[:,<span class="number">4</span>:<span class="number">4</span>*<span class="number">3</span>,:,:] * low_mask) / (torch.<span class="title function_">sum</span>(low_mask) * (<span class="number">2.0</span> * <span class="number">4</span>)) # only loss on <span class="number">1</span>/<span class="number">4</span>, <span class="number">1</span>/<span class="number">16</span> frames</span><br><span class="line">    <span class="attr">else</span>:</span><br><span class="line">        raise <span class="string">&#x27;Unsupport weight type&#x27;</span></span><br></pre></td></tr></table></figure>
-]]></content>
-      <tags>
-        <tag>HDR</tag>
-        <tag>Deep Learning</tag>
-        <tag>Loss</tag>
       </tags>
   </entry>
   <entry>
@@ -1629,220 +1314,189 @@ A2 Tensor Core GPU</li>
       </tags>
   </entry>
   <entry>
-    <title>经典多层金字塔锐化(Multi-Level Pyramid Edge Enhancement)</title>
-    <url>/2023/10/24/%E7%BB%8F%E5%85%B8%E5%A4%9A%E5%B1%82%E9%87%91%E5%AD%97%E5%A1%94%E9%94%90%E5%8C%96-Multi-Level-Pyramid-Edge-Enhancement/</url>
-    <content><![CDATA[<meta name="referrer" content="no-referrer" />
-<p>锐化方法: 锐化图 = 输入图 + 高频 + 中频 + 低频</p>
+    <title>Sensor Noise Model Calibration</title>
+    <url>/2021/09/26/Sensor-Noise-Model-Calibration/</url>
+    <content><![CDATA[<figure>
+<img src="https://s2.loli.net/2022/05/23/sroq9vQ7fJOWNC8.png"
+alt="image-20210927104516396" />
+<figcaption aria-hidden="true">image-20210927104516396</figcaption>
+</figure>
+<p>图片来源：<a
+href="http://graphics.cs.cmu.edu/courses/15-463/2020_fall/lectures/lecture2.pdf">CMU
+Computational Photography, Fall 2020</a></p>
 <span id="more"></span>
-<p>高频部分:</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">高频获取方式:   hf = <span class="built_in">gaussblur</span>(input, sigma) - <span class="built_in">gaussblur</span>(input, sigma * band1)</span><br><span class="line">高频进一步增强: hf = <span class="built_in">apply_gamma</span>(hf, gamma_power1)</span><br><span class="line">输入图锐化:     sharpened1 = input + hf * strength1</span><br><span class="line">输入图与锐化图的blending:</span><br><span class="line">	res1 = sharpened1 * weight1 + input * (<span class="number">1</span> - weight1)</span><br><span class="line">	weight1 = <span class="built_in">clamp</span>(std / stdthresh1 + blendbias1, <span class="number">0</span>, <span class="number">1</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-<p>中频部分:</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">中频获取方式:   mf = <span class="built_in">gaussblur</span>(input, sigma * band1) - <span class="built_in">gaussblur</span>(input, sigma * band1 * band2)</span><br><span class="line">中频进一步增强: mf = <span class="built_in">apply_gamma</span>(mf, gamma_power2)</span><br><span class="line">输入图锐化:     sharpened2 = res1 + mf * strength2</span><br><span class="line">输入图与锐化图的blending:</span><br><span class="line">	res2 = sharpene2 * weight2 + res1 * (<span class="number">1</span> - weight2)</span><br><span class="line">	weight = <span class="built_in">clamp</span>(std / stdthresh2 + blendbias2, <span class="number">0</span>, <span class="number">1</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-<p>低频部分:</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">低频获取方式:   lf = <span class="built_in">gaussblur</span>(input, sigma * band1 * band2) - <span class="built_in">gaussblur</span>(input, sigma * band1 * band2 * band3)</span><br><span class="line">低频进一步增强: lf = <span class="built_in">apply_gamma</span>(lf, gamma_power3)</span><br><span class="line">输入图锐化:     sharpened3 = res2 + lf * strength3</span><br><span class="line">输入图与锐化图的blending:</span><br><span class="line">	res3 = sharpene3 * weight3 + res2 * (<span class="number">1</span> - weight3)</span><br><span class="line">	weight3 = <span class="built_in">clamp</span>(std / stdthresh3 + blendbias3, <span class="number">0</span>, <span class="number">1</span>)</span><br></pre></td></tr></table></figure>
-]]></content>
-      <tags>
-        <tag>OpenCV</tag>
-        <tag>Sharpening</tag>
-        <tag>SR</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>探索C++中的Lambda表达式</title>
-    <url>/2023/12/14/%E6%8E%A2%E7%B4%A2C-%E4%B8%AD%E7%9A%84Lambda%E8%A1%A8%E8%BE%BE%E5%BC%8F/</url>
-    <content><![CDATA[<meta name="referrer" content="no-referrer" />
-<p>Lambda 表达式是 C++11
-引入的一个重要特性，它为函数式编程风格提供了更灵活和便利的方法。本文将探讨
-Lambda
-表达式的基础知识、语法结构、使用场景以及与传统函数指针和函数对象的比较。</p>
-<span id="more"></span>
-<h2 id="lambda-表达式的基础知识">Lambda 表达式的基础知识</h2>
-<p>Lambda 表达式的基本语法结构，包括捕获列表、参数列表、可选的 mutable
-修饰符、返回类型和函数体。</p>
-<p>示例：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">auto</span> lambda = []() &#123; std::cout &lt;&lt; <span class="string">&quot;Hello, Lambda!&quot;</span> &lt;&lt; std::endl; &#125;;</span><br><span class="line"><span class="built_in">lambda</span>(); <span class="comment">// 调用 Lambda 表达式</span></span><br></pre></td></tr></table></figure>
-<p>Lambda
-表达式捕获外部变量的方式：值捕获、引用捕获、隐式捕获等，并讨论其影响和使用场景。</p>
-<p>示例：</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> x = <span class="number">5</span>;</span><br><span class="line"><span class="keyword">auto</span> lambda = [x]() &#123; std::cout &lt;&lt; <span class="string">&quot;Captured value: &quot;</span> &lt;&lt; x &lt;&lt; std::endl; &#125;;</span><br><span class="line"><span class="built_in">lambda</span>(); <span class="comment">// 输出捕获的值 x</span></span><br></pre></td></tr></table></figure>
-<p>Lambda
-表达式的参数传递和返回类型推导的规则，以及如何显式指定参数类型和返回类型。</p>
-<p>示例：</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">auto</span> lambda = [](<span class="type">int</span> a, <span class="type">int</span> b) -&gt; <span class="type">int</span> &#123; <span class="keyword">return</span> a + b; &#125;;</span><br><span class="line">std::cout &lt;&lt; <span class="string">&quot;Sum: &quot;</span> &lt;&lt; <span class="built_in">lambda</span>(<span class="number">3</span>, <span class="number">4</span>) &lt;&lt; std::endl; <span class="comment">// 输出 7</span></span><br></pre></td></tr></table></figure>
-<h2 id="lambda-表达式的使用">Lambda 表达式的使用</h2>
-<p>Lambda 表达式在现代 C++ 编程中的常见用法和实际应用场景，如 STL
-算法、回调函数、多线程编程等。</p>
-<p>示例：</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">std::vector&lt;<span class="type">int</span>&gt; numbers = &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>&#125;;</span><br><span class="line"><span class="type">int</span> count = std::<span class="built_in">count_if</span>(numbers.<span class="built_in">begin</span>(), numbers.<span class="built_in">end</span>(), [](<span class="type">int</span> x) &#123; <span class="keyword">return</span> x % <span class="number">2</span> == <span class="number">0</span>; &#125;);</span><br><span class="line">std::cout &lt;&lt; <span class="string">&quot;Count of even numbers: &quot;</span> &lt;&lt; count &lt;&lt; std::endl;</span><br></pre></td></tr></table></figure>
-<p>对比 Lambda
-表达式与传统的函数指针和函数对象的异同点，包括性能、可读性和灵活性等方面的比较。</p>
-<p>示例：</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Lambda 表达式作为回调函数</span></span><br><span class="line">std::vector&lt;<span class="type">int</span>&gt; numbers = &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>&#125;;</span><br><span class="line">std::for_each(numbers.<span class="built_in">begin</span>(), numbers.<span class="built_in">end</span>(), [](<span class="type">int</span> x) &#123; std::cout &lt;&lt; x &lt;&lt; std::endl; &#125;);</span><br></pre></td></tr></table></figure>
-<h2 id="高级话题和技巧">高级话题和技巧</h2>
-<p>Lambda
-表达式与其捕获变量之间的关系，涉及变量的生命周期和作用域，以及闭包的概念。</p>
-<p>示例：</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;functional&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function">std::function&lt;<span class="title">int</span><span class="params">(<span class="type">int</span>)</span>&gt; <span class="title">closureExample</span><span class="params">(<span class="type">int</span> x)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> [x](<span class="type">int</span> y) &#123; <span class="keyword">return</span> x + y; &#125;;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">auto</span> lambda = <span class="built_in">closureExample</span>(<span class="number">5</span>);</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;Closure result: &quot;</span> &lt;&lt; <span class="built_in">lambda</span>(<span class="number">3</span>) &lt;&lt; std::endl; <span class="comment">// 输出 8</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>如何在多线程编程中使用 Lambda
-表达式，以及如何正确处理共享状态和线程安全性。</p>
-<p>示例：</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;thread&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;vector&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;mutex&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    std::vector&lt;<span class="type">int</span>&gt; numbers = &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>&#125;;</span><br><span class="line">    std::mutex mtx;</span><br><span class="line"></span><br><span class="line">    std::for_each(numbers.<span class="built_in">begin</span>(), numbers.<span class="built_in">end</span>(), [&amp;](<span class="type">int</span>&amp; x) &#123;</span><br><span class="line">        std::lock_guard&lt;std::mutex&gt; <span class="built_in">lock</span>(mtx);</span><br><span class="line">        x *= <span class="number">2</span>;</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    std::for_each(numbers.<span class="built_in">begin</span>(), numbers.<span class="built_in">end</span>(), [](<span class="type">int</span> x) &#123;</span><br><span class="line">        std::cout &lt;&lt; x &lt;&lt; std::endl; <span class="comment">// 输出修改后的值</span></span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>最佳实践和性能优化建议，包括避免过度捕获、使用移动语义、避免引起资源泄漏等。</p>
-<p>示例：</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;vector&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;algorithm&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    std::vector&lt;<span class="type">int</span>&gt; vec = &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>&#125;;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 使用引用捕获，避免不必要的值捕获</span></span><br><span class="line">    <span class="type">int</span> sum = <span class="number">0</span>;</span><br><span class="line">    std::for_each(vec.<span class="built_in">begin</span>(), vec.<span class="built_in">end</span>(), [&amp;](<span class="type">int</span> x) &#123; sum += x; &#125;);</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;Sum: &quot;</span> &lt;&lt; sum &lt;&lt; std::endl;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 使用移动语义，提高性能</span></span><br><span class="line">    std::vector&lt;<span class="type">int</span>&gt; anotherVec = &#123;<span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>, <span class="number">10</span>&#125;;</span><br><span class="line">    std::for_each(anotherVec.<span class="built_in">begin</span>(), anotherVec.<span class="built_in">end</span>(), [vec = std::<span class="built_in">move</span>(vec)](<span class="type">int</span> x) &#123;</span><br><span class="line">        std::cout &lt;&lt; <span class="string">&quot;Moved vector element: &quot;</span> &lt;&lt; x &lt;&lt; std::endl;</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>Lambda 表达式为 C++
-编程带来了更加灵活和强大的编程手段，通过上述示例的讲解，读者可以更全面地了解和应用
-Lambda 表达式。通过 Lambda 表达式，C++
-的编程范式也更加现代化和高效化。</p>
-]]></content>
-  </entry>
-  <entry>
-    <title>高通平台ISP调试记录(1)-ANR</title>
-    <url>/2023/05/07/%E9%AB%98%E9%80%9A%E5%B9%B3%E5%8F%B0ISP%E8%B0%83%E8%AF%95%E8%AE%B0%E5%BD%95-1-ANR/</url>
-    <content><![CDATA[<meta name="referrer" content="no-referrer" />
-<p>anr模块</p>
-<span id="more"></span>
-<p>enable_grey_treatment_thr_modification</p>
-<p>控制开启边缘去彩噪</p>
-<p>detect_grey_condition_chromaticity_thr_low</p>
-<p>detect_grey_condition_chromaticity_thr_high</p>
-<p>detect_grey_condition_y_max_derivative_thr_low</p>
-<p>detect_grey_condition_y_max_derivative_thr_high</p>
-<p>检测是否需要去彩噪的threshold</p>
-<p>thr_modification_target_y</p>
-<p>thr_modification_target_u</p>
-<p>thr_modification_target_v</p>
-<p>检测到需要加强edge false color denois才生效, 值越打越强</p>
-<p>luma_filter_lut_thr_y</p>
-<p>luma_filter_lut_thr_uv</p>
-<p>为了解决lsc导致的噪声，按照半径区分, 值越大去噪越强</p>
-<p>chroma_filter_lut_thr_y</p>
-<p>chroma_filter_lut_thr_uv</p>
-<p>为了解决lsc导致的噪声，按照半径区分, 值越大去噪越强</p>
-<p>y_threshold_per_y</p>
-<p>u_threshold_per_y</p>
-<p>v_threshold_per_y</p>
-<p>值越大去噪越强, 最常用</p>
-<p>luma_input_indication_thr_modification_scale</p>
-<p>chroma_input_indication_thr_modification_scale</p>
-<p>full path上不认为是噪声, 但是DC4上需要做去噪, 此时开启inter length,
-如果inter length的值为32, 则full path 的threshold就是full path
-threshold的2倍</p>
-<p>dcblend2_luma_strength_function</p>
-<p>dcblend2_chroma_strength_function（0 0 0 0 64 128）融合权重最大值,
-去噪最强</p>
-<p>一般不动</p>
-]]></content>
-      <tags>
-        <tag>ISP</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>超分辨率Loss设计记录(1)</title>
-    <url>/2022/11/19/%E8%B6%85%E5%88%86%E8%BE%A8%E7%8E%87Loss%E8%AE%BE%E8%AE%A1%E8%AE%B0%E5%BD%95-1/</url>
-    <content><![CDATA[<meta name="referrer" content="no-referrer" />
-<p>在超分辨率(Super-Resolution)网络训练中使用均方误差(MSE)损失函数确实存在一个常见问题,
-即可能导致生成的结果过于平滑和模糊
-这是因为MSE损失函数鼓励模型生成像素值,
-以使其与目标图像的像素值之间的平方差最小化这种最小化平方差的方法有时会导致图像细节的丢失,
-使得生成的高分辨率图像看起来过于平滑.</p>
-<span id="more"></span>
-<p><img src="https://s2.loli.net/2023/10/19/WEjclfagntGVxbo.png" /></p>
-<p>相关材料可以查看<a
-href="https://arxiv.org/pdf/1609.04802v5.pdf">SRGAN</a>中Figure2以及1.1.3小节.
-虽然直接优化MSE可以产生较高的PSNR/SSIM, 但是在zoom scale较大的情况下,
-MSE作为loss function引导的学习无法使得重建图像捕获细节信息,
-从论文Figure2中可以看到, 左二图有较高的PSNR/SSIM, 但是从观感上判断,
-左三图明显具有更多的细节.</p>
-<p>为了解决这个问题, 通常在超分辨率网络中使用其他损失函数或技术,
-以更好地保留细节和纹理 以下是一些替代方法：</p>
+<p>Pipeline中绿色框部分会引入噪声，具体如下:</p>
+<figure>
+<img src="https://s2.loli.net/2022/05/23/l3LasJfYkmROzWy.png"
+alt="image-20210927105235305" />
+<figcaption aria-hidden="true">image-20210927105235305</figcaption>
+</figure>
+<p>图片来源：<a
+href="http://graphics.cs.cmu.edu/courses/15-463/2020_fall/lectures/lecture2.pdf">CMU
+Computational Photography, Fall 2020</a></p>
+<p>具体而言会有以下三种noise：</p>
 <ol type="1">
-<li><p><strong>感知损失(Perceptual Loss)</strong>：使用感知损失,
-通常是使用预训练的深度卷积神经网络(如VGG)来计算生成图像与目标图像之间的特征表示的差异
-这种方法更强调图像的结构和纹理, 而不仅仅是像素值
-这有助于生成更具细节和真实感的图像</p></li>
-<li><p><strong>对抗性损失(Adversarial
-Loss)</strong>：引入生成对抗网络(GAN)的方法,
-其中生成器网络和判别器网络相互竞争 生成器的目标是欺骗判别器,
-而判别器的目标是区分生成图像和真实图像
-这种对抗性训练有助于生成更逼真的图像</p></li>
-<li><p><strong>内容和风格损失(Content and Style
-Loss)</strong>：结合感知损失和风格损失,
-以确保生成的图像在内容和风格上都与目标图像相似</p></li>
-<li><p><strong>自适应权重调整</strong>：使用动态权重或损失加权方法,
-以平衡不同类型的损失函数,
-以便在训练过程中更好地控制平滑度和细节</p></li>
+<li><p>Photon noise，也称Shot noise
+光粒子到达的随机性，符合泊松分布</p></li>
+<li><p>Dark noise</p>
+<p>暗电流的影响，即便没有光粒子到达，也会因为元器件本身的特性产生噪声，一般而言温度越高，噪声越大，符合均值0的高斯分布</p></li>
+<li><p>Read noise</p>
+<p>信号放大过程中、模数转换过程中引入的噪声，俗称：gain、ADC；符合均值0的高斯分布</p></li>
 </ol>
-<p>这些方法可以帮助超分辨率网络生成更锐利和更具细节的高分辨率图像,
-而不仅仅是通过最小化像素级差异来生成图像
-选择哪种方法取决于具体的问题和数据集, 以及对生成图像的期望质量</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">import</span> torch.nn <span class="keyword">as</span> nn</span><br><span class="line"><span class="keyword">import</span> torchvision.models <span class="keyword">as</span> models</span><br><span class="line"></span><br><span class="line"><span class="comment">#SRGAN使用预训练好的VGG19，用生成器的结果以及原始图像通过VGG后分别得到的特征图计算MSE，具体解释推荐看SRGAN的相关资料</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">VGG</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, device</span>):</span><br><span class="line">        <span class="built_in">super</span>(VGG, <span class="variable language_">self</span>).__init__()</span><br><span class="line">        vgg = models.vgg19(<span class="literal">True</span>)</span><br><span class="line">        <span class="keyword">for</span> pa <span class="keyword">in</span> vgg.parameters():</span><br><span class="line">            pa.requires_grad = <span class="literal">False</span></span><br><span class="line">        <span class="variable language_">self</span>.vgg = vgg.features[:<span class="number">16</span>]</span><br><span class="line">        <span class="variable language_">self</span>.vgg = <span class="variable language_">self</span>.vgg.to(device)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        out = <span class="variable language_">self</span>.vgg(x)</span><br><span class="line">        <span class="keyword">return</span> out</span><br><span class="line"></span><br><span class="line"><span class="comment">#内容损失</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ContentLoss</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, device</span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        <span class="variable language_">self</span>.mse = nn.MSELoss()</span><br><span class="line">        <span class="variable language_">self</span>.vgg19 = VGG(device)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, fake, real</span>):</span><br><span class="line">        feature_fake = <span class="variable language_">self</span>.vgg19(fake)</span><br><span class="line">        feature_real = <span class="variable language_">self</span>.vgg19(real)</span><br><span class="line">        loss = <span class="variable language_">self</span>.mse(feature_fake, feature_real)</span><br><span class="line">        <span class="keyword">return</span> loss</span><br><span class="line"></span><br><span class="line"><span class="comment">#对抗损失</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">AdversarialLoss</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        loss = torch.<span class="built_in">sum</span>(-torch.log(x))</span><br><span class="line">        <span class="keyword">return</span> loss</span><br><span class="line"></span><br><span class="line"><span class="comment">#感知损失</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">PerceptualLoss</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, device</span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        <span class="variable language_">self</span>.vgg_loss = ContentLoss(device)</span><br><span class="line">        <span class="variable language_">self</span>.adversarial = AdversarialLoss()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, fake, real, x</span>):</span><br><span class="line">        vgg_loss = <span class="variable language_">self</span>.vgg_loss(fake, real)</span><br><span class="line">        adversarial_loss = <span class="variable language_">self</span>.adversarial(x)</span><br><span class="line">        <span class="keyword">return</span> vgg_loss + <span class="number">1e-3</span>*adversarial_loss</span><br><span class="line"></span><br><span class="line"><span class="comment">#正则项，需要说明的是，在SRGAN的后续版本的论文中，这个正则项被删除了</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">RegularizationLoss</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        a = torch.square(</span><br><span class="line">            x[:, :, :x.shape[<span class="number">2</span>]-<span class="number">1</span>, :x.shape[<span class="number">3</span>]-<span class="number">1</span>] - x[:, :, <span class="number">1</span>:x.shape[<span class="number">2</span>], :x.shape[<span class="number">3</span>]-<span class="number">1</span>]</span><br><span class="line">        )</span><br><span class="line">        b = torch.square(</span><br><span class="line">            x[:, :, :x.shape[<span class="number">2</span>]-<span class="number">1</span>, :x.shape[<span class="number">3</span>]-<span class="number">1</span>] - x[:, :, :x.shape[<span class="number">2</span>]-<span class="number">1</span>, <span class="number">1</span>:x.shape[<span class="number">3</span>]]</span><br><span class="line">        )</span><br><span class="line">        loss = torch.<span class="built_in">sum</span>(torch.<span class="built_in">pow</span>(a+b, <span class="number">1.25</span>))</span><br><span class="line">        <span class="keyword">return</span> loss</span><br></pre></td></tr></table></figure>
+<p>因此可以在Raw denoise的相关论文中找到以下noise model。</p>
+<blockquote>
+<p><a
+href="https://openaccess.thecvf.com/content_cvpr_2018/papers/Mildenhall_Burst_Denoising_With_CVPR_2018_paper.pdf">Google:
+Burst Denoising with Kernel Prediction Networks</a></p>
+</blockquote>
+<p><span class="math display">\[
+x_p \sim N(y_p, \sigma_r^2 + \sigma_s y_p)
+\]</span></p>
+<blockquote>
+<p><a href="https://arxiv.org/abs/1811.11127">Google: Unprocessing
+Images for Learned Raw Denoising</a></p>
+</blockquote>
+<p><span class="math display">\[
+y \sim N(\mu=x, \sigma^2=\lambda_{read} + \lambda_{shot} x) \to
+N(\mu=x,\sigma^2=g_d^2\sigma_r^2 + g_dg_ax)
+\]</span></p>
+<p>其中digital gain <span class="math inline">\(g_d\)</span>， analog
+gain <span class="math inline">\(g_a\)</span>，read noise的固定方差<span
+class="math inline">\(\sigma^2\)</span> <span class="math display">\[
+\lambda_{read}=g_d^2 \sigma_r^2, \ \lambda_{shot} = g_d g_a
+\]</span></p>
+<p>以下对上面的噪声联合分布进行推导。</p>
+<p>(Photon)Shot noise与环境照度，曝光有关。令环境照度$ $ ，光电转换效率$
+$，曝光时间t, 暗电流强度D</p>
+<p>Shot noise满足泊松分布 <span class="math display">\[
+n \sim Possion(\varphi, \alpha, t) = Possion(\varphi \cdot \alpha \cdot
+t)
+\]</span> Dark
+noise与曝光有关，曝光时间越长，元器件温度越高，暗电流影响越大，与环境光无关，满足泊松分布
+<span class="math display">\[
+n \sim Possion(D \cdot t)
+\]</span> 那么电信号L满足泊松分布，Shot noise和Dark noise的联合分布
+<span class="math display">\[
+L \sim Possion(t \cdot (\alpha \cdot \varphi + D))
+\]</span> 信号放大过程中产生Read noise，模数转换过程中产生ADC
+noise，两种noise满足均值为0的高斯分布</p>
+<p><span class="math display">\[
+n_{read} \sim Normal(0, \sigma_{read})
+\]</span></p>
+<p><span class="math display">\[
+n_{ADC} \sim Normal(0, \sigma_{ADC})
+\]</span></p>
+<p>电信号L放大后表示为G，放大的增益g，g与ISO有关 <span
+class="math inline">\(g = k \cdot ISO\)</span>，<span
+class="math inline">\(G = L \cdot g + n_{read} \cdot g\)</span>，</p>
+<p>经过ADC后信号：<span class="math inline">\(I = G +
+n_{ADC}\)</span></p>
+<p>最终信号I表示为： <span class="math display">\[
+I = L \cdot g + n_{read} \cdot g + n_{ADC}
+\]</span> 计算信号的均值和方差 <span class="math display">\[
+E(I) = g \cdot E(L) + g \cdot E(n_{read}) + E(n_{ADC})
+\]</span> 由于read noise和ADC noise均符合均值为0的高斯分布，因此 <span
+class="math display">\[
+E(I) = g \cdot E(L) = g \cdot t \cdot (\alpha \cdot \varphi + D)
+\]</span> 方差 <span class="math display">\[
+\begin{aligned}
+\sigma(I)^2 &amp;= \sigma(L \cdot g)^2 + \sigma(n_{read} \cdot g)^2 +
+\sigma(n_{ADC})^2 \\
+&amp;= g^2 \cdot t \cdot (\alpha \cdot \varphi + D) + g^2 \cdot
+\sigma(n_{read})^2 + \sigma(n_{ADC})^2
+\end{aligned}
+\]</span> read noise和ADC noise都属于加性噪声，可以合并 <span
+class="math display">\[
+I = L \cdot g + n_{read} + n_{ADC} = L \cdot g + n_{Add}
+\]</span></p>
+<p><span class="math display">\[
+n_{Add} = n_{read} \cdot g + n_{ADC}
+\]</span></p>
+<p>方差可以表示为： <span class="math display">\[
+\sigma(I)^2 = g^2 \cdot t \cdot (\alpha \cdot \varphi + D) +
+\sigma(n_{Add})^2
+\]</span> 一直暗电流，即：black level，那么可以消除暗电流D <span
+class="math display">\[
+E(I) = g \cdot t \cdot (\alpha \cdot \varphi + D) = g \cdot t \cdot
+(\alpha \cdot 0 + D) = g \cdot t \cdot D
+\]</span> 估计出暗电流的影响，可以将其从信号中减去，得到以下表达： <span
+class="math display">\[
+E(I) = g \cdot t \cdot \alpha \cdot \varphi
+\]</span></p>
+<p><span class="math display">\[
+\begin{aligned}
+\sigma(I)^2 &amp;= g^2 \cdot t \cdot \alpha \cdot \varphi +
+\sigma(n_{Add})^2 \\
+&amp;= g \cdot E(I) + \sigma(n_{Add})^2
+\end{aligned}
+\]</span></p>
+<p>因此可以看出联合分布的方差是一个线性关系，可与通过最小二乘法进行拟合。</p>
+<p>在实际的噪声估计中当做是 <span class="math inline">\(pixel \ value
+\to x\)</span>，最终得到开头的推导：<span class="math inline">\(g \to
+\lambda_{shot}, \sigma(n_{add})^2 \to \lambda_{read} \to
+g_d^2\sigma_r^2\)</span> <span class="math display">\[
+y \sim N(\mu=x, \sigma^2=\lambda_{read} + \lambda_{shot} x)
+\]</span></p>
+<p>实际上，<span class="math inline">\(\lambda_{read}\)</span>和 <span
+class="math inline">\(\lambda_{shot}\)</span>都是与ISO强相关的，在噪声标定1.0版本，需要对ISO
+100，300，500，800，1600，3200进行标定，得到RGB三通道<span
+class="math inline">\(\lambda_{read}\)</span>和<span
+class="math inline">\(\lambda_{shot}\)</span>共3*2*6=36组参数，在其它ISO值时，需要对齐进行插值。可能会引入不必要的误差，因此在噪声标定2.0版本中，将ISO作为参数引入标定过程。针对Sony
+sensor，有一个比较通用的公式：<span class="math inline">\(g_d \cdot g_a
+= \frac{ISO}{100}\)</span>，此时我们<span
+class="math inline">\(\lambda_{read}\)</span>和<span
+class="math inline">\(\lambda_{shot}\)</span>进行二次拟合，拟合的目标如下：
+<span class="math display">\[
+\lambda_{shot} = S \cdot g_d \cdot g_a = S \cdot \frac{ISO}{100}
+\]</span></p>
+<p><span class="math display">\[
+\lambda_{read} = R_0 \cdot (g_d \cdot g_a)^2 + R_1 = R_0 \cdot
+\frac{ISO}{100} + R_1
+\]</span></p>
+<p>此时将ISO作为参数引入标定过程，未来在噪声估计时会更精准。</p>
+<p>总结不同噪声在不同场景下的主导地位：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">regime</th>
+<th>dominant noise</th>
+<th>notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">bright noise</td>
+<td>photon noise</td>
+<td>scene-dependent</td>
+</tr>
+<tr>
+<td style="text-align: left;">dark noise</td>
+<td>read and ADC noise</td>
+<td>scene-independent</td>
+</tr>
+<tr>
+<td style="text-align: left;">low iso</td>
+<td>ADC noise</td>
+<td>post-gain</td>
+</tr>
+<tr>
+<td style="text-align: left;">high iso</td>
+<td>photon and read noise</td>
+<td>pre-gain</td>
+</tr>
+<tr>
+<td style="text-align: left;">long exposure</td>
+<td>dark noise</td>
+<td>thermal dependence</td>
+</tr>
+</tbody>
+</table>
 ]]></content>
       <tags>
-        <tag>Deep Learning</tag>
-        <tag>Loss</tag>
-        <tag>SR</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>超分辨率效果改善方案记录(1)</title>
-    <url>/2023/04/05/%E8%B6%85%E5%88%86%E8%BE%A8%E7%8E%87%E6%95%88%E6%9E%9C%E6%94%B9%E5%96%84%E6%96%B9%E6%A1%88%E8%AE%B0%E5%BD%95-1/</url>
-    <content><![CDATA[<meta name="referrer" content="no-referrer" />
-<p>在图像处理和计算机视觉中, 上采样(upsampling)是一种常见的操作,
-用于将图像从低分辨率扩大到高分辨率.
-两种常见的上采样方法是最近邻上采样(Nearest-neighbor
-Upsampling)和双线性上采样(Bilinear Upsampling).
-它们各自具有不同的特点:</p>
-<span id="more"></span>
-<ol type="1">
-<li><p><strong>最近邻上采样</strong>:
-这种方法在上采样过程中选择与原始像素最接近的像素值, 以填充新像素.
-它会导致锯齿状的边缘, 因为它不考虑像素之间的平滑过渡,
-导致锐利的边缘.</p></li>
-<li><p><strong>双线性上采样</strong>: 双线性上采样考虑了周围像素的权重,
-以计算新像素的值. 这使得边缘更加平滑,
-因为它会对周围像素的值进行线性插值.
-这种方法在上采样过程中产生更平滑的图像,
-但可能会导致边缘相对于最近邻上采样来说不够锐利.</p></li>
-</ol>
-<p>将两种上采样方法结合以获得同时锐利和平滑的结果其实有是可能的,
-我们称为混合上采样或自适应上采样. 一种常见的方法是使用权重混合两种方法,
-以在不同部分的图像上应用它们. 以下是一种简单的方法:</p>
-<ol type="1">
-<li><p><strong>定义混合权重</strong>:
-为了结合最近邻上采样和双线性上采样, 您可以定义一个混合权重图像.
-这个权重图像决定了每个像素处应该使用哪种上采样方法的权重.</p></li>
-<li><p><strong>应用混合权重</strong>: 使用混合权重图像,
-对每个像素应用最近邻上采样和双线性上采样. 具体地, 对于每个像素,
-根据混合权重来决定最近邻和双线性上采样两者的权重. 然后,
-将两种上采样结果加权相加以生成混合上采样结果.</p></li>
-</ol>
-<p>这种方法允许您在图像中的不同区域使用不同的上采样方法,
-以获得锐利的边缘和平滑的纹理.</p>
-<p>当然, 以下是对您描述的过程的更具技术性的表述:</p>
-<p><strong>步骤1: </strong> 首先,
-将从2x超分辨率模型获得的Y通道图像分别应用nearest
-upsample(Y_nn)和bilinear upsample(Y_bi).</p>
-<p><strong>步骤2: </strong> 接下来, 通过在Y_nn和Y_bi上执行卷积操作,
-生成图像的垂直和水平边缘. 这个步骤有助于增强图像的边缘信息.</p>
-<p><strong>步骤3: </strong>
-利用OpenCV库的<code>cv::cartToPolar()</code>函数,
-计算垂直和水平边缘的tan角度和幅度. 这一步有助于了解边缘的方向和强度.</p>
-<p><strong>步骤4: </strong> 创建一个融合mask,
-将角度接近0、90和180度的像素设置为1, 同时将幅度小于5的像素设置为0.
-这个mask有助于确定需要特定上采样结果的区域.</p>
-<p><strong>步骤5: </strong> 对融合mask进行膨胀(dilate)操作,
-扩展需要混合结果的区域.
-这个膨胀操作确保了最近邻上采样和双线性上采样区域之间的平滑过渡.</p>
-<p><strong>步骤6: </strong> 最后, 将融合mask应用于Y_nn和Y_bi的结果,
-得到融合的输出Y_out. 融合结果的计算公式为: Y_out = Y_nn * mask + (1.0 -
-mask) * Y_bi. 这个过程产生了最终图像, 根据融合mask的区域,
-综合了最近邻上采样的锐利度和双线性上采样的平滑度.</p>
-<p>这种方法通过考虑边缘细节和不同上采样区域之间的平滑过渡,
-确保了改进和平衡的超分辨率结果.</p>
-]]></content>
-      <tags>
-        <tag>SR</tag>
+        <tag>Sensor</tag>
+        <tag>Noise</tag>
+        <tag>Model</tag>
+        <tag>Calibration</tag>
       </tags>
   </entry>
   <entry>
@@ -2065,6 +1719,311 @@ Transactions on Graphics</em>. 2017.</li>
       </tags>
   </entry>
   <entry>
+    <title>图像平坦区域检测(Flat Area Detection)</title>
+    <url>/2023/10/24/%E5%9B%BE%E5%83%8F%E5%B9%B3%E5%9D%A6%E5%8C%BA%E5%9F%9F%E6%A3%80%E6%B5%8B-Flat-Area-Detection/</url>
+    <content><![CDATA[<meta name="referrer" content="no-referrer" />
+<p>使用opecv进行平坦区域检测</p>
+<span id="more"></span>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;opencv2/opencv.hpp&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> cv;</span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> CLAMP(x, a, b) (MAX(a, MIN(x, b)))</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">flat_gradient_cpu</span><span class="params">(Mat &amp;src, Mat &amp;dst, <span class="type">const</span> <span class="type">float</span> flatGradientThresh, <span class="type">bool</span> ones = <span class="literal">false</span>)</span> </span>&#123;</span><br><span class="line">    <span class="type">int</span> width  = src.cols;</span><br><span class="line">    <span class="type">int</span> height = src.rows;</span><br><span class="line">    <span class="type">int</span> one    = (ones) ? <span class="number">1</span> : <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="type">float</span> *data_src = (<span class="type">float</span> *) src.data;</span><br><span class="line">    <span class="type">float</span> *data_dst = (<span class="type">float</span> *) dst.data;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; height; i++) &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> j = <span class="number">0</span>; j &lt; width; j++) &#123;</span><br><span class="line"></span><br><span class="line">            <span class="type">int</span> x   = j;</span><br><span class="line">            <span class="type">int</span> y   = i;</span><br><span class="line">            <span class="type">int</span> pos = y * width + x;</span><br><span class="line"></span><br><span class="line">            data_dst[pos] = <span class="number">1.0f</span>;</span><br><span class="line">            <span class="keyword">if</span> (<span class="number">0</span> == x || <span class="number">0</span> == y || (width - <span class="number">1</span>) == x || (height - <span class="number">1</span>) == y) &#123;</span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="type">float</span> lrGrad   = (<span class="built_in">fabs</span>(data_src[pos + <span class="number">1</span>] - data_src[pos - <span class="number">1</span>]));</span><br><span class="line">            <span class="type">float</span> tbGrad   = (<span class="built_in">fabs</span>(data_src[(y + <span class="number">1</span>) * width + x] - data_src[(y - <span class="number">1</span>) * width + x]));</span><br><span class="line">            <span class="type">float</span> trblGrad = (<span class="built_in">fabs</span>(data_src[(y - <span class="number">1</span>) * width + x + <span class="number">1</span>] - data_src[(y + <span class="number">1</span>) * width + x - <span class="number">1</span>]));</span><br><span class="line">            <span class="type">float</span> tlbrGrad = (<span class="built_in">fabs</span>(data_src[(y - <span class="number">1</span>) * width + x - <span class="number">1</span>] - data_src[(y + <span class="number">1</span>) * width + x + <span class="number">1</span>]));</span><br><span class="line"></span><br><span class="line">            <span class="type">float</span> minGradClip = (<span class="built_in">min</span>(tbGrad, <span class="built_in">min</span>(trblGrad, tlbrGrad)));</span><br><span class="line">            <span class="type">float</span> minGrad     = (<span class="built_in">min</span>(lrGrad, minGradClip));</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (minGrad &gt; flatGradientThresh) &#123;</span><br><span class="line">                <span class="type">float</span> invGrad = <span class="number">1.0f</span> / (minGrad - flatGradientThresh);</span><br><span class="line">                data_dst[pos] = <span class="built_in">CLAMP</span>(invGrad, <span class="number">0.0f</span>, <span class="number">1.0f</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">flat_3dark_thresh</span><span class="params">(Mat &amp;src, Mat &amp;src2, Mat &amp;src3, Mat &amp;net, <span class="type">const</span> <span class="type">float</span> dark_thresh)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> width  = src.cols;</span><br><span class="line">    <span class="type">int</span> height = src.rows;</span><br><span class="line"></span><br><span class="line">    <span class="type">float</span> *data_src  = (<span class="type">float</span> *) src.data;</span><br><span class="line">    <span class="type">float</span> *data_src2 = (<span class="type">float</span> *) src<span class="number">2.</span>data;</span><br><span class="line">    <span class="type">float</span> *data_src3 = (<span class="type">float</span> *) src<span class="number">3.</span>data;</span><br><span class="line">    <span class="type">float</span> *data_Net  = (<span class="type">float</span> *) net.data;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; height; i++) &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> j = <span class="number">0</span>; j &lt; width; j++) &#123;</span><br><span class="line">            <span class="type">int</span> pos = i * width + j;</span><br><span class="line"></span><br><span class="line">            <span class="type">float</span> elem1 = (<span class="number">1.0f</span> - data_src[pos]);</span><br><span class="line">            <span class="type">float</span> elem2 = (<span class="number">1.0f</span> - data_src2[pos]);</span><br><span class="line">            <span class="type">float</span> elem3 = (<span class="number">1.0f</span> - data_src3[pos]);</span><br><span class="line"></span><br><span class="line">            elem1 = (elem1 + elem2 + elem3);</span><br><span class="line">            elem1 = <span class="number">1.0f</span> - (<span class="built_in">CLAMP</span>(elem1, <span class="number">0.0f</span>, <span class="number">1.0f</span>));</span><br><span class="line"></span><br><span class="line">            data_src[pos] = (data_Net[pos] &lt; dark_thresh) ? <span class="number">1.0f</span> : elem1;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">flat_denoise_mask</span><span class="params">(Mat &amp;netDst, Mat &amp;flat_mask)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="type">float</span> flat_grad_thresh = <span class="number">0.5</span>;</span><br><span class="line"></span><br><span class="line">    Mat netDownX2  = <span class="built_in">Mat</span>(netDst.<span class="built_in">size</span>() / <span class="number">2</span>, netDst.<span class="built_in">type</span>());</span><br><span class="line">    Mat maskDownX2 = <span class="built_in">Mat</span>(flat_mask.<span class="built_in">size</span>() / <span class="number">2</span>, flat_mask.<span class="built_in">type</span>());</span><br><span class="line">    Mat netDownX4  = <span class="built_in">Mat</span>(netDownX<span class="number">2.</span><span class="built_in">size</span>() / <span class="number">2</span>, netDownX<span class="number">2.</span><span class="built_in">type</span>());</span><br><span class="line">    Mat maskDownX4 = <span class="built_in">Mat</span>(maskDownX<span class="number">2.</span><span class="built_in">size</span>() / <span class="number">2</span>, maskDownX<span class="number">2.</span><span class="built_in">type</span>());</span><br><span class="line"></span><br><span class="line">    Mat flatMaskUpBy2 = <span class="built_in">Mat</span>(flat_mask.<span class="built_in">size</span>(), flat_mask.<span class="built_in">type</span>());</span><br><span class="line">    Mat flatMaskUpBy4 = <span class="built_in">Mat</span>(flat_mask.<span class="built_in">size</span>(), flat_mask.<span class="built_in">type</span>());</span><br><span class="line"></span><br><span class="line">    <span class="built_in">flat_gradient_cpu</span>(netDst, flat_mask, flat_grad_thresh, <span class="literal">true</span>);</span><br><span class="line">    <span class="built_in">resize</span>(netDst, netDownX2, netDownX<span class="number">2.</span><span class="built_in">size</span>(), <span class="number">0</span>, <span class="number">0</span>, INTER_NEAREST);</span><br><span class="line">    <span class="built_in">flat_gradient_cpu</span>(netDownX2, maskDownX2, flat_grad_thresh, <span class="literal">true</span>);</span><br><span class="line">    <span class="built_in">resize</span>(netDownX2, netDownX4, netDownX<span class="number">4.</span><span class="built_in">size</span>(), <span class="number">0</span>, <span class="number">0</span>, INTER_NEAREST);</span><br><span class="line">    <span class="built_in">flat_gradient_cpu</span>(netDownX4, maskDownX4, flat_grad_thresh, <span class="literal">true</span>);</span><br><span class="line">    <span class="built_in">resize</span>(maskDownX2, flatMaskUpBy2, flatMaskUpBy<span class="number">2.</span><span class="built_in">size</span>(), <span class="number">0</span>, <span class="number">0</span>, INTER_NEAREST);</span><br><span class="line">    <span class="built_in">resize</span>(maskDownX4, flatMaskUpBy4, flatMaskUpBy<span class="number">4.</span><span class="built_in">size</span>(), <span class="number">0</span>, <span class="number">0</span>, INTER_NEAREST);</span><br><span class="line">    <span class="built_in">flat_3dark_thresh</span>(flat_mask, flatMaskUpBy2, flatMaskUpBy4, netDst, flat_grad_thresh);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    Mat img = <span class="built_in">imread</span>(<span class="string">&quot;/Users/huziliang/Documents/C++/funny/flat_area.png&quot;</span>, IMREAD_GRAYSCALE);</span><br><span class="line">    Mat img_f, dst_f;</span><br><span class="line">    img.<span class="built_in">convertTo</span>(img_f, CV_32FC1);</span><br><span class="line">    <span class="built_in">boxFilter</span>(img_f, img_f, <span class="number">-1</span>, <span class="built_in">Size</span>(<span class="number">3</span>, <span class="number">3</span>));</span><br><span class="line">    dst_f = Mat::<span class="built_in">zeros</span>(img_f.<span class="built_in">size</span>(), img_f.<span class="built_in">type</span>());</span><br><span class="line">    <span class="built_in">flat_denoise_mask</span>(img_f, dst_f);</span><br><span class="line">    <span class="built_in">imwrite</span>(<span class="string">&quot;/Users/huziliang/Documents/C++/funny/flat_area_result.png&quot;</span>, dst_f * <span class="number">255.0f</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+]]></content>
+      <tags>
+        <tag>OpenCV</tag>
+        <tag>Detection</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>多曝光融合网络Loss设计</title>
+    <url>/2023/03/18/%E5%A4%9A%E6%9B%9D%E5%85%89%E8%9E%8D%E5%90%88%E7%BD%91%E7%BB%9CLoss%E8%AE%BE%E8%AE%A1/</url>
+    <content><![CDATA[<meta name="referrer" content="no-referrer" />
+<p>对于包围式曝光融合网络, Loss设计如下:</p>
+<p><span class="math display">\[
+L(y, y^{*})=\left \| y - y^* \right \|_{1} +  \left \| \nabla y - \nabla
+y^* \right \|_{1} + \gamma L_{gradsign}(y, y^*) + \eta L_{highsmooth}(y,
+y^*)
+\]</span></p>
+<p>其中<span class="math inline">\(y\)</span>为融合得到的图像, <span
+class="math inline">\(y^*\)</span>表示融合图像的标签, <span
+class="math inline">\(\left \| y - y^* \right \|_{1}\)</span>表示L1范数,
+即向量元素绝对值之和, <span
+class="math inline">\(\nabla\)</span>表示求图像的梯度, <span
+class="math inline">\(𝐿_{𝑔𝑟𝑎𝑑𝑠𝑖𝑔𝑛}\)</span>损失函数的作用是为了学习得到的图像的边缘过渡和真实图像贴合得更好,
+消除由于包围式曝光不连续导致的图像拼接人工痕迹. <span
+class="math inline">\(𝐿_{ℎ𝑖𝑔ℎ𝑠𝑚𝑜𝑜𝑡ℎ}\)</span>损失函数表示加大高亮区域的权重,
+使得高亮区域效果更好, 缓解图像中高亮区域占整张图像比重太小的问题, <span
+class="math inline">\(𝐻_{𝑡ℎ}\)</span>是高亮像素值的阈值; <span
+class="math inline">\(\gamma\)</span>, <span
+class="math inline">\(\eta\)</span>为常数, 表示损失函数权重,
+可依效果需求要求进行调整.</p>
+<p><span class="math display">\[
+L_{gradsign}(y,y*)=ReLU(-\nabla y * \nabla y^{*})
+\]</span></p>
+<p><span class="math display">\[
+L_{highsmooth}(y, y^*)=\left \| \nabla y - \nabla y^* \right \|_1 *
+I(y^*, H_{th})
+\]</span></p>
+<p><span class="math display">\[
+ReLU(x)= \begin{cases}x, x \geqslant 0 \\ 0, else \end {cases}
+\]</span></p>
+<p><span class="math display">\[
+I(x,threshold)= \begin{cases}1, x \geqslant threshold \\ 0, else \end
+{cases}
+\]</span></p>
+<p>另外还有两个Loss函数设计.</p>
+<ol type="1">
+<li><p>LumaGradLoss函数的操作是把prediction和groudtruth分别做一个global
+average pooling操作downsample到8x8的图, 然后在计算L2 loss.
+目的是保证prediction的整体亮度分布和groundtruth一致,
+避免出现亮度反转的情况.</p></li>
+<li><p>BlackRegLoss函数的操作是根据图像亮度值小于某个阈值threshold得到mask,
+然后惩罚这些区域的1/4, 1/16等欠曝图像的融合权重.
+目的是避免暗光区域受到欠曝图片的影响,
+避免出现融合后图像天空等非过曝区域亮度值被拉暗的情况.</p></li>
+</ol>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line">def <span class="title class_">LumaGradLoss</span>(self, prediction, target, input):</span><br><span class="line">    prediction = torch.<span class="property">nn</span>.<span class="title class_">AdaptiveAvgPool2</span>d((<span class="number">8</span>,<span class="number">8</span>))(prediction)</span><br><span class="line">    target = torch.<span class="property">nn</span>.<span class="title class_">AdaptiveAvgPool2</span>d((<span class="number">8</span>,<span class="number">8</span>))(input[:,<span class="number">0</span>:<span class="number">4</span>,:,:])</span><br><span class="line"></span><br><span class="line">    target = torch.<span class="title function_">clamp</span>(target,<span class="number">0.0</span>,<span class="number">1.0</span>)</span><br><span class="line">    prediction = torch.<span class="title function_">clamp</span>(prediction,<span class="number">0.0</span>,<span class="number">1.0</span>)</span><br><span class="line"></span><br><span class="line">    prediction_x_diff = prediction[:,:, :-<span class="number">1</span>, :-<span class="number">1</span>] - prediction[:, :, :-<span class="number">1</span>, <span class="number">1</span>:]</span><br><span class="line">    prediction_y_diff = prediction[:,:, :-<span class="number">1</span>, :-<span class="number">1</span>] - prediction[:, :, <span class="number">1</span>:, :-<span class="number">1</span>]</span><br><span class="line">    target_x_diff = target[:, :, :-<span class="number">1</span>, :-<span class="number">1</span>] - target[:,:,  :-<span class="number">1</span>, <span class="number">1</span>:]</span><br><span class="line">    target_y_diff = target[:, :, :-<span class="number">1</span>, :-<span class="number">1</span>] - target[:,:, <span class="number">1</span>:, :-<span class="number">1</span>]</span><br><span class="line"></span><br><span class="line">    error =  (target_x_diff-prediction_x_diff) ** <span class="number">2.0</span> + (target_y_diff-prediction_y_diff) ** <span class="number">2.0</span></span><br><span class="line"></span><br><span class="line">    loss = torch.<span class="title function_">mean</span>(error)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> loss</span><br></pre></td></tr></table></figure>
+<figure class="highlight jsx"><table><tr><td class="code"><pre><span class="line">def <span class="title class_">BlackRegLoss</span>(self, logit, target,input_refs,  weight):</span><br><span class="line">    <span class="string">&#x27;&#x27;</span><span class="string">&#x27;</span></span><br><span class="line"><span class="string">        black region regularization</span></span><br><span class="line"><span class="string">        penalty on 1/4, 1/16 in order to persuade network selecting more on 1/1 images</span></span><br><span class="line"><span class="string">    &#x27;</span><span class="string">&#x27;&#x27;</span></span><br><span class="line"></span><br><span class="line">    input_1 = input_refs[:, -<span class="number">12</span>:-<span class="number">8</span>, :, :]</span><br><span class="line">    raw_grey,_ = torch.<span class="title function_">max</span>(input_1, dim=<span class="number">1</span>, keepdim=<span class="title class_">True</span>)</span><br><span class="line"></span><br><span class="line">    low_mask = torch.<span class="title function_">where</span>(raw_grey &lt;= <span class="number">0.4</span>, torch.<span class="title function_">ones_like</span>(raw_grey).<span class="title function_">cuda</span>(), torch.<span class="title function_">zeros_like</span>(raw_grey).<span class="title function_">cuda</span>())</span><br><span class="line"></span><br><span class="line">    p2d = [<span class="number">0</span>,<span class="number">0</span>,<span class="number">1</span>,<span class="number">0</span>]</span><br><span class="line">    tv_mask_h = nn.<span class="title class_">ReflectionPad2</span>d(p2d)(target)</span><br><span class="line">    tv_mask_h = tv_mask_h[:,:,<span class="number">1</span>:,:] - tv_mask_h[:,:,:-<span class="number">1</span>,:]</span><br><span class="line">    p2d = [<span class="number">1</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>]</span><br><span class="line">    tv_mask_w = nn.<span class="title class_">ReflectionPad2</span>d(p2d)(target)</span><br><span class="line">    tv_mask_w = tv_mask_w[:,:,:,<span class="number">1</span>:] - tv_mask_w[:,:,:,:-<span class="number">1</span>]</span><br><span class="line">    tv_mask = torch.<span class="title function_">max</span>(torch.<span class="title function_">abs</span>(tv_mask_h), torch.<span class="title function_">abs</span>(tv_mask_w))</span><br><span class="line">    tv_mask,_ = torch.<span class="title function_">max</span>(tv_mask, dim = <span class="number">1</span>, keepdim = <span class="title class_">True</span>)</span><br><span class="line">    tv_mask = <span class="number">1.0</span> - tv_mask</span><br><span class="line"></span><br><span class="line">    low_mask = self.<span class="title function_">tf_high_light_dilate_blur</span>(low_mask * tv_mask, <span class="number">5</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> weight.<span class="property">shape</span>[<span class="number">1</span>] == <span class="number">3</span> or weight.<span class="property">shape</span>[<span class="number">1</span>] == <span class="number">4</span>:</span><br><span class="line">        <span class="keyword">return</span> torch.<span class="title function_">sum</span>(weight[:,<span class="number">1</span>:<span class="number">3</span>,:,:] * low_mask) / (torch.<span class="title function_">sum</span>(low_mask) * (<span class="number">2.0</span> ))  # only loss on <span class="number">1</span>/<span class="number">4</span>, <span class="number">1</span>/<span class="number">16</span> frames</span><br><span class="line">    elif weight.<span class="property">shape</span>[<span class="number">1</span>] == <span class="number">12</span>  or weight.<span class="property">shape</span>[<span class="number">1</span>] == <span class="number">13</span>:</span><br><span class="line">        <span class="keyword">return</span> torch.<span class="title function_">sum</span>(weight[:,<span class="number">4</span>:<span class="number">4</span>*<span class="number">3</span>,:,:] * low_mask) / (torch.<span class="title function_">sum</span>(low_mask) * (<span class="number">2.0</span> * <span class="number">4</span>)) # only loss on <span class="number">1</span>/<span class="number">4</span>, <span class="number">1</span>/<span class="number">16</span> frames</span><br><span class="line">    <span class="attr">else</span>:</span><br><span class="line">        raise <span class="string">&#x27;Unsupport weight type&#x27;</span></span><br></pre></td></tr></table></figure>
+]]></content>
+      <tags>
+        <tag>HDR</tag>
+        <tag>Deep Learning</tag>
+        <tag>Loss</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>探索C++中的Lambda表达式</title>
+    <url>/2023/12/14/%E6%8E%A2%E7%B4%A2C-%E4%B8%AD%E7%9A%84Lambda%E8%A1%A8%E8%BE%BE%E5%BC%8F/</url>
+    <content><![CDATA[<meta name="referrer" content="no-referrer" />
+<p>Lambda 表达式是 C++11
+引入的一个重要特性，它为函数式编程风格提供了更灵活和便利的方法。本文将探讨
+Lambda
+表达式的基础知识、语法结构、使用场景以及与传统函数指针和函数对象的比较。</p>
+<span id="more"></span>
+<h2 id="lambda-表达式的基础知识">Lambda 表达式的基础知识</h2>
+<p>Lambda 表达式的基本语法结构，包括捕获列表、参数列表、可选的 mutable
+修饰符、返回类型和函数体。</p>
+<p>示例：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">auto</span> lambda = []() &#123; std::cout &lt;&lt; <span class="string">&quot;Hello, Lambda!&quot;</span> &lt;&lt; std::endl; &#125;;</span><br><span class="line"><span class="built_in">lambda</span>(); <span class="comment">// 调用 Lambda 表达式</span></span><br></pre></td></tr></table></figure>
+<p>Lambda
+表达式捕获外部变量的方式：值捕获、引用捕获、隐式捕获等，并讨论其影响和使用场景。</p>
+<p>示例：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> x = <span class="number">5</span>;</span><br><span class="line"><span class="keyword">auto</span> lambda = [x]() &#123; std::cout &lt;&lt; <span class="string">&quot;Captured value: &quot;</span> &lt;&lt; x &lt;&lt; std::endl; &#125;;</span><br><span class="line"><span class="built_in">lambda</span>(); <span class="comment">// 输出捕获的值 x</span></span><br></pre></td></tr></table></figure>
+<p>Lambda
+表达式的参数传递和返回类型推导的规则，以及如何显式指定参数类型和返回类型。</p>
+<p>示例：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">auto</span> lambda = [](<span class="type">int</span> a, <span class="type">int</span> b) -&gt; <span class="type">int</span> &#123; <span class="keyword">return</span> a + b; &#125;;</span><br><span class="line">std::cout &lt;&lt; <span class="string">&quot;Sum: &quot;</span> &lt;&lt; <span class="built_in">lambda</span>(<span class="number">3</span>, <span class="number">4</span>) &lt;&lt; std::endl; <span class="comment">// 输出 7</span></span><br></pre></td></tr></table></figure>
+<h2 id="lambda-表达式的使用">Lambda 表达式的使用</h2>
+<p>Lambda 表达式在现代 C++ 编程中的常见用法和实际应用场景，如 STL
+算法、回调函数、多线程编程等。</p>
+<p>示例：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">std::vector&lt;<span class="type">int</span>&gt; numbers = &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>&#125;;</span><br><span class="line"><span class="type">int</span> count = std::<span class="built_in">count_if</span>(numbers.<span class="built_in">begin</span>(), numbers.<span class="built_in">end</span>(), [](<span class="type">int</span> x) &#123; <span class="keyword">return</span> x % <span class="number">2</span> == <span class="number">0</span>; &#125;);</span><br><span class="line">std::cout &lt;&lt; <span class="string">&quot;Count of even numbers: &quot;</span> &lt;&lt; count &lt;&lt; std::endl;</span><br></pre></td></tr></table></figure>
+<p>对比 Lambda
+表达式与传统的函数指针和函数对象的异同点，包括性能、可读性和灵活性等方面的比较。</p>
+<p>示例：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// Lambda 表达式作为回调函数</span></span><br><span class="line">std::vector&lt;<span class="type">int</span>&gt; numbers = &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>&#125;;</span><br><span class="line">std::for_each(numbers.<span class="built_in">begin</span>(), numbers.<span class="built_in">end</span>(), [](<span class="type">int</span> x) &#123; std::cout &lt;&lt; x &lt;&lt; std::endl; &#125;);</span><br></pre></td></tr></table></figure>
+<h2 id="高级话题和技巧">高级话题和技巧</h2>
+<p>Lambda
+表达式与其捕获变量之间的关系，涉及变量的生命周期和作用域，以及闭包的概念。</p>
+<p>示例：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;functional&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function">std::function&lt;<span class="title">int</span><span class="params">(<span class="type">int</span>)</span>&gt; <span class="title">closureExample</span><span class="params">(<span class="type">int</span> x)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> [x](<span class="type">int</span> y) &#123; <span class="keyword">return</span> x + y; &#125;;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">auto</span> lambda = <span class="built_in">closureExample</span>(<span class="number">5</span>);</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;Closure result: &quot;</span> &lt;&lt; <span class="built_in">lambda</span>(<span class="number">3</span>) &lt;&lt; std::endl; <span class="comment">// 输出 8</span></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如何在多线程编程中使用 Lambda
+表达式，以及如何正确处理共享状态和线程安全性。</p>
+<p>示例：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;thread&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;vector&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;mutex&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    std::vector&lt;<span class="type">int</span>&gt; numbers = &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>&#125;;</span><br><span class="line">    std::mutex mtx;</span><br><span class="line"></span><br><span class="line">    std::for_each(numbers.<span class="built_in">begin</span>(), numbers.<span class="built_in">end</span>(), [&amp;](<span class="type">int</span>&amp; x) &#123;</span><br><span class="line">        std::lock_guard&lt;std::mutex&gt; <span class="built_in">lock</span>(mtx);</span><br><span class="line">        x *= <span class="number">2</span>;</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    std::for_each(numbers.<span class="built_in">begin</span>(), numbers.<span class="built_in">end</span>(), [](<span class="type">int</span> x) &#123;</span><br><span class="line">        std::cout &lt;&lt; x &lt;&lt; std::endl; <span class="comment">// 输出修改后的值</span></span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>最佳实践和性能优化建议，包括避免过度捕获、使用移动语义、避免引起资源泄漏等。</p>
+<p>示例：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;vector&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;algorithm&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    std::vector&lt;<span class="type">int</span>&gt; vec = &#123;<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>&#125;;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 使用引用捕获，避免不必要的值捕获</span></span><br><span class="line">    <span class="type">int</span> sum = <span class="number">0</span>;</span><br><span class="line">    std::for_each(vec.<span class="built_in">begin</span>(), vec.<span class="built_in">end</span>(), [&amp;](<span class="type">int</span> x) &#123; sum += x; &#125;);</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;Sum: &quot;</span> &lt;&lt; sum &lt;&lt; std::endl;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 使用移动语义，提高性能</span></span><br><span class="line">    std::vector&lt;<span class="type">int</span>&gt; anotherVec = &#123;<span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>, <span class="number">9</span>, <span class="number">10</span>&#125;;</span><br><span class="line">    std::for_each(anotherVec.<span class="built_in">begin</span>(), anotherVec.<span class="built_in">end</span>(), [vec = std::<span class="built_in">move</span>(vec)](<span class="type">int</span> x) &#123;</span><br><span class="line">        std::cout &lt;&lt; <span class="string">&quot;Moved vector element: &quot;</span> &lt;&lt; x &lt;&lt; std::endl;</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Lambda 表达式为 C++
+编程带来了更加灵活和强大的编程手段，通过上述示例的讲解，读者可以更全面地了解和应用
+Lambda 表达式。通过 Lambda 表达式，C++
+的编程范式也更加现代化和高效化。</p>
+]]></content>
+  </entry>
+  <entry>
+    <title>经典多层金字塔锐化(Multi-Level Pyramid Edge Enhancement)</title>
+    <url>/2023/10/24/%E7%BB%8F%E5%85%B8%E5%A4%9A%E5%B1%82%E9%87%91%E5%AD%97%E5%A1%94%E9%94%90%E5%8C%96-Multi-Level-Pyramid-Edge-Enhancement/</url>
+    <content><![CDATA[<meta name="referrer" content="no-referrer" />
+<p>锐化方法: 锐化图 = 输入图 + 高频 + 中频 + 低频</p>
+<span id="more"></span>
+<p>高频部分:</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">高频获取方式:   hf = <span class="built_in">gaussblur</span>(input, sigma) - <span class="built_in">gaussblur</span>(input, sigma * band1)</span><br><span class="line">高频进一步增强: hf = <span class="built_in">apply_gamma</span>(hf, gamma_power1)</span><br><span class="line">输入图锐化:     sharpened1 = input + hf * strength1</span><br><span class="line">输入图与锐化图的blending:</span><br><span class="line">	res1 = sharpened1 * weight1 + input * (<span class="number">1</span> - weight1)</span><br><span class="line">	weight1 = <span class="built_in">clamp</span>(std / stdthresh1 + blendbias1, <span class="number">0</span>, <span class="number">1</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>中频部分:</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">中频获取方式:   mf = <span class="built_in">gaussblur</span>(input, sigma * band1) - <span class="built_in">gaussblur</span>(input, sigma * band1 * band2)</span><br><span class="line">中频进一步增强: mf = <span class="built_in">apply_gamma</span>(mf, gamma_power2)</span><br><span class="line">输入图锐化:     sharpened2 = res1 + mf * strength2</span><br><span class="line">输入图与锐化图的blending:</span><br><span class="line">	res2 = sharpene2 * weight2 + res1 * (<span class="number">1</span> - weight2)</span><br><span class="line">	weight = <span class="built_in">clamp</span>(std / stdthresh2 + blendbias2, <span class="number">0</span>, <span class="number">1</span>)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>低频部分:</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">低频获取方式:   lf = <span class="built_in">gaussblur</span>(input, sigma * band1 * band2) - <span class="built_in">gaussblur</span>(input, sigma * band1 * band2 * band3)</span><br><span class="line">低频进一步增强: lf = <span class="built_in">apply_gamma</span>(lf, gamma_power3)</span><br><span class="line">输入图锐化:     sharpened3 = res2 + lf * strength3</span><br><span class="line">输入图与锐化图的blending:</span><br><span class="line">	res3 = sharpene3 * weight3 + res2 * (<span class="number">1</span> - weight3)</span><br><span class="line">	weight3 = <span class="built_in">clamp</span>(std / stdthresh3 + blendbias3, <span class="number">0</span>, <span class="number">1</span>)</span><br></pre></td></tr></table></figure>
+]]></content>
+      <tags>
+        <tag>OpenCV</tag>
+        <tag>Sharpening</tag>
+        <tag>SR</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>超分辨率效果改善方案记录(1)</title>
+    <url>/2023/04/05/%E8%B6%85%E5%88%86%E8%BE%A8%E7%8E%87%E6%95%88%E6%9E%9C%E6%94%B9%E5%96%84%E6%96%B9%E6%A1%88%E8%AE%B0%E5%BD%95-1/</url>
+    <content><![CDATA[<meta name="referrer" content="no-referrer" />
+<p>在图像处理和计算机视觉中, 上采样(upsampling)是一种常见的操作,
+用于将图像从低分辨率扩大到高分辨率.
+两种常见的上采样方法是最近邻上采样(Nearest-neighbor
+Upsampling)和双线性上采样(Bilinear Upsampling).
+它们各自具有不同的特点:</p>
+<span id="more"></span>
+<ol type="1">
+<li><p><strong>最近邻上采样</strong>:
+这种方法在上采样过程中选择与原始像素最接近的像素值, 以填充新像素.
+它会导致锯齿状的边缘, 因为它不考虑像素之间的平滑过渡,
+导致锐利的边缘.</p></li>
+<li><p><strong>双线性上采样</strong>: 双线性上采样考虑了周围像素的权重,
+以计算新像素的值. 这使得边缘更加平滑,
+因为它会对周围像素的值进行线性插值.
+这种方法在上采样过程中产生更平滑的图像,
+但可能会导致边缘相对于最近邻上采样来说不够锐利.</p></li>
+</ol>
+<p>将两种上采样方法结合以获得同时锐利和平滑的结果其实有是可能的,
+我们称为混合上采样或自适应上采样. 一种常见的方法是使用权重混合两种方法,
+以在不同部分的图像上应用它们. 以下是一种简单的方法:</p>
+<ol type="1">
+<li><p><strong>定义混合权重</strong>:
+为了结合最近邻上采样和双线性上采样, 您可以定义一个混合权重图像.
+这个权重图像决定了每个像素处应该使用哪种上采样方法的权重.</p></li>
+<li><p><strong>应用混合权重</strong>: 使用混合权重图像,
+对每个像素应用最近邻上采样和双线性上采样. 具体地, 对于每个像素,
+根据混合权重来决定最近邻和双线性上采样两者的权重. 然后,
+将两种上采样结果加权相加以生成混合上采样结果.</p></li>
+</ol>
+<p>这种方法允许您在图像中的不同区域使用不同的上采样方法,
+以获得锐利的边缘和平滑的纹理.</p>
+<p>当然, 以下是对您描述的过程的更具技术性的表述:</p>
+<p><strong>步骤1: </strong> 首先,
+将从2x超分辨率模型获得的Y通道图像分别应用nearest
+upsample(Y_nn)和bilinear upsample(Y_bi).</p>
+<p><strong>步骤2: </strong> 接下来, 通过在Y_nn和Y_bi上执行卷积操作,
+生成图像的垂直和水平边缘. 这个步骤有助于增强图像的边缘信息.</p>
+<p><strong>步骤3: </strong>
+利用OpenCV库的<code>cv::cartToPolar()</code>函数,
+计算垂直和水平边缘的tan角度和幅度. 这一步有助于了解边缘的方向和强度.</p>
+<p><strong>步骤4: </strong> 创建一个融合mask,
+将角度接近0、90和180度的像素设置为1, 同时将幅度小于5的像素设置为0.
+这个mask有助于确定需要特定上采样结果的区域.</p>
+<p><strong>步骤5: </strong> 对融合mask进行膨胀(dilate)操作,
+扩展需要混合结果的区域.
+这个膨胀操作确保了最近邻上采样和双线性上采样区域之间的平滑过渡.</p>
+<p><strong>步骤6: </strong> 最后, 将融合mask应用于Y_nn和Y_bi的结果,
+得到融合的输出Y_out. 融合结果的计算公式为: Y_out = Y_nn * mask + (1.0 -
+mask) * Y_bi. 这个过程产生了最终图像, 根据融合mask的区域,
+综合了最近邻上采样的锐利度和双线性上采样的平滑度.</p>
+<p>这种方法通过考虑边缘细节和不同上采样区域之间的平滑过渡,
+确保了改进和平衡的超分辨率结果.</p>
+]]></content>
+      <tags>
+        <tag>SR</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Android Toolchain编译与GDB调试</title>
+    <url>/2022/08/26/Android-Toolchain%E7%BC%96%E8%AF%91%E4%B8%8EGDB%E8%B0%83%E8%AF%95/</url>
+    <content><![CDATA[<meta name="referrer" content="no-referrer" />
+<p>在进行linux主机上进行arm跨平台进行pure c++开发时，可能混有Neon
+intrinsic或者ARM
+assembly代码，此时进行代码编译和调试，可以使用standalone
+toolchain进行编译，使用gdb+gdbserver进行调试。</p>
+<span id="more"></span>
+<p>首先需要在NDK
+website上下载一个NDK工具包并解压，本人使用的是r14b版本，链接：<a
+href="https://dl.google.com/android/repository/android-ndk-r14b-linux-x86_64.zip">https://dl.google.com/android/repository/android-ndk-r14b-linux-x86_64.zip</a></p>
+<ul>
+<li><p>Standalone Toolchain的编译</p>
+<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> android-ndk-r14b/build/tools/</span><br><span class="line">./make-standalone-toolchain.sh --platform=android-21 --install-dir=./android-aarch64 --<span class="built_in">arch</span>=arm64</span><br><span class="line">./make-standalone-toolchain.sh --platform=android-21 --install-dir=./android-armv7 --<span class="built_in">arch</span>=arm</span><br></pre></td></tr></table></figure></p>
+<p>通过以上命令，会生成android-aarch64，android-armv7两个目录，可以将生成的standalone
+toolchain拷贝至固定目录</p>
+<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> <span class="built_in">cp</span> -r android-ndk-r14b/build/tools/android-aarch64 /opt</span><br><span class="line"><span class="built_in">sudo</span> <span class="built_in">cp</span> -r android-ndk-r14b/build/tools/android-armv7 /opt</span><br></pre></td></tr></table></figure></p>
+<p>以上完成standalone toolchain生成</p></li>
+<li><p>Linux主机编译arm跨平台pure c++程序</p>
+<ol type="1">
+<li>在Linux主机上准备main.cpp源代码文件</li>
+</ol>
+<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment">#include &lt;iostream&gt;</span></span><br><span class="line"></span><br><span class="line">int <span class="function"><span class="title">main</span></span>() &#123;</span><br><span class="line">		std::cout &lt;&lt; <span class="string">&quot;hello world&quot;</span> &lt;&lt; <span class="string">std::endl;</span></span><br><span class="line"><span class="string">    return 0;</span></span><br><span class="line"><span class="string">&#125;</span></span><br></pre></td></tr></table></figure></p>
+<ol type="1">
+<li>编写CMakeLists.txt文件</li>
+</ol>
+<p><figure class="highlight makefile"><table><tr><td class="code"><pre><span class="line">cmake_minimum_required(VERSION 3.17)</span><br><span class="line"></span><br><span class="line">project(ARM)</span><br><span class="line"></span><br><span class="line">enable_language(ASM)</span><br><span class="line"></span><br><span class="line">set(CMAKE_CXX_STANDARD 11)</span><br><span class="line">set(CMAKE_CXX_STANDARD_REQUIRED ON)</span><br><span class="line">add_definitions(-w)</span><br><span class="line">SET(CMAKE_BUILD_TYPE <span class="string">&quot;Debug&quot;</span>)</span><br><span class="line">SET(CMAKE_CXX_FLAGS_DEBUG <span class="string">&quot;$ENV&#123;CXXFLAGS&#125; -O0 -Wall -g2 -ggdb&quot;</span>)</span><br><span class="line">SET(CMAKE_CXX_FLAGS_RELEASE <span class="string">&quot;$ENV&#123;CXXFLAGS&#125; -O3 -Wall&quot;</span>)</span><br><span class="line"></span><br><span class="line">set(TARGET_CPU aarch64)</span><br><span class="line"></span><br><span class="line">set(CMAKE_CXX_FLAGS <span class="string">&quot;$&#123;CMAKE_CXX_FLAGS&#125; -static -fPIE -flax-vector-conversions&quot;</span>)</span><br><span class="line">if(TARGET_CPU STREQUAL <span class="string">&quot;aarch64&quot;</span>)</span><br><span class="line">    include_directories(/opt/android-ndk-r14b/android-aarch64/lib64/clang/7.0.2/<span class="keyword">include</span>)</span><br><span class="line"><span class="keyword">else</span>()</span><br><span class="line">    set(CMAKE_CXX_FLAGS <span class="string">&quot;$&#123;CMAKE_CXX_FLAGS&#125; -mfloat-abi=softfp -mfpu=neon&quot;</span>)</span><br><span class="line">    include_directories(/opt/android-ndk-r14b/android-armv7/lib64/clang/7.0.2/<span class="keyword">include</span>)</span><br><span class="line"><span class="keyword">endif</span>()</span><br><span class="line"></span><br><span class="line">set(SOURCES</span><br><span class="line">    main.cpp</span><br><span class="line">    <span class="comment"># main.s</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">add_executable(main $&#123;SOURCES&#125;)</span><br></pre></td></tr></table></figure></p>
+<ol type="1">
+<li>编译ARM平台可执行文件</li>
+</ol>
+<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">CXX_COMPILER=/opt/android-ndk-r14b/android-aarch64/bin/aarch64-linux-android-g++</span><br><span class="line">CC_COMPILER=/opt/android-ndk-r14b/android-aarch64/bin/aarch64-linux-android-gcc</span><br><span class="line"><span class="built_in">cd</span> cmake-build-debug</span><br><span class="line">cmake .. -DCMAKE_C_COMPILER=<span class="variable">$CC_COMPILER</span> -DCMAKE_CXX_COMPILER=<span class="variable">$CXX_COMPILER</span></span><br></pre></td></tr></table></figure></p>
+<ol type="1">
+<li>ARM平台程序的执行</li>
+</ol>
+<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">adb push main /data/local/tmp</span><br><span class="line">adb shell ./data/local/tmp/main</span><br></pre></td></tr></table></figure></p></li>
+<li><p>GDB+GDBServer调试</p>
+<ol type="1">
+<li>准备GDBServer</li>
+</ol>
+<p>测试手机一般出厂不会自带gdbserver，可以将NDK工具包中对应平台gdbserver推入手机</p>
+<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">adb push android-ndk-r14b/prebuilt/android-arm64/gdbserver/gdbserver /data/local/tmp</span><br></pre></td></tr></table></figure></p>
+<ol type="1">
+<li>启动GDBServer</li>
+</ol>
+<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">adb shell <span class="comment"># 进入手机shell命令行</span></span><br><span class="line"><span class="built_in">cd</span> /data/local/tmp</span><br><span class="line">./gdbserver tcp:9090 main</span><br><span class="line"></span><br><span class="line"><span class="comment"># 正常输出如下：</span></span><br><span class="line">Process main created; pid = 7201</span><br><span class="line">gdbserver: Unable to determine the number of hardware watchpoints available.</span><br><span class="line">gdbserver: Unable to determine the number of hardware breakpoints available.</span><br><span class="line">Listening on port 9090</span><br></pre></td></tr></table></figure></p>
+<ol type="1">
+<li>在主机平台启动gdb调试程序</li>
+</ol>
+<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> android-ndk-r14b/prebuilt/linux-x86_64/bin <span class="comment"># 进入ndk gdb程序目录</span></span><br><span class="line">adb forward tcp:9090 tcp:9090 <span class="comment"># 端口转发</span></span><br><span class="line">./gdb <span class="comment"># 进入gdb程序</span></span><br><span class="line">target remote localhost:9090 <span class="comment"># 开始获取信息并开始调试</span></span><br><span class="line">b main <span class="comment"># 设置断点</span></span><br><span class="line"><span class="comment"># 后续与普通GDB调试相同</span></span><br></pre></td></tr></table></figure></p>
+<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">n  <span class="comment"># 下一步，不进入函数内部</span></span><br><span class="line">s  <span class="comment"># 下一步，进入函数内部</span></span><br><span class="line">l  <span class="comment"># 代码列表</span></span><br><span class="line">info r    <span class="comment"># 查看寄存器</span></span><br></pre></td></tr></table></figure></p></li>
+</ul>
+]]></content>
+      <tags>
+        <tag>Android</tag>
+        <tag>Toolchain</tag>
+        <tag>GDB</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>超分辨率Loss设计记录(1)</title>
+    <url>/2022/11/19/%E8%B6%85%E5%88%86%E8%BE%A8%E7%8E%87Loss%E8%AE%BE%E8%AE%A1%E8%AE%B0%E5%BD%95-1/</url>
+    <content><![CDATA[<meta name="referrer" content="no-referrer" />
+<p>在超分辨率(Super-Resolution)网络训练中使用均方误差(MSE)损失函数确实存在一个常见问题,
+即可能导致生成的结果过于平滑和模糊
+这是因为MSE损失函数鼓励模型生成像素值,
+以使其与目标图像的像素值之间的平方差最小化这种最小化平方差的方法有时会导致图像细节的丢失,
+使得生成的高分辨率图像看起来过于平滑.</p>
+<span id="more"></span>
+<p><img src="https://s2.loli.net/2023/10/19/WEjclfagntGVxbo.png" /></p>
+<p>相关材料可以查看<a
+href="https://arxiv.org/pdf/1609.04802v5.pdf">SRGAN</a>中Figure2以及1.1.3小节.
+虽然直接优化MSE可以产生较高的PSNR/SSIM, 但是在zoom scale较大的情况下,
+MSE作为loss function引导的学习无法使得重建图像捕获细节信息,
+从论文Figure2中可以看到, 左二图有较高的PSNR/SSIM, 但是从观感上判断,
+左三图明显具有更多的细节.</p>
+<p>为了解决这个问题, 通常在超分辨率网络中使用其他损失函数或技术,
+以更好地保留细节和纹理 以下是一些替代方法：</p>
+<ol type="1">
+<li><p><strong>感知损失(Perceptual Loss)</strong>：使用感知损失,
+通常是使用预训练的深度卷积神经网络(如VGG)来计算生成图像与目标图像之间的特征表示的差异
+这种方法更强调图像的结构和纹理, 而不仅仅是像素值
+这有助于生成更具细节和真实感的图像</p></li>
+<li><p><strong>对抗性损失(Adversarial
+Loss)</strong>：引入生成对抗网络(GAN)的方法,
+其中生成器网络和判别器网络相互竞争 生成器的目标是欺骗判别器,
+而判别器的目标是区分生成图像和真实图像
+这种对抗性训练有助于生成更逼真的图像</p></li>
+<li><p><strong>内容和风格损失(Content and Style
+Loss)</strong>：结合感知损失和风格损失,
+以确保生成的图像在内容和风格上都与目标图像相似</p></li>
+<li><p><strong>自适应权重调整</strong>：使用动态权重或损失加权方法,
+以平衡不同类型的损失函数,
+以便在训练过程中更好地控制平滑度和细节</p></li>
+</ol>
+<p>这些方法可以帮助超分辨率网络生成更锐利和更具细节的高分辨率图像,
+而不仅仅是通过最小化像素级差异来生成图像
+选择哪种方法取决于具体的问题和数据集, 以及对生成图像的期望质量</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">import</span> torch.nn <span class="keyword">as</span> nn</span><br><span class="line"><span class="keyword">import</span> torchvision.models <span class="keyword">as</span> models</span><br><span class="line"></span><br><span class="line"><span class="comment">#SRGAN使用预训练好的VGG19，用生成器的结果以及原始图像通过VGG后分别得到的特征图计算MSE，具体解释推荐看SRGAN的相关资料</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">VGG</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, device</span>):</span><br><span class="line">        <span class="built_in">super</span>(VGG, <span class="variable language_">self</span>).__init__()</span><br><span class="line">        vgg = models.vgg19(<span class="literal">True</span>)</span><br><span class="line">        <span class="keyword">for</span> pa <span class="keyword">in</span> vgg.parameters():</span><br><span class="line">            pa.requires_grad = <span class="literal">False</span></span><br><span class="line">        <span class="variable language_">self</span>.vgg = vgg.features[:<span class="number">16</span>]</span><br><span class="line">        <span class="variable language_">self</span>.vgg = <span class="variable language_">self</span>.vgg.to(device)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        out = <span class="variable language_">self</span>.vgg(x)</span><br><span class="line">        <span class="keyword">return</span> out</span><br><span class="line"></span><br><span class="line"><span class="comment">#内容损失</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ContentLoss</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, device</span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        <span class="variable language_">self</span>.mse = nn.MSELoss()</span><br><span class="line">        <span class="variable language_">self</span>.vgg19 = VGG(device)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, fake, real</span>):</span><br><span class="line">        feature_fake = <span class="variable language_">self</span>.vgg19(fake)</span><br><span class="line">        feature_real = <span class="variable language_">self</span>.vgg19(real)</span><br><span class="line">        loss = <span class="variable language_">self</span>.mse(feature_fake, feature_real)</span><br><span class="line">        <span class="keyword">return</span> loss</span><br><span class="line"></span><br><span class="line"><span class="comment">#对抗损失</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">AdversarialLoss</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        loss = torch.<span class="built_in">sum</span>(-torch.log(x))</span><br><span class="line">        <span class="keyword">return</span> loss</span><br><span class="line"></span><br><span class="line"><span class="comment">#感知损失</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">PerceptualLoss</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, device</span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        <span class="variable language_">self</span>.vgg_loss = ContentLoss(device)</span><br><span class="line">        <span class="variable language_">self</span>.adversarial = AdversarialLoss()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, fake, real, x</span>):</span><br><span class="line">        vgg_loss = <span class="variable language_">self</span>.vgg_loss(fake, real)</span><br><span class="line">        adversarial_loss = <span class="variable language_">self</span>.adversarial(x)</span><br><span class="line">        <span class="keyword">return</span> vgg_loss + <span class="number">1e-3</span>*adversarial_loss</span><br><span class="line"></span><br><span class="line"><span class="comment">#正则项，需要说明的是，在SRGAN的后续版本的论文中，这个正则项被删除了</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">RegularizationLoss</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        a = torch.square(</span><br><span class="line">            x[:, :, :x.shape[<span class="number">2</span>]-<span class="number">1</span>, :x.shape[<span class="number">3</span>]-<span class="number">1</span>] - x[:, :, <span class="number">1</span>:x.shape[<span class="number">2</span>], :x.shape[<span class="number">3</span>]-<span class="number">1</span>]</span><br><span class="line">        )</span><br><span class="line">        b = torch.square(</span><br><span class="line">            x[:, :, :x.shape[<span class="number">2</span>]-<span class="number">1</span>, :x.shape[<span class="number">3</span>]-<span class="number">1</span>] - x[:, :, :x.shape[<span class="number">2</span>]-<span class="number">1</span>, <span class="number">1</span>:x.shape[<span class="number">3</span>]]</span><br><span class="line">        )</span><br><span class="line">        loss = torch.<span class="built_in">sum</span>(torch.<span class="built_in">pow</span>(a+b, <span class="number">1.25</span>))</span><br><span class="line">        <span class="keyword">return</span> loss</span><br></pre></td></tr></table></figure>
+]]></content>
+      <tags>
+        <tag>Deep Learning</tag>
+        <tag>Loss</tag>
+        <tag>SR</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>高通平台ISP调试记录(2)-ASF</title>
     <url>/2023/06/12/%E9%AB%98%E9%80%9A%E5%B9%B3%E5%8F%B0ISP%E8%B0%83%E8%AF%95%E8%AE%B0%E5%BD%95-2-ASF/</url>
     <content><![CDATA[<meta name="referrer" content="no-referrer" />
@@ -2093,6 +2052,47 @@ Transactions on Graphics</em>. 2017.</li>
 <p>值越小, 锐化越弱</p>
 <p>radial_gain_adj</p>
 <p>值越小, 锐化越弱</p>
+]]></content>
+      <tags>
+        <tag>ISP</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>高通平台ISP调试记录(1)-ANR</title>
+    <url>/2023/05/07/%E9%AB%98%E9%80%9A%E5%B9%B3%E5%8F%B0ISP%E8%B0%83%E8%AF%95%E8%AE%B0%E5%BD%95-1-ANR/</url>
+    <content><![CDATA[<meta name="referrer" content="no-referrer" />
+<p>anr模块</p>
+<span id="more"></span>
+<p>enable_grey_treatment_thr_modification</p>
+<p>控制开启边缘去彩噪</p>
+<p>detect_grey_condition_chromaticity_thr_low</p>
+<p>detect_grey_condition_chromaticity_thr_high</p>
+<p>detect_grey_condition_y_max_derivative_thr_low</p>
+<p>detect_grey_condition_y_max_derivative_thr_high</p>
+<p>检测是否需要去彩噪的threshold</p>
+<p>thr_modification_target_y</p>
+<p>thr_modification_target_u</p>
+<p>thr_modification_target_v</p>
+<p>检测到需要加强edge false color denois才生效, 值越打越强</p>
+<p>luma_filter_lut_thr_y</p>
+<p>luma_filter_lut_thr_uv</p>
+<p>为了解决lsc导致的噪声，按照半径区分, 值越大去噪越强</p>
+<p>chroma_filter_lut_thr_y</p>
+<p>chroma_filter_lut_thr_uv</p>
+<p>为了解决lsc导致的噪声，按照半径区分, 值越大去噪越强</p>
+<p>y_threshold_per_y</p>
+<p>u_threshold_per_y</p>
+<p>v_threshold_per_y</p>
+<p>值越大去噪越强, 最常用</p>
+<p>luma_input_indication_thr_modification_scale</p>
+<p>chroma_input_indication_thr_modification_scale</p>
+<p>full path上不认为是噪声, 但是DC4上需要做去噪, 此时开启inter length,
+如果inter length的值为32, 则full path 的threshold就是full path
+threshold的2倍</p>
+<p>dcblend2_luma_strength_function</p>
+<p>dcblend2_chroma_strength_function（0 0 0 0 64 128）融合权重最大值,
+去噪最强</p>
+<p>一般不动</p>
 ]]></content>
       <tags>
         <tag>ISP</tag>
