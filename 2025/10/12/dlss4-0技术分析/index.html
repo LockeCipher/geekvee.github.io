@@ -18,7 +18,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/themes/blue/pace-theme-minimal.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/pace.min.js" integrity="sha256-gqd7YTjg/BtfqWSwsJOvndl0Bxc8gFImLEkXQT8+qj0=" crossorigin="anonymous"></script>
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"huziliang.com","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.19.1","exturl":false,"sidebar":{"position":"left","display":"remove","padding":18,"offset":12},"copycode":{"enable":true,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":true,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"huziliang.com","root":"/","images":"/images","scheme":"Pisces","darkmode":false,"version":"8.19.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":true,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":true,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
     <meta name="description" content="NVIDIA DLSS 历年发展技术分析 近年来，随着实时图形渲染对画质和性能的双重追求，NVIDIA 推出的深度学习超采样技术（Deep Learning Super Sampling，简称 DLSS）成为业界热点。从最初的 DLSS 1.0 到最新一代 DLSS 4.0，技术持续演进，本文将梳理 DLSS 各代技术路线及其核心升级点，并结合实际应用分析其影响。 一、DLSS 1.0：深度学习">
 <meta property="og:type" content="article">
@@ -145,6 +145,63 @@
   </div>
 
 </header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#nvidia-dlss-%E5%8E%86%E5%B9%B4%E5%8F%91%E5%B1%95%E6%8A%80%E6%9C%AF%E5%88%86%E6%9E%90"><span class="nav-number">1.</span> <span class="nav-text">NVIDIA DLSS 历年发展技术分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80dlss-1.0%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E6%8A%97%E9%94%AF%E9%BD%BF%E7%9A%84%E8%B5%B7%E7%82%B9"><span class="nav-number">1.1.</span> <span class="nav-text">一、DLSS
+1.0：深度学习抗锯齿的起点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8Cdlss-2.0%E9%80%9A%E7%94%A8%E8%B6%85%E5%88%86%E8%BE%A8%E7%8E%87%E6%96%B9%E6%A1%88"><span class="nav-number">1.2.</span> <span class="nav-text">二、DLSS 2.0：通用超分辨率方案</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89dlss-3.0ai-%E5%B8%A7%E7%94%9F%E6%88%90"><span class="nav-number">1.3.</span> <span class="nav-text">三、DLSS 3.0：AI 帧生成</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9Bdlss-3.5%E5%85%A8%E8%B7%AF%E5%BE%84%E5%85%89%E8%BF%BD%E4%BC%98%E5%8C%96"><span class="nav-number">1.4.</span> <span class="nav-text">四、DLSS 3.5：全路径光追优化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94dlss-4.0ai-%E8%B6%85%E5%88%86%E6%96%B0%E6%97%B6%E4%BB%A3"><span class="nav-number">1.5.</span> <span class="nav-text">五、DLSS 4.0：AI 超分新时代</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AD%E6%80%BB%E7%BB%93%E4%B8%8E%E5%B1%95%E6%9C%9B"><span class="nav-number">1.6.</span> <span class="nav-text">六、总结与展望</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="Cipher Locke"
+      src="/images/computer-chip_gray.svg">
+  <p class="site-author-name" itemprop="name">Cipher Locke</p>
+  <div class="site-description" itemprop="description">Just for record</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">22</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">27</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+        <div class="back-to-top animated" role="button" aria-label="Back to top">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+
+    
+  </aside>
+
+
     </div>
 
     <div class="main-inner post posts-expand">
@@ -432,7 +489,7 @@ Foundry 针对 DLSS 的系列评测&amp;分析（英文）</a></li>
 setInterval("createtime()",250);
 </script>
 </div>
-  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a>
   </div>
     </div>
   </footer>
@@ -447,7 +504,8 @@ setInterval("createtime()",250);
 
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
-<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/next-theme-pjax/0.6.0/pjax.min.js" integrity="sha256-vxLn1tSKWD4dqbMRyv940UYw4sXgMtYcK6reefzZrao=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/next-boot.js"></script><script src="/js/pjax.js"></script>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
 <script src="/js/third-party/search/local-search.js"></script>
@@ -460,7 +518,7 @@ setInterval("createtime()",250);
 
 
   
-  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  <script data-pjax async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 
 
 

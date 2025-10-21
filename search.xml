@@ -136,247 +136,6 @@ range</p></li>
       </tags>
   </entry>
   <entry>
-    <title>ARM常用指令(3)</title>
-    <url>/2022/07/27/ARM%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4-3/</url>
-    <content><![CDATA[<meta name="referrer" content="no-referrer" />
-<style type="text/css" rel="stylesheet">
-col{
-    /* width: 0 !important; */
-    max-width: 10% !important;
-}
-</style>
-<h2 id="比较跳转指令">比较跳转指令</h2>
-<h3 id="比较指令">比较指令</h3>
-<ul>
-<li>cmn指令</li>
-</ul>
-<p>与cmp指令类似，不同的是cmn指令是将一个数与另一个数的相反数进行比较，并且在汇编过程中等同于adds指令</p>
-<span id="more"></span>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">cmn x1, x2</span><br><span class="line">=&gt;</span><br><span class="line">adds xzr, x1, x2</span><br></pre></td></tr></table></figure>
-<ul>
-<li>csel指令</li>
-</ul>
-<blockquote>
-<p>CSEL <em>Wd</em>, <em>Wn</em>, <em>Wm</em>, <em>cond</em> ;
-32-bit</p>
-</blockquote>
-<blockquote>
-<p>CSEL <em>Xd</em>, <em>Xn</em>, <em>Xm</em>, <em>cond</em> ;
-64-bit</p>
-</blockquote>
-<p>判断cond是否为真，为真返回Xn/Wn，为假返回Xm/Wm，返回值存放于Xd/Wd寄存器</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">mov x1, #<span class="number">3</span></span><br><span class="line">mov x2, #<span class="number">4</span></span><br><span class="line"></span><br><span class="line">cmp x1, x2</span><br><span class="line">csel x0, x1, x2, ge  <span class="comment">// x0 = 4</span></span><br></pre></td></tr></table></figure>
-<ul>
-<li>cset指令</li>
-</ul>
-<blockquote>
-<p>CSET <em>Wd</em>, <em>cond</em> ; 32-bit</p>
-</blockquote>
-<blockquote>
-<p>CSET <em>Xd</em>, <em>cond</em> ; 64-bit</p>
-</blockquote>
-<p>判断cond是否为真，为真设置Xd/Wd为1，否则设置为0</p>
-<ul>
-<li>csinc指令</li>
-</ul>
-<p>类似于csel，不过当cond为假是，返回Xm/Wm + 1</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">mov x1, #<span class="number">3</span></span><br><span class="line">mov x2, #<span class="number">4</span></span><br><span class="line"></span><br><span class="line">cmp x1, x2</span><br><span class="line">csinc x0, x1, x2, ge <span class="comment">// x0 = 5</span></span><br></pre></td></tr></table></figure>
-<h3 id="跳转指令">跳转指令</h3>
-<ul>
-<li><p>普通跳转指令</p>
-<table>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
-<thead>
-<tr>
-<th>B</th>
-<th>B label 当前PC偏移量±128MB范围</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>B.cond</td>
-<td>B.cond label 当前PC偏移量±1MB范围</td>
-</tr>
-<tr>
-<td>BL</td>
-<td>BL label
-将返回值保存至X30寄存器，保存的值等于调用BL指令的当前PC值加4</td>
-</tr>
-<tr>
-<td>BR</td>
-<td>BR Xn 跳转到寄存器指定地址</td>
-</tr>
-<tr>
-<td>BLR</td>
-<td>BLR Xn 跳转到寄存器指定地址，并将返回地址保存在X30寄存器</td>
-</tr>
-</tbody>
-</table></li>
-<li><p>比较跳转指令</p>
-<table>
-<colgroup>
-<col style="width: 50%" />
-<col style="width: 50%" />
-</colgroup>
-<thead>
-<tr>
-<th>CBZ</th>
-<th>cbz Xt, label Xt == 0，跳转至label，跳转范围是当前PC地址±1MB</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>CBNZ</td>
-<td>cbnz Xt, label Xt != 0，跳转至label，跳转范围是当前PC地址±1MB</td>
-</tr>
-<tr>
-<td>TBZ</td>
-<td>tbz R<t>, #imm, label
-Rt寄存器第imm位为0，跳转至label，跳转范围是当前PC地址±32KB</td>
-</tr>
-<tr>
-<td>TBNZ</td>
-<td>tbnz R<t>, #imm, label
-Rt寄存器第imm位不为0，跳转至label，跳转范围是当前PC地址±32KB</td>
-</tr>
-</tbody>
-</table></li>
-<li><p>X29和X30寄存器的使用</p>
-<p>调用子函数时，需要将X29和X30寄存器入栈，在主函数返回时，将X29和X30出栈，否则会出现主函数无法退出的情况。</p>
-<p>错误案例：</p>
-<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">// main.cpp</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="string">&quot;C&quot;</span> <span class="function"><span class="type">void</span> <span class="title">test2</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="built_in">test2</span>();</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// main.s</span></span><br><span class="line">.arch armv8-a</span><br><span class="line">.text</span><br><span class="line">.align	<span class="number">3</span></span><br><span class="line"></span><br><span class="line">.global csel_test</span><br><span class="line">csel_test:</span><br><span class="line">    cmp x0, <span class="number">0</span></span><br><span class="line">    sub x2, x1, <span class="number">1</span></span><br><span class="line">    add x3, x1, <span class="number">2</span></span><br><span class="line">    csel x0, x3, x2, eq</span><br><span class="line">    ret</span><br><span class="line"></span><br><span class="line">.global	test2</span><br><span class="line">test2:</span><br><span class="line">    mov x0, <span class="number">1</span></span><br><span class="line">    mov x2, <span class="number">3</span></span><br><span class="line">    bl csel_test</span><br><span class="line">    ret</span><br></pre></td></tr></table></figure></p>
-<p>Linux主机编译支持debug的arm跨平台可执行文件方法，参照另一篇文章《Android
-Toolchain编译与GDB调试》</p>
-<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">./gdb <span class="comment"># 进入gdb程序</span></span><br><span class="line">b main <span class="comment"># 加断点</span></span><br><span class="line">n <span class="comment"># next 下一步，不进入函数 执行至test2();</span></span><br><span class="line">s <span class="comment"># step 下一步，进入test2函数内部</span></span><br><span class="line">n</span><br><span class="line">n</span><br><span class="line">info r <span class="comment"># info register 打印寄存器，可以查看lr寄存器为0x4030f0，pc寄存器为0x4031ac</span></span><br><span class="line">s <span class="comment"># step 下一步，进入csel_test函数内部</span></span><br><span class="line">info r <span class="comment"># info register 打印寄存器，可以查看lr寄存器为0x4031b0，pc寄存器为0x403190</span></span><br></pre></td></tr></table></figure></p>
-<p>以上过程可以看出，lr寄存器的值，在csel_test子函数执行时lr寄存器的值为上一步pc寄存器值+4，即0x4031ac
-+ 4 = 0x4031b0</p>
-<p>当csel_test函数返回值test2时，lr寄存器的值为0x4031ac，此时test2函数只有按在lr寄存器的值为0x4030f0时才能正确返回，因此函数会卡住</p>
-<p>正确案例：</p>
-<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">.arch armv8-a</span><br><span class="line">.text</span><br><span class="line">.align	<span class="number">3</span></span><br><span class="line"></span><br><span class="line">.global csel_test</span><br><span class="line">csel_test:</span><br><span class="line">    cmp x0, <span class="number">0</span></span><br><span class="line">    sub x2, x1, <span class="number">1</span></span><br><span class="line">    add x3, x1, <span class="number">2</span></span><br><span class="line">    csel x0, x3, x2, eq</span><br><span class="line">    ret</span><br><span class="line"></span><br><span class="line">.global	main</span><br><span class="line">main:</span><br><span class="line">		stp x29, x30, [sp, <span class="number">-16</span>]!</span><br><span class="line">    mov x0, <span class="number">1</span></span><br><span class="line">    mov x2, <span class="number">3</span></span><br><span class="line">		ldp x29, x30, [sp], #<span class="number">16</span></span><br><span class="line">    bl csel_test</span><br><span class="line">    ret</span><br></pre></td></tr></table></figure></p>
-<p>重复上述gdb步骤，查看lr，pc寄存器的值</p>
-<p>test2，lr寄存器的值为0x4030f0，pc寄存器的值为0x4031b0</p>
-<p>csel_test，lr寄存器的值为0x4031b4，pc寄存器的值为0x4031a0</p>
-<p>返回test2函数后，lr寄存器的值为0x4030f0，pc寄存器的值为0x4031b8</p>
-<p>test2调用子函数前后lr寄存器的值保持不变，test2函数正常结束</p></li>
-</ul>
-<h3 id="pc相对地址加载指令">PC相对地址加载指令</h3>
-<ul>
-<li>ADR指令</li>
-</ul>
-<p>加载当前PC值±1MB范围内的label地址到目的寄存器</p>
-<ul>
-<li>ADRP指令</li>
-</ul>
-<p>加载当前PC值±4GB范围内的label 4KB对齐的地址到目的寄存器</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">.<span class="built_in">arch</span> armv8-a</span><br><span class="line">.text</span><br><span class="line">.align	3</span><br><span class="line"></span><br><span class="line">my_data1:</span><br><span class="line"> .dword 0x8a</span><br><span class="line"></span><br><span class="line">.global	test2</span><br><span class="line">test2:</span><br><span class="line">    adr x0, my_data1</span><br><span class="line">    ldr x1, [x0]</span><br><span class="line"></span><br><span class="line">    adrp x2, my_data1</span><br><span class="line">    ldr x3, [x2]</span><br><span class="line">    ret</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>可以通过gdb -tui进行界面模式，然后通过layout
-reg切换至寄存器显示模式</p>
-</blockquote>
-<p>通过GDB查看，x0地址为0x403190，x2地址为0x403000，前者为my_data1的地址，否则为my_data1地址按照4KB对齐后的地址，因此x1寄存器的值为0x8a，与定义相同，x3寄存器的值错误。</p>
-<figure>
-<img src="https://s2.loli.net/2022/05/23/4w1xtTYNIyQXb7J.png"
-alt="https://s2.loli.net/2022/05/23/4w1xtTYNIyQXb7J.png" />
-<figcaption
-aria-hidden="true">https://s2.loli.net/2022/05/23/4w1xtTYNIyQXb7J.png</figcaption>
-</figure>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">adrp x2, my_data1</span><br><span class="line">add x2, x2, <span class="comment">#:lo12:my_data1</span></span><br><span class="line">ldr x3, [x2]</span><br></pre></td></tr></table></figure>
-<p>“#:lo12:”，表示4KB大小的偏移量，再通过GDB查看，结果正确。</p>
-<figure>
-<img src="https://s2.loli.net/2022/05/23/CxqeDOmPaLQ4hgN.png"
-alt="https://s2.loli.net/2022/05/23/CxqeDOmPaLQ4hgN.png" />
-<figcaption
-aria-hidden="true">https://s2.loli.net/2022/05/23/CxqeDOmPaLQ4hgN.png</figcaption>
-</figure>
-<ul>
-<li>adr和ldr伪指令的区别
-<ol type="1">
-<li>ldr伪指令加载的是绝对地址，adr加载的是当前pc的相对地址</li>
-<li>当运行地址和链接地址相同时，adr和ldr伪指令等效</li>
-<li>当运行地址和链接地址不同时，ldr伪指令加载label的链接地址，adr加载label物理地址</li>
-</ol></li>
-</ul>
-<h3 id="系统寄存器访问指令">系统寄存器访问指令</h3>
-<ul>
-<li>mrs指令</li>
-</ul>
-<p>读取系统寄存器的值到通用寄存器</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mrs x0, nzcv</span><br><span class="line">// 读取NZCV寄存器，查看标志位是否为1</span><br></pre></td></tr></table></figure>
-<ul>
-<li>msr指令</li>
-</ul>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mrs x0, nzcv</span><br><span class="line">// 更新NZCV寄存器的值</span><br></pre></td></tr></table></figure>
-<h3 id="内存屏障指令">内存屏障指令</h3>
-<table>
-<thead>
-<tr class="header">
-<th>
-DMB
-</th>
-<th>
-数据存储屏障，Data Memory
-Barrier，确保在执行新的存储器访问前所有的存储器访问都已经完成
-</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>
-DSB
-</td>
-<td>
-数据同步屏障，Data Synchronization
-Barrier，确保在下一个指令执行前所有的存储器访问都已经完成
-</td>
-</tr>
-<tr class="even">
-<td>
-ISB
-</td>
-<td>
-指令同步屏障，Instruction Synchronization
-Barrier，清空流水线，确保在执行新的指令前，之前所有的指令都已经完成
-</td>
-</tr>
-<tr class="odd">
-<td>
-LDAR
-</td>
-<td>
-加载-获取指令，Load-acquire，LDAR指令后面的读写内存指令必须在LDAR指令之后才能完成
-</td>
-</tr>
-<tr class="even">
-<td>
-STLR
-</td>
-<td>
-存储-释放指令，Store-release，所有加载和存储指令必须在STLR指令之前完成
-</td>
-</tr>
-</tbody>
-</table>
-<h3 id="伪指令">伪指令</h3>
-<ul>
-<li><p>对齐伪指令</p>
-<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">.align <span class="number">2</span>  # 四字节对齐</span><br><span class="line">.align <span class="number">5</span>, <span class="number">0</span>, <span class="number">100</span>  # <span class="number">32</span>字节对齐，最多跳过字节数为<span class="number">100</span>，填充<span class="number">0</span></span><br></pre></td></tr></table></figure></p></li>
-<li><p>数据定义伪指令</p>
-<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">.byte	          将<span class="number">8</span>位数作为数据插入汇编代码</span><br><span class="line">.hword/.<span class="type">short</span>	  将<span class="number">16</span>位数作为数据插入汇编代码</span><br><span class="line">.<span class="type">long</span>/.<span class="type">int</span>	    将<span class="number">32</span>位数作为数据插入汇编代码</span><br><span class="line">.word	          将<span class="number">32</span>位数作为数据插入汇编代码</span><br><span class="line">.quad	          将<span class="number">64</span>位数作为数据插入汇编代码</span><br><span class="line">.<span class="type">float</span>	        将浮点数作为数据插入汇编代码</span><br><span class="line">.ascii/.string	将字符串作为数据插入汇编代码</span><br><span class="line">.asciz	        将字符串作为数据插入汇编代码，自动插入结尾字符”\<span class="number">0</span>”</span><br><span class="line">.rept/.endr   	重复执行操作</span><br><span class="line">  .rept <span class="number">3</span></span><br><span class="line">  .<span class="type">long</span> <span class="number">0</span></span><br><span class="line">  .endr</span><br><span class="line">.equ	          符号赋值操作</span><br><span class="line">	.equ my_data, <span class="number">100</span></span><br></pre></td></tr></table></figure></p></li>
-<li><p>函数相关伪指令</p>
-<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">.global                 全局函数符号，或者全局变量符号</span><br><span class="line">.include                引用头文件</span><br><span class="line">.<span class="keyword">if</span> .<span class="keyword">else</span> .endif        条件判断</span><br><span class="line">.ifdef/.ifndef symbol   判断符号是否定义</span><br><span class="line">.ifc/.ifeqs             判断两字符串是否相等</span><br><span class="line">.ifeq/.ifge/.ifle/.ifne 判断值是否为<span class="number">0</span>/大于等于/小于等于<span class="number">0</span>/不等于<span class="number">0</span></span><br></pre></td></tr></table></figure></p></li>
-<li><p>宏伪指令</p>
-<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">.macro add p1 p2</span><br><span class="line">add x0, \p1, \p2</span><br><span class="line">.endm</span><br></pre></td></tr></table></figure></p></li>
-</ul>
-]]></content>
-      <tags>
-        <tag>ARM</tag>
-        <tag>汇编</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>ARM常用指令(1)</title>
     <url>/2022/05/12/ARM%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4/</url>
     <content><![CDATA[<meta name="referrer" content="no-referrer" />
@@ -508,6 +267,134 @@ test.o对main.o进行反汇编</p>
       </tags>
   </entry>
   <entry>
+    <title>Android Toolchain编译与GDB调试</title>
+    <url>/2022/08/26/Android-Toolchain%E7%BC%96%E8%AF%91%E4%B8%8EGDB%E8%B0%83%E8%AF%95/</url>
+    <content><![CDATA[<meta name="referrer" content="no-referrer" />
+<p>在进行linux主机上进行arm跨平台进行pure c++开发时，可能混有Neon
+intrinsic或者ARM
+assembly代码，此时进行代码编译和调试，可以使用standalone
+toolchain进行编译，使用gdb+gdbserver进行调试。</p>
+<span id="more"></span>
+<p>首先需要在NDK
+website上下载一个NDK工具包并解压，本人使用的是r14b版本，链接：<a
+href="https://dl.google.com/android/repository/android-ndk-r14b-linux-x86_64.zip">https://dl.google.com/android/repository/android-ndk-r14b-linux-x86_64.zip</a></p>
+<ul>
+<li><p>Standalone Toolchain的编译</p>
+<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> android-ndk-r14b/build/tools/</span><br><span class="line">./make-standalone-toolchain.sh --platform=android-21 --install-dir=./android-aarch64 --<span class="built_in">arch</span>=arm64</span><br><span class="line">./make-standalone-toolchain.sh --platform=android-21 --install-dir=./android-armv7 --<span class="built_in">arch</span>=arm</span><br></pre></td></tr></table></figure></p>
+<p>通过以上命令，会生成android-aarch64，android-armv7两个目录，可以将生成的standalone
+toolchain拷贝至固定目录</p>
+<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> <span class="built_in">cp</span> -r android-ndk-r14b/build/tools/android-aarch64 /opt</span><br><span class="line"><span class="built_in">sudo</span> <span class="built_in">cp</span> -r android-ndk-r14b/build/tools/android-armv7 /opt</span><br></pre></td></tr></table></figure></p>
+<p>以上完成standalone toolchain生成</p></li>
+<li><p>Linux主机编译arm跨平台pure c++程序</p>
+<ol type="1">
+<li>在Linux主机上准备main.cpp源代码文件</li>
+</ol>
+<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment">#include &lt;iostream&gt;</span></span><br><span class="line"></span><br><span class="line">int <span class="function"><span class="title">main</span></span>() &#123;</span><br><span class="line">		std::cout &lt;&lt; <span class="string">&quot;hello world&quot;</span> &lt;&lt; <span class="string">std::endl;</span></span><br><span class="line"><span class="string">    return 0;</span></span><br><span class="line"><span class="string">&#125;</span></span><br></pre></td></tr></table></figure></p>
+<ol type="1">
+<li>编写CMakeLists.txt文件</li>
+</ol>
+<p><figure class="highlight makefile"><table><tr><td class="code"><pre><span class="line">cmake_minimum_required(VERSION 3.17)</span><br><span class="line"></span><br><span class="line">project(ARM)</span><br><span class="line"></span><br><span class="line">enable_language(ASM)</span><br><span class="line"></span><br><span class="line">set(CMAKE_CXX_STANDARD 11)</span><br><span class="line">set(CMAKE_CXX_STANDARD_REQUIRED ON)</span><br><span class="line">add_definitions(-w)</span><br><span class="line">SET(CMAKE_BUILD_TYPE <span class="string">&quot;Debug&quot;</span>)</span><br><span class="line">SET(CMAKE_CXX_FLAGS_DEBUG <span class="string">&quot;$ENV&#123;CXXFLAGS&#125; -O0 -Wall -g2 -ggdb&quot;</span>)</span><br><span class="line">SET(CMAKE_CXX_FLAGS_RELEASE <span class="string">&quot;$ENV&#123;CXXFLAGS&#125; -O3 -Wall&quot;</span>)</span><br><span class="line"></span><br><span class="line">set(TARGET_CPU aarch64)</span><br><span class="line"></span><br><span class="line">set(CMAKE_CXX_FLAGS <span class="string">&quot;$&#123;CMAKE_CXX_FLAGS&#125; -static -fPIE -flax-vector-conversions&quot;</span>)</span><br><span class="line">if(TARGET_CPU STREQUAL <span class="string">&quot;aarch64&quot;</span>)</span><br><span class="line">    include_directories(/opt/android-ndk-r14b/android-aarch64/lib64/clang/7.0.2/<span class="keyword">include</span>)</span><br><span class="line"><span class="keyword">else</span>()</span><br><span class="line">    set(CMAKE_CXX_FLAGS <span class="string">&quot;$&#123;CMAKE_CXX_FLAGS&#125; -mfloat-abi=softfp -mfpu=neon&quot;</span>)</span><br><span class="line">    include_directories(/opt/android-ndk-r14b/android-armv7/lib64/clang/7.0.2/<span class="keyword">include</span>)</span><br><span class="line"><span class="keyword">endif</span>()</span><br><span class="line"></span><br><span class="line">set(SOURCES</span><br><span class="line">    main.cpp</span><br><span class="line">    <span class="comment"># main.s</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">add_executable(main $&#123;SOURCES&#125;)</span><br></pre></td></tr></table></figure></p>
+<ol type="1">
+<li>编译ARM平台可执行文件</li>
+</ol>
+<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">CXX_COMPILER=/opt/android-ndk-r14b/android-aarch64/bin/aarch64-linux-android-g++</span><br><span class="line">CC_COMPILER=/opt/android-ndk-r14b/android-aarch64/bin/aarch64-linux-android-gcc</span><br><span class="line"><span class="built_in">cd</span> cmake-build-debug</span><br><span class="line">cmake .. -DCMAKE_C_COMPILER=<span class="variable">$CC_COMPILER</span> -DCMAKE_CXX_COMPILER=<span class="variable">$CXX_COMPILER</span></span><br></pre></td></tr></table></figure></p>
+<ol type="1">
+<li>ARM平台程序的执行</li>
+</ol>
+<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">adb push main /data/local/tmp</span><br><span class="line">adb shell ./data/local/tmp/main</span><br></pre></td></tr></table></figure></p></li>
+<li><p>GDB+GDBServer调试</p>
+<ol type="1">
+<li>准备GDBServer</li>
+</ol>
+<p>测试手机一般出厂不会自带gdbserver，可以将NDK工具包中对应平台gdbserver推入手机</p>
+<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">adb push android-ndk-r14b/prebuilt/android-arm64/gdbserver/gdbserver /data/local/tmp</span><br></pre></td></tr></table></figure></p>
+<ol type="1">
+<li>启动GDBServer</li>
+</ol>
+<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">adb shell <span class="comment"># 进入手机shell命令行</span></span><br><span class="line"><span class="built_in">cd</span> /data/local/tmp</span><br><span class="line">./gdbserver tcp:9090 main</span><br><span class="line"></span><br><span class="line"><span class="comment"># 正常输出如下：</span></span><br><span class="line">Process main created; pid = 7201</span><br><span class="line">gdbserver: Unable to determine the number of hardware watchpoints available.</span><br><span class="line">gdbserver: Unable to determine the number of hardware breakpoints available.</span><br><span class="line">Listening on port 9090</span><br></pre></td></tr></table></figure></p>
+<ol type="1">
+<li>在主机平台启动gdb调试程序</li>
+</ol>
+<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> android-ndk-r14b/prebuilt/linux-x86_64/bin <span class="comment"># 进入ndk gdb程序目录</span></span><br><span class="line">adb forward tcp:9090 tcp:9090 <span class="comment"># 端口转发</span></span><br><span class="line">./gdb <span class="comment"># 进入gdb程序</span></span><br><span class="line">target remote localhost:9090 <span class="comment"># 开始获取信息并开始调试</span></span><br><span class="line">b main <span class="comment"># 设置断点</span></span><br><span class="line"><span class="comment"># 后续与普通GDB调试相同</span></span><br></pre></td></tr></table></figure></p>
+<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">n  <span class="comment"># 下一步，不进入函数内部</span></span><br><span class="line">s  <span class="comment"># 下一步，进入函数内部</span></span><br><span class="line">l  <span class="comment"># 代码列表</span></span><br><span class="line">info r    <span class="comment"># 查看寄存器</span></span><br></pre></td></tr></table></figure></p></li>
+</ul>
+]]></content>
+      <tags>
+        <tag>Android</tag>
+        <tag>Toolchain</tag>
+        <tag>GDB</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>C++ Tips</title>
+    <url>/2022/03/05/C-Tips/</url>
+    <content><![CDATA[<ol type="1">
+<li>自定义class，存在析构函数，那么需要同时定义或者删除拷贝构造函数和拷贝赋值函数。原因是，在拷贝构造或者拷贝复制的过程中，为浅拷贝，当程序结束，析构函数介入时，可能存在析构两次的情况。</li>
+</ol>
+<span id="more"></span>
+<ol start="2" type="1">
+<li><p>右值，int &amp;&amp;可以自动转换为int const &amp;。</p></li>
+<li><p>__restrict关键字，告诉编译器，指针不存在重叠的情况，编译器可以进行优化，所有的非const指针都可以加上__restrict关键字，如：int
+* __restrict a。对于vector容器，__restrict关键字不生效，可以尝试#pragma
+omp simd或者#pragma GCC ivdep</p></li>
+<li><p>关于malloc和new</p>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> *a = <span class="keyword">new</span> <span class="type">int</span>[<span class="number">102400</span>];</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> *a = (<span class="type">int</span> *)<span class="built_in">malloc</span>(<span class="number">102400</span> * <span class="built_in">sizeof</span>(<span class="type">int</span>));</span><br></pre></td></tr></table></figure></p>
+<p>以上申请内存的两种语句，在实际生产环境，执行时并不会真正的分配内存，而是将这一段内存标记为不可用，即：invalid。待需要用到a数组：赋值或者其他操作时，会触发缺页中断，page
+fault。此时进入内核，查询此段内存是否之前malloc过，如果查询到，那么内存标记为可用，此时程序正常运行，如果未查询到malloc记录，那么触发段错误，segmentation
+fault。</p>
+<p>以上两种申请内存的语句，不会进行置零操作，初始化数组时，内存被写入，此时操作系统才进行实际的内存分配，因此测试两次内存赋值操作会发现时间不同。对于new操作符有一个简便方法</p>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> *a = <span class="keyword">new</span> <span class="type">int</span>[<span class="number">102400</span>]&#123;&#125;;</span><br></pre></td></tr></table></figure></p>
+<p>常见的自定义String类中，无参数构造函数也可以进行以下简单的定义：注意new
+char[1]后面的一对大括号</p>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">String::<span class="built_in">String</span>() : m_length&#123;<span class="number">0</span>&#125;, m_string&#123;<span class="keyword">new</span> <span class="type">char</span>[<span class="number">1</span>]&#123;&#125;&#125;&#123;&#125;</span><br></pre></td></tr></table></figure></p></li>
+<li><p>原子操作</p>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">type __sync_fetch_and_add (type *ptr, type value, ...) <span class="comment">// 将value加到*ptr上，结果更新到*ptr，并返回操作之前*ptr的值</span></span><br><span class="line">type __sync_fetch_and_sub (type *ptr, type value, ...) <span class="comment">// 从*ptr减去value，结果更新到*ptr，并返回操作之前*ptr的值</span></span><br><span class="line">type __sync_fetch_and_or (type *ptr, type value, ...) <span class="comment">// 将*ptr与value相或，结果更新到*ptr， 并返回操作之前*ptr的值</span></span><br><span class="line">type __sync_fetch_and_and (type *ptr, type value, ...) <span class="comment">// 将*ptr与value相与，结果更新到*ptr，并返回操作之前*ptr的值</span></span><br><span class="line">type __sync_fetch_and_xor (type *ptr, type value, ...) <span class="comment">// 将*ptr与value异或，结果更新到*ptr，并返回操作之前*ptr的值</span></span><br><span class="line">type __sync_fetch_and_nand (type *ptr, type value, ...) <span class="comment">// 将*ptr取反后，与value相与，结果更新到*ptr，并返回操作之前*ptr的值</span></span><br><span class="line">type __sync_add_and_fetch (type *ptr, type value, ...) <span class="comment">// 将value加到*ptr上，结果更新到*ptr，并返回操作之后新*ptr的值</span></span><br><span class="line">type __sync_sub_and_fetch (type *ptr, type value, ...) <span class="comment">// 从*ptr减去value，结果更新到*ptr，并返回操作之后新*ptr的值</span></span><br><span class="line">type __sync_or_and_fetch (type *ptr, type value, ...) <span class="comment">// 将*ptr与value相或， 结果更新到*ptr，并返回操作之后新*ptr的值</span></span><br><span class="line">type __sync_and_and_fetch (type *ptr, type value, ...) <span class="comment">// 将*ptr与value相与，结果更新到*ptr，并返回操作之后新*ptr的值</span></span><br><span class="line">type __sync_xor_and_fetch (type *ptr, type value, ...) <span class="comment">// 将*ptr与value异或，结果更新到*ptr，并返回操作之后新*ptr的值</span></span><br><span class="line">type __sync_nand_and_fetch (type *ptr, type value, ...) <span class="comment">// 将*ptr取反后，与value相与，结果更新到*ptr，并返回操作之后新*ptr的值</span></span><br><span class="line"><span class="type">bool</span> __sync_bool_compare_and_swap (type *ptr, type oldval type newval, ...) <span class="comment">// 比较*ptr与oldval的值，如果两者相等，则将newval更新到*ptr并返回true</span></span><br><span class="line">type __sync_val_compare_and_swap (type *ptr, type oldval type newval, ...) <span class="comment">// 比较*ptr与oldval的值，如果两者相等，则将newval更新到*ptr并返回操作之前*ptr的值</span></span><br><span class="line">__sync_synchronize (...) <span class="comment">// 发出完整内存栅栏，内存屏障</span></span><br><span class="line">type __sync_lock_test_and_set (type *ptr, type value, ...) <span class="comment">// 将value写入*ptr，对*ptr加锁，并返回操作之前*ptr的值</span></span><br><span class="line"><span class="type">void</span> __sync_lock_release (type *ptr, ...) <span class="comment">// 将0写入到*ptr，（类似对*ptr解锁）</span></span><br></pre></td></tr></table></figure></p>
+<p>c++11中atomic</p>
+<ol type="1">
+<li>atomic_flag</li>
+</ol>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">std::atomic_flag LOCK = ATOMIC_FLAG_INIT; <span class="comment">// 原子布尔类型</span></span><br><span class="line">LOCK.<span class="built_in">test_and_set</span>(); <span class="comment">//被设置，则返回true; 否则，返回false</span></span><br><span class="line">LOCK.<span class="built_in">clear</span>(); <span class="comment">// 清除atomic_flag对象</span></span><br></pre></td></tr></table></figure></p>
+<ol type="1">
+<li>atomic对int, char, bool等数据结构进行原子性封装</li>
+</ol>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function">std::atomic&lt;<span class="type">int</span>&gt; <span class="title">counter</span><span class="params">(<span class="number">2</span>)</span></span>; <span class="comment">// 等同于counter.load(2);</span></span><br><span class="line"><span class="type">int</span> old = counter.<span class="built_in">fetch_add</span>(<span class="number">2</span>); <span class="comment">// 等同于counter+=2; 注意：counter = counter + 1;并不是原子操作; fetch_add会返回旧值</span></span><br><span class="line">counter.<span class="built_in">load</span>(); <span class="comment">// 读取，等同于std::cout &lt;&lt; counter &lt;&lt; std::endl;</span></span><br><span class="line"><span class="type">int</span> old = counter.<span class="built_in">exchange</span>(<span class="number">3</span>); <span class="comment">// 交换并返回旧值，old = 2</span></span><br><span class="line"><span class="type">bool</span> equal = counter.<span class="built_in">compare_exchange_strong</span>(old, <span class="keyword">new</span>); <span class="comment">// equal with old, counter = new, 返回true, 此处的old为引用，不能直接传入右值2</span></span><br></pre></td></tr></table></figure></p></li>
+</ol>
+]]></content>
+      <tags>
+        <tag>C++</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>CUDA原子操作</title>
+    <url>/2022/08/08/CUDA%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C/</url>
+    <content><![CDATA[<meta name="referrer" content="no-referrer" />
+<ol type="1">
+<li><p>atomicAdd(dst, src)：*dst += src</p></li>
+<li><p>atomicSub(dst, src)：*dst -= src</p></li>
+<li><p>atomicOr(dst, src)：*dst |= src</p></li>
+</ol>
+<span id="more"></span>
+<ol start="4" type="1">
+<li><p>atomicAnd(dst, src)：*dst &amp;= src</p></li>
+<li><p>atomicXor(dst, src)：*dst ^= src</p></li>
+<li><p>atomicMax(dst, src)：<em>dst = std::max(</em>dst, src)</p></li>
+<li><p>atomicMin(dst, src)：<em>dst = std::min(</em>dst, src)</p></li>
+</ol>
+<p>以上原子操作均会返回旧值。</p>
+<ol type="1">
+<li><p>old = atomicExch(dst, src) ：old = <em>dst; </em>dst = src;
+不返回旧值，对标std::atomic的exchange函数</p></li>
+<li><p>atomicCAS：判断是否相等，相等则写入，并读取旧值</p>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">old = <span class="built_in">atomicCAS</span>(dst, cmp, src)</span><br><span class="line"></span><br><span class="line">Like below:</span><br><span class="line"></span><br><span class="line">old = *dst;</span><br><span class="line"><span class="keyword">if</span> (old == cmp)</span><br><span class="line">  *dst = src;</span><br></pre></td></tr></table></figure></p>
+<p>通过atomicCAS可以实现一些CUDA并未原生提供的原子操作，例如：读-修改-写回，乘</p>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">old = <span class="built_in">atomicCAS</span>(dst, expect, expect + src);</span><br><span class="line"></span><br><span class="line">old = <span class="built_in">atomicCAS</span>(dst, expect, expect * src);</span><br></pre></td></tr></table></figure></p></li>
+</ol>
+]]></content>
+      <tags>
+        <tag>CUDA</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Guided Filter</title>
     <url>/2021/10/13/Guided-Filter/</url>
     <content><![CDATA[<p>输入图p，导向图I， 输出图q，<span class="math inline">\(\Rightarrow
@@ -592,75 +479,6 @@ E[Y])]\)</span></p>
 ]]></content>
       <tags>
         <tag>图像处理</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>C++ Tips</title>
-    <url>/2022/03/05/C-Tips/</url>
-    <content><![CDATA[<ol type="1">
-<li>自定义class，存在析构函数，那么需要同时定义或者删除拷贝构造函数和拷贝赋值函数。原因是，在拷贝构造或者拷贝复制的过程中，为浅拷贝，当程序结束，析构函数介入时，可能存在析构两次的情况。</li>
-</ol>
-<span id="more"></span>
-<ol start="2" type="1">
-<li><p>右值，int &amp;&amp;可以自动转换为int const &amp;。</p></li>
-<li><p>__restrict关键字，告诉编译器，指针不存在重叠的情况，编译器可以进行优化，所有的非const指针都可以加上__restrict关键字，如：int
-* __restrict a。对于vector容器，__restrict关键字不生效，可以尝试#pragma
-omp simd或者#pragma GCC ivdep</p></li>
-<li><p>关于malloc和new</p>
-<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> *a = <span class="keyword">new</span> <span class="type">int</span>[<span class="number">102400</span>];</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> *a = (<span class="type">int</span> *)<span class="built_in">malloc</span>(<span class="number">102400</span> * <span class="built_in">sizeof</span>(<span class="type">int</span>));</span><br></pre></td></tr></table></figure></p>
-<p>以上申请内存的两种语句，在实际生产环境，执行时并不会真正的分配内存，而是将这一段内存标记为不可用，即：invalid。待需要用到a数组：赋值或者其他操作时，会触发缺页中断，page
-fault。此时进入内核，查询此段内存是否之前malloc过，如果查询到，那么内存标记为可用，此时程序正常运行，如果未查询到malloc记录，那么触发段错误，segmentation
-fault。</p>
-<p>以上两种申请内存的语句，不会进行置零操作，初始化数组时，内存被写入，此时操作系统才进行实际的内存分配，因此测试两次内存赋值操作会发现时间不同。对于new操作符有一个简便方法</p>
-<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="type">int</span> *a = <span class="keyword">new</span> <span class="type">int</span>[<span class="number">102400</span>]&#123;&#125;;</span><br></pre></td></tr></table></figure></p>
-<p>常见的自定义String类中，无参数构造函数也可以进行以下简单的定义：注意new
-char[1]后面的一对大括号</p>
-<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">String::<span class="built_in">String</span>() : m_length&#123;<span class="number">0</span>&#125;, m_string&#123;<span class="keyword">new</span> <span class="type">char</span>[<span class="number">1</span>]&#123;&#125;&#125;&#123;&#125;</span><br></pre></td></tr></table></figure></p></li>
-<li><p>原子操作</p>
-<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">type __sync_fetch_and_add (type *ptr, type value, ...) <span class="comment">// 将value加到*ptr上，结果更新到*ptr，并返回操作之前*ptr的值</span></span><br><span class="line">type __sync_fetch_and_sub (type *ptr, type value, ...) <span class="comment">// 从*ptr减去value，结果更新到*ptr，并返回操作之前*ptr的值</span></span><br><span class="line">type __sync_fetch_and_or (type *ptr, type value, ...) <span class="comment">// 将*ptr与value相或，结果更新到*ptr， 并返回操作之前*ptr的值</span></span><br><span class="line">type __sync_fetch_and_and (type *ptr, type value, ...) <span class="comment">// 将*ptr与value相与，结果更新到*ptr，并返回操作之前*ptr的值</span></span><br><span class="line">type __sync_fetch_and_xor (type *ptr, type value, ...) <span class="comment">// 将*ptr与value异或，结果更新到*ptr，并返回操作之前*ptr的值</span></span><br><span class="line">type __sync_fetch_and_nand (type *ptr, type value, ...) <span class="comment">// 将*ptr取反后，与value相与，结果更新到*ptr，并返回操作之前*ptr的值</span></span><br><span class="line">type __sync_add_and_fetch (type *ptr, type value, ...) <span class="comment">// 将value加到*ptr上，结果更新到*ptr，并返回操作之后新*ptr的值</span></span><br><span class="line">type __sync_sub_and_fetch (type *ptr, type value, ...) <span class="comment">// 从*ptr减去value，结果更新到*ptr，并返回操作之后新*ptr的值</span></span><br><span class="line">type __sync_or_and_fetch (type *ptr, type value, ...) <span class="comment">// 将*ptr与value相或， 结果更新到*ptr，并返回操作之后新*ptr的值</span></span><br><span class="line">type __sync_and_and_fetch (type *ptr, type value, ...) <span class="comment">// 将*ptr与value相与，结果更新到*ptr，并返回操作之后新*ptr的值</span></span><br><span class="line">type __sync_xor_and_fetch (type *ptr, type value, ...) <span class="comment">// 将*ptr与value异或，结果更新到*ptr，并返回操作之后新*ptr的值</span></span><br><span class="line">type __sync_nand_and_fetch (type *ptr, type value, ...) <span class="comment">// 将*ptr取反后，与value相与，结果更新到*ptr，并返回操作之后新*ptr的值</span></span><br><span class="line"><span class="type">bool</span> __sync_bool_compare_and_swap (type *ptr, type oldval type newval, ...) <span class="comment">// 比较*ptr与oldval的值，如果两者相等，则将newval更新到*ptr并返回true</span></span><br><span class="line">type __sync_val_compare_and_swap (type *ptr, type oldval type newval, ...) <span class="comment">// 比较*ptr与oldval的值，如果两者相等，则将newval更新到*ptr并返回操作之前*ptr的值</span></span><br><span class="line">__sync_synchronize (...) <span class="comment">// 发出完整内存栅栏，内存屏障</span></span><br><span class="line">type __sync_lock_test_and_set (type *ptr, type value, ...) <span class="comment">// 将value写入*ptr，对*ptr加锁，并返回操作之前*ptr的值</span></span><br><span class="line"><span class="type">void</span> __sync_lock_release (type *ptr, ...) <span class="comment">// 将0写入到*ptr，（类似对*ptr解锁）</span></span><br></pre></td></tr></table></figure></p>
-<p>c++11中atomic</p>
-<ol type="1">
-<li>atomic_flag</li>
-</ol>
-<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">std::atomic_flag LOCK = ATOMIC_FLAG_INIT; <span class="comment">// 原子布尔类型</span></span><br><span class="line">LOCK.<span class="built_in">test_and_set</span>(); <span class="comment">//被设置，则返回true; 否则，返回false</span></span><br><span class="line">LOCK.<span class="built_in">clear</span>(); <span class="comment">// 清除atomic_flag对象</span></span><br></pre></td></tr></table></figure></p>
-<ol type="1">
-<li>atomic对int, char, bool等数据结构进行原子性封装</li>
-</ol>
-<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function">std::atomic&lt;<span class="type">int</span>&gt; <span class="title">counter</span><span class="params">(<span class="number">2</span>)</span></span>; <span class="comment">// 等同于counter.load(2);</span></span><br><span class="line"><span class="type">int</span> old = counter.<span class="built_in">fetch_add</span>(<span class="number">2</span>); <span class="comment">// 等同于counter+=2; 注意：counter = counter + 1;并不是原子操作; fetch_add会返回旧值</span></span><br><span class="line">counter.<span class="built_in">load</span>(); <span class="comment">// 读取，等同于std::cout &lt;&lt; counter &lt;&lt; std::endl;</span></span><br><span class="line"><span class="type">int</span> old = counter.<span class="built_in">exchange</span>(<span class="number">3</span>); <span class="comment">// 交换并返回旧值，old = 2</span></span><br><span class="line"><span class="type">bool</span> equal = counter.<span class="built_in">compare_exchange_strong</span>(old, <span class="keyword">new</span>); <span class="comment">// equal with old, counter = new, 返回true, 此处的old为引用，不能直接传入右值2</span></span><br></pre></td></tr></table></figure></p></li>
-</ol>
-]]></content>
-      <tags>
-        <tag>C++</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>CUDA原子操作</title>
-    <url>/2022/08/08/CUDA%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C/</url>
-    <content><![CDATA[<meta name="referrer" content="no-referrer" />
-<ol type="1">
-<li><p>atomicAdd(dst, src)：*dst += src</p></li>
-<li><p>atomicSub(dst, src)：*dst -= src</p></li>
-<li><p>atomicOr(dst, src)：*dst |= src</p></li>
-</ol>
-<span id="more"></span>
-<ol start="4" type="1">
-<li><p>atomicAnd(dst, src)：*dst &amp;= src</p></li>
-<li><p>atomicXor(dst, src)：*dst ^= src</p></li>
-<li><p>atomicMax(dst, src)：<em>dst = std::max(</em>dst, src)</p></li>
-<li><p>atomicMin(dst, src)：<em>dst = std::min(</em>dst, src)</p></li>
-</ol>
-<p>以上原子操作均会返回旧值。</p>
-<ol type="1">
-<li><p>old = atomicExch(dst, src) ：old = <em>dst; </em>dst = src;
-不返回旧值，对标std::atomic的exchange函数</p></li>
-<li><p>atomicCAS：判断是否相等，相等则写入，并读取旧值</p>
-<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">old = <span class="built_in">atomicCAS</span>(dst, cmp, src)</span><br><span class="line"></span><br><span class="line">Like below:</span><br><span class="line"></span><br><span class="line">old = *dst;</span><br><span class="line"><span class="keyword">if</span> (old == cmp)</span><br><span class="line">  *dst = src;</span><br></pre></td></tr></table></figure></p>
-<p>通过atomicCAS可以实现一些CUDA并未原生提供的原子操作，例如：读-修改-写回，乘</p>
-<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">old = <span class="built_in">atomicCAS</span>(dst, expect, expect + src);</span><br><span class="line"></span><br><span class="line">old = <span class="built_in">atomicCAS</span>(dst, expect, expect * src);</span><br></pre></td></tr></table></figure></p></li>
-</ol>
-]]></content>
-      <tags>
-        <tag>CUDA</tag>
       </tags>
   </entry>
   <entry>
@@ -995,6 +813,192 @@ Core变成FP64，INT，FP32，TENSOR Core。</p>
       </tags>
   </entry>
   <entry>
+    <title>Sensor Noise Model Calibration</title>
+    <url>/2021/09/26/Sensor-Noise-Model-Calibration/</url>
+    <content><![CDATA[<figure>
+<img src="https://s2.loli.net/2022/05/23/sroq9vQ7fJOWNC8.png"
+alt="image-20210927104516396" />
+<figcaption aria-hidden="true">image-20210927104516396</figcaption>
+</figure>
+<p>图片来源：<a
+href="http://graphics.cs.cmu.edu/courses/15-463/2020_fall/lectures/lecture2.pdf">CMU
+Computational Photography, Fall 2020</a></p>
+<span id="more"></span>
+<p>Pipeline中绿色框部分会引入噪声，具体如下:</p>
+<figure>
+<img src="https://s2.loli.net/2022/05/23/l3LasJfYkmROzWy.png"
+alt="image-20210927105235305" />
+<figcaption aria-hidden="true">image-20210927105235305</figcaption>
+</figure>
+<p>图片来源：<a
+href="http://graphics.cs.cmu.edu/courses/15-463/2020_fall/lectures/lecture2.pdf">CMU
+Computational Photography, Fall 2020</a></p>
+<p>具体而言会有以下三种noise：</p>
+<ol type="1">
+<li><p>Photon noise，也称Shot noise
+光粒子到达的随机性，符合泊松分布</p></li>
+<li><p>Dark noise</p>
+<p>暗电流的影响，即便没有光粒子到达，也会因为元器件本身的特性产生噪声，一般而言温度越高，噪声越大，符合均值0的高斯分布</p></li>
+<li><p>Read noise</p>
+<p>信号放大过程中、模数转换过程中引入的噪声，俗称：gain、ADC；符合均值0的高斯分布</p></li>
+</ol>
+<p>因此可以在Raw denoise的相关论文中找到以下noise model。</p>
+<blockquote>
+<p><a
+href="https://openaccess.thecvf.com/content_cvpr_2018/papers/Mildenhall_Burst_Denoising_With_CVPR_2018_paper.pdf">Google:
+Burst Denoising with Kernel Prediction Networks</a></p>
+</blockquote>
+<p><span class="math display">\[
+x_p \sim N(y_p, \sigma_r^2 + \sigma_s y_p)
+\]</span></p>
+<blockquote>
+<p><a href="https://arxiv.org/abs/1811.11127">Google: Unprocessing
+Images for Learned Raw Denoising</a></p>
+</blockquote>
+<p><span class="math display">\[
+y \sim N(\mu=x, \sigma^2=\lambda_{read} + \lambda_{shot} x) \to
+N(\mu=x,\sigma^2=g_d^2\sigma_r^2 + g_dg_ax)
+\]</span></p>
+<p>其中digital gain <span class="math inline">\(g_d\)</span>， analog
+gain <span class="math inline">\(g_a\)</span>，read noise的固定方差<span
+class="math inline">\(\sigma^2\)</span> <span class="math display">\[
+\lambda_{read}=g_d^2 \sigma_r^2, \ \lambda_{shot} = g_d g_a
+\]</span></p>
+<p>以下对上面的噪声联合分布进行推导。</p>
+<p>(Photon)Shot noise与环境照度，曝光有关。令环境照度$ $ ，光电转换效率$
+$，曝光时间t, 暗电流强度D</p>
+<p>Shot noise满足泊松分布 <span class="math display">\[
+n \sim Possion(\varphi, \alpha, t) = Possion(\varphi \cdot \alpha \cdot
+t)
+\]</span> Dark
+noise与曝光有关，曝光时间越长，元器件温度越高，暗电流影响越大，与环境光无关，满足泊松分布
+<span class="math display">\[
+n \sim Possion(D \cdot t)
+\]</span> 那么电信号L满足泊松分布，Shot noise和Dark noise的联合分布
+<span class="math display">\[
+L \sim Possion(t \cdot (\alpha \cdot \varphi + D))
+\]</span> 信号放大过程中产生Read noise，模数转换过程中产生ADC
+noise，两种noise满足均值为0的高斯分布</p>
+<p><span class="math display">\[
+n_{read} \sim Normal(0, \sigma_{read})
+\]</span></p>
+<p><span class="math display">\[
+n_{ADC} \sim Normal(0, \sigma_{ADC})
+\]</span></p>
+<p>电信号L放大后表示为G，放大的增益g，g与ISO有关 <span
+class="math inline">\(g = k \cdot ISO\)</span>，<span
+class="math inline">\(G = L \cdot g + n_{read} \cdot g\)</span>，</p>
+<p>经过ADC后信号：<span class="math inline">\(I = G +
+n_{ADC}\)</span></p>
+<p>最终信号I表示为： <span class="math display">\[
+I = L \cdot g + n_{read} \cdot g + n_{ADC}
+\]</span> 计算信号的均值和方差 <span class="math display">\[
+E(I) = g \cdot E(L) + g \cdot E(n_{read}) + E(n_{ADC})
+\]</span> 由于read noise和ADC noise均符合均值为0的高斯分布，因此 <span
+class="math display">\[
+E(I) = g \cdot E(L) = g \cdot t \cdot (\alpha \cdot \varphi + D)
+\]</span> 方差 <span class="math display">\[
+\begin{aligned}
+\sigma(I)^2 &amp;= \sigma(L \cdot g)^2 + \sigma(n_{read} \cdot g)^2 +
+\sigma(n_{ADC})^2 \\
+&amp;= g^2 \cdot t \cdot (\alpha \cdot \varphi + D) + g^2 \cdot
+\sigma(n_{read})^2 + \sigma(n_{ADC})^2
+\end{aligned}
+\]</span> read noise和ADC noise都属于加性噪声，可以合并 <span
+class="math display">\[
+I = L \cdot g + n_{read} + n_{ADC} = L \cdot g + n_{Add}
+\]</span></p>
+<p><span class="math display">\[
+n_{Add} = n_{read} \cdot g + n_{ADC}
+\]</span></p>
+<p>方差可以表示为： <span class="math display">\[
+\sigma(I)^2 = g^2 \cdot t \cdot (\alpha \cdot \varphi + D) +
+\sigma(n_{Add})^2
+\]</span> 一直暗电流，即：black level，那么可以消除暗电流D <span
+class="math display">\[
+E(I) = g \cdot t \cdot (\alpha \cdot \varphi + D) = g \cdot t \cdot
+(\alpha \cdot 0 + D) = g \cdot t \cdot D
+\]</span> 估计出暗电流的影响，可以将其从信号中减去，得到以下表达： <span
+class="math display">\[
+E(I) = g \cdot t \cdot \alpha \cdot \varphi
+\]</span></p>
+<p><span class="math display">\[
+\begin{aligned}
+\sigma(I)^2 &amp;= g^2 \cdot t \cdot \alpha \cdot \varphi +
+\sigma(n_{Add})^2 \\
+&amp;= g \cdot E(I) + \sigma(n_{Add})^2
+\end{aligned}
+\]</span></p>
+<p>因此可以看出联合分布的方差是一个线性关系，可与通过最小二乘法进行拟合。</p>
+<p>在实际的噪声估计中当做是 <span class="math inline">\(pixel \ value
+\to x\)</span>，最终得到开头的推导：<span class="math inline">\(g \to
+\lambda_{shot}, \sigma(n_{add})^2 \to \lambda_{read} \to
+g_d^2\sigma_r^2\)</span> <span class="math display">\[
+y \sim N(\mu=x, \sigma^2=\lambda_{read} + \lambda_{shot} x)
+\]</span></p>
+<p>实际上，<span class="math inline">\(\lambda_{read}\)</span>和 <span
+class="math inline">\(\lambda_{shot}\)</span>都是与ISO强相关的，在噪声标定1.0版本，需要对ISO
+100，300，500，800，1600，3200进行标定，得到RGB三通道<span
+class="math inline">\(\lambda_{read}\)</span>和<span
+class="math inline">\(\lambda_{shot}\)</span>共3*2*6=36组参数，在其它ISO值时，需要对齐进行插值。可能会引入不必要的误差，因此在噪声标定2.0版本中，将ISO作为参数引入标定过程。针对Sony
+sensor，有一个比较通用的公式：<span class="math inline">\(g_d \cdot g_a
+= \frac{ISO}{100}\)</span>，此时我们<span
+class="math inline">\(\lambda_{read}\)</span>和<span
+class="math inline">\(\lambda_{shot}\)</span>进行二次拟合，拟合的目标如下：
+<span class="math display">\[
+\lambda_{shot} = S \cdot g_d \cdot g_a = S \cdot \frac{ISO}{100}
+\]</span></p>
+<p><span class="math display">\[
+\lambda_{read} = R_0 \cdot (g_d \cdot g_a)^2 + R_1 = R_0 \cdot
+\frac{ISO}{100} + R_1
+\]</span></p>
+<p>此时将ISO作为参数引入标定过程，未来在噪声估计时会更精准。</p>
+<p>总结不同噪声在不同场景下的主导地位：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">regime</th>
+<th>dominant noise</th>
+<th>notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">bright noise</td>
+<td>photon noise</td>
+<td>scene-dependent</td>
+</tr>
+<tr>
+<td style="text-align: left;">dark noise</td>
+<td>read and ADC noise</td>
+<td>scene-independent</td>
+</tr>
+<tr>
+<td style="text-align: left;">low iso</td>
+<td>ADC noise</td>
+<td>post-gain</td>
+</tr>
+<tr>
+<td style="text-align: left;">high iso</td>
+<td>photon and read noise</td>
+<td>pre-gain</td>
+</tr>
+<tr>
+<td style="text-align: left;">long exposure</td>
+<td>dark noise</td>
+<td>thermal dependence</td>
+</tr>
+</tbody>
+</table>
+]]></content>
+      <tags>
+        <tag>Sensor</tag>
+        <tag>Noise</tag>
+        <tag>Model</tag>
+        <tag>Calibration</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>DLSS发展历程</title>
     <url>/2025/10/12/dlss4-0%E6%8A%80%E6%9C%AF%E5%88%86%E6%9E%90/</url>
     <content><![CDATA[<meta name="referrer" content="no-referrer" />
@@ -1314,189 +1318,16 @@ A2 Tensor Core GPU</li>
       </tags>
   </entry>
   <entry>
-    <title>Sensor Noise Model Calibration</title>
-    <url>/2021/09/26/Sensor-Noise-Model-Calibration/</url>
-    <content><![CDATA[<figure>
-<img src="https://s2.loli.net/2022/05/23/sroq9vQ7fJOWNC8.png"
-alt="image-20210927104516396" />
-<figcaption aria-hidden="true">image-20210927104516396</figcaption>
-</figure>
-<p>图片来源：<a
-href="http://graphics.cs.cmu.edu/courses/15-463/2020_fall/lectures/lecture2.pdf">CMU
-Computational Photography, Fall 2020</a></p>
+    <title>图像平坦区域检测(Flat Area Detection)</title>
+    <url>/2023/10/24/%E5%9B%BE%E5%83%8F%E5%B9%B3%E5%9D%A6%E5%8C%BA%E5%9F%9F%E6%A3%80%E6%B5%8B-Flat-Area-Detection/</url>
+    <content><![CDATA[<meta name="referrer" content="no-referrer" />
+<p>使用opecv进行平坦区域检测</p>
 <span id="more"></span>
-<p>Pipeline中绿色框部分会引入噪声，具体如下:</p>
-<figure>
-<img src="https://s2.loli.net/2022/05/23/l3LasJfYkmROzWy.png"
-alt="image-20210927105235305" />
-<figcaption aria-hidden="true">image-20210927105235305</figcaption>
-</figure>
-<p>图片来源：<a
-href="http://graphics.cs.cmu.edu/courses/15-463/2020_fall/lectures/lecture2.pdf">CMU
-Computational Photography, Fall 2020</a></p>
-<p>具体而言会有以下三种noise：</p>
-<ol type="1">
-<li><p>Photon noise，也称Shot noise
-光粒子到达的随机性，符合泊松分布</p></li>
-<li><p>Dark noise</p>
-<p>暗电流的影响，即便没有光粒子到达，也会因为元器件本身的特性产生噪声，一般而言温度越高，噪声越大，符合均值0的高斯分布</p></li>
-<li><p>Read noise</p>
-<p>信号放大过程中、模数转换过程中引入的噪声，俗称：gain、ADC；符合均值0的高斯分布</p></li>
-</ol>
-<p>因此可以在Raw denoise的相关论文中找到以下noise model。</p>
-<blockquote>
-<p><a
-href="https://openaccess.thecvf.com/content_cvpr_2018/papers/Mildenhall_Burst_Denoising_With_CVPR_2018_paper.pdf">Google:
-Burst Denoising with Kernel Prediction Networks</a></p>
-</blockquote>
-<p><span class="math display">\[
-x_p \sim N(y_p, \sigma_r^2 + \sigma_s y_p)
-\]</span></p>
-<blockquote>
-<p><a href="https://arxiv.org/abs/1811.11127">Google: Unprocessing
-Images for Learned Raw Denoising</a></p>
-</blockquote>
-<p><span class="math display">\[
-y \sim N(\mu=x, \sigma^2=\lambda_{read} + \lambda_{shot} x) \to
-N(\mu=x,\sigma^2=g_d^2\sigma_r^2 + g_dg_ax)
-\]</span></p>
-<p>其中digital gain <span class="math inline">\(g_d\)</span>， analog
-gain <span class="math inline">\(g_a\)</span>，read noise的固定方差<span
-class="math inline">\(\sigma^2\)</span> <span class="math display">\[
-\lambda_{read}=g_d^2 \sigma_r^2, \ \lambda_{shot} = g_d g_a
-\]</span></p>
-<p>以下对上面的噪声联合分布进行推导。</p>
-<p>(Photon)Shot noise与环境照度，曝光有关。令环境照度$ $ ，光电转换效率$
-$，曝光时间t, 暗电流强度D</p>
-<p>Shot noise满足泊松分布 <span class="math display">\[
-n \sim Possion(\varphi, \alpha, t) = Possion(\varphi \cdot \alpha \cdot
-t)
-\]</span> Dark
-noise与曝光有关，曝光时间越长，元器件温度越高，暗电流影响越大，与环境光无关，满足泊松分布
-<span class="math display">\[
-n \sim Possion(D \cdot t)
-\]</span> 那么电信号L满足泊松分布，Shot noise和Dark noise的联合分布
-<span class="math display">\[
-L \sim Possion(t \cdot (\alpha \cdot \varphi + D))
-\]</span> 信号放大过程中产生Read noise，模数转换过程中产生ADC
-noise，两种noise满足均值为0的高斯分布</p>
-<p><span class="math display">\[
-n_{read} \sim Normal(0, \sigma_{read})
-\]</span></p>
-<p><span class="math display">\[
-n_{ADC} \sim Normal(0, \sigma_{ADC})
-\]</span></p>
-<p>电信号L放大后表示为G，放大的增益g，g与ISO有关 <span
-class="math inline">\(g = k \cdot ISO\)</span>，<span
-class="math inline">\(G = L \cdot g + n_{read} \cdot g\)</span>，</p>
-<p>经过ADC后信号：<span class="math inline">\(I = G +
-n_{ADC}\)</span></p>
-<p>最终信号I表示为： <span class="math display">\[
-I = L \cdot g + n_{read} \cdot g + n_{ADC}
-\]</span> 计算信号的均值和方差 <span class="math display">\[
-E(I) = g \cdot E(L) + g \cdot E(n_{read}) + E(n_{ADC})
-\]</span> 由于read noise和ADC noise均符合均值为0的高斯分布，因此 <span
-class="math display">\[
-E(I) = g \cdot E(L) = g \cdot t \cdot (\alpha \cdot \varphi + D)
-\]</span> 方差 <span class="math display">\[
-\begin{aligned}
-\sigma(I)^2 &amp;= \sigma(L \cdot g)^2 + \sigma(n_{read} \cdot g)^2 +
-\sigma(n_{ADC})^2 \\
-&amp;= g^2 \cdot t \cdot (\alpha \cdot \varphi + D) + g^2 \cdot
-\sigma(n_{read})^2 + \sigma(n_{ADC})^2
-\end{aligned}
-\]</span> read noise和ADC noise都属于加性噪声，可以合并 <span
-class="math display">\[
-I = L \cdot g + n_{read} + n_{ADC} = L \cdot g + n_{Add}
-\]</span></p>
-<p><span class="math display">\[
-n_{Add} = n_{read} \cdot g + n_{ADC}
-\]</span></p>
-<p>方差可以表示为： <span class="math display">\[
-\sigma(I)^2 = g^2 \cdot t \cdot (\alpha \cdot \varphi + D) +
-\sigma(n_{Add})^2
-\]</span> 一直暗电流，即：black level，那么可以消除暗电流D <span
-class="math display">\[
-E(I) = g \cdot t \cdot (\alpha \cdot \varphi + D) = g \cdot t \cdot
-(\alpha \cdot 0 + D) = g \cdot t \cdot D
-\]</span> 估计出暗电流的影响，可以将其从信号中减去，得到以下表达： <span
-class="math display">\[
-E(I) = g \cdot t \cdot \alpha \cdot \varphi
-\]</span></p>
-<p><span class="math display">\[
-\begin{aligned}
-\sigma(I)^2 &amp;= g^2 \cdot t \cdot \alpha \cdot \varphi +
-\sigma(n_{Add})^2 \\
-&amp;= g \cdot E(I) + \sigma(n_{Add})^2
-\end{aligned}
-\]</span></p>
-<p>因此可以看出联合分布的方差是一个线性关系，可与通过最小二乘法进行拟合。</p>
-<p>在实际的噪声估计中当做是 <span class="math inline">\(pixel \ value
-\to x\)</span>，最终得到开头的推导：<span class="math inline">\(g \to
-\lambda_{shot}, \sigma(n_{add})^2 \to \lambda_{read} \to
-g_d^2\sigma_r^2\)</span> <span class="math display">\[
-y \sim N(\mu=x, \sigma^2=\lambda_{read} + \lambda_{shot} x)
-\]</span></p>
-<p>实际上，<span class="math inline">\(\lambda_{read}\)</span>和 <span
-class="math inline">\(\lambda_{shot}\)</span>都是与ISO强相关的，在噪声标定1.0版本，需要对ISO
-100，300，500，800，1600，3200进行标定，得到RGB三通道<span
-class="math inline">\(\lambda_{read}\)</span>和<span
-class="math inline">\(\lambda_{shot}\)</span>共3*2*6=36组参数，在其它ISO值时，需要对齐进行插值。可能会引入不必要的误差，因此在噪声标定2.0版本中，将ISO作为参数引入标定过程。针对Sony
-sensor，有一个比较通用的公式：<span class="math inline">\(g_d \cdot g_a
-= \frac{ISO}{100}\)</span>，此时我们<span
-class="math inline">\(\lambda_{read}\)</span>和<span
-class="math inline">\(\lambda_{shot}\)</span>进行二次拟合，拟合的目标如下：
-<span class="math display">\[
-\lambda_{shot} = S \cdot g_d \cdot g_a = S \cdot \frac{ISO}{100}
-\]</span></p>
-<p><span class="math display">\[
-\lambda_{read} = R_0 \cdot (g_d \cdot g_a)^2 + R_1 = R_0 \cdot
-\frac{ISO}{100} + R_1
-\]</span></p>
-<p>此时将ISO作为参数引入标定过程，未来在噪声估计时会更精准。</p>
-<p>总结不同噪声在不同场景下的主导地位：</p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">regime</th>
-<th>dominant noise</th>
-<th>notes</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;">bright noise</td>
-<td>photon noise</td>
-<td>scene-dependent</td>
-</tr>
-<tr>
-<td style="text-align: left;">dark noise</td>
-<td>read and ADC noise</td>
-<td>scene-independent</td>
-</tr>
-<tr>
-<td style="text-align: left;">low iso</td>
-<td>ADC noise</td>
-<td>post-gain</td>
-</tr>
-<tr>
-<td style="text-align: left;">high iso</td>
-<td>photon and read noise</td>
-<td>pre-gain</td>
-</tr>
-<tr>
-<td style="text-align: left;">long exposure</td>
-<td>dark noise</td>
-<td>thermal dependence</td>
-</tr>
-</tbody>
-</table>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;opencv2/opencv.hpp&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> cv;</span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> CLAMP(x, a, b) (MAX(a, MIN(x, b)))</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">flat_gradient_cpu</span><span class="params">(Mat &amp;src, Mat &amp;dst, <span class="type">const</span> <span class="type">float</span> flatGradientThresh, <span class="type">bool</span> ones = <span class="literal">false</span>)</span> </span>&#123;</span><br><span class="line">    <span class="type">int</span> width  = src.cols;</span><br><span class="line">    <span class="type">int</span> height = src.rows;</span><br><span class="line">    <span class="type">int</span> one    = (ones) ? <span class="number">1</span> : <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="type">float</span> *data_src = (<span class="type">float</span> *) src.data;</span><br><span class="line">    <span class="type">float</span> *data_dst = (<span class="type">float</span> *) dst.data;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; height; i++) &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> j = <span class="number">0</span>; j &lt; width; j++) &#123;</span><br><span class="line"></span><br><span class="line">            <span class="type">int</span> x   = j;</span><br><span class="line">            <span class="type">int</span> y   = i;</span><br><span class="line">            <span class="type">int</span> pos = y * width + x;</span><br><span class="line"></span><br><span class="line">            data_dst[pos] = <span class="number">1.0f</span>;</span><br><span class="line">            <span class="keyword">if</span> (<span class="number">0</span> == x || <span class="number">0</span> == y || (width - <span class="number">1</span>) == x || (height - <span class="number">1</span>) == y) &#123;</span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="type">float</span> lrGrad   = (<span class="built_in">fabs</span>(data_src[pos + <span class="number">1</span>] - data_src[pos - <span class="number">1</span>]));</span><br><span class="line">            <span class="type">float</span> tbGrad   = (<span class="built_in">fabs</span>(data_src[(y + <span class="number">1</span>) * width + x] - data_src[(y - <span class="number">1</span>) * width + x]));</span><br><span class="line">            <span class="type">float</span> trblGrad = (<span class="built_in">fabs</span>(data_src[(y - <span class="number">1</span>) * width + x + <span class="number">1</span>] - data_src[(y + <span class="number">1</span>) * width + x - <span class="number">1</span>]));</span><br><span class="line">            <span class="type">float</span> tlbrGrad = (<span class="built_in">fabs</span>(data_src[(y - <span class="number">1</span>) * width + x - <span class="number">1</span>] - data_src[(y + <span class="number">1</span>) * width + x + <span class="number">1</span>]));</span><br><span class="line"></span><br><span class="line">            <span class="type">float</span> minGradClip = (<span class="built_in">min</span>(tbGrad, <span class="built_in">min</span>(trblGrad, tlbrGrad)));</span><br><span class="line">            <span class="type">float</span> minGrad     = (<span class="built_in">min</span>(lrGrad, minGradClip));</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (minGrad &gt; flatGradientThresh) &#123;</span><br><span class="line">                <span class="type">float</span> invGrad = <span class="number">1.0f</span> / (minGrad - flatGradientThresh);</span><br><span class="line">                data_dst[pos] = <span class="built_in">CLAMP</span>(invGrad, <span class="number">0.0f</span>, <span class="number">1.0f</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">flat_3dark_thresh</span><span class="params">(Mat &amp;src, Mat &amp;src2, Mat &amp;src3, Mat &amp;net, <span class="type">const</span> <span class="type">float</span> dark_thresh)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> width  = src.cols;</span><br><span class="line">    <span class="type">int</span> height = src.rows;</span><br><span class="line"></span><br><span class="line">    <span class="type">float</span> *data_src  = (<span class="type">float</span> *) src.data;</span><br><span class="line">    <span class="type">float</span> *data_src2 = (<span class="type">float</span> *) src<span class="number">2.</span>data;</span><br><span class="line">    <span class="type">float</span> *data_src3 = (<span class="type">float</span> *) src<span class="number">3.</span>data;</span><br><span class="line">    <span class="type">float</span> *data_Net  = (<span class="type">float</span> *) net.data;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; height; i++) &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> j = <span class="number">0</span>; j &lt; width; j++) &#123;</span><br><span class="line">            <span class="type">int</span> pos = i * width + j;</span><br><span class="line"></span><br><span class="line">            <span class="type">float</span> elem1 = (<span class="number">1.0f</span> - data_src[pos]);</span><br><span class="line">            <span class="type">float</span> elem2 = (<span class="number">1.0f</span> - data_src2[pos]);</span><br><span class="line">            <span class="type">float</span> elem3 = (<span class="number">1.0f</span> - data_src3[pos]);</span><br><span class="line"></span><br><span class="line">            elem1 = (elem1 + elem2 + elem3);</span><br><span class="line">            elem1 = <span class="number">1.0f</span> - (<span class="built_in">CLAMP</span>(elem1, <span class="number">0.0f</span>, <span class="number">1.0f</span>));</span><br><span class="line"></span><br><span class="line">            data_src[pos] = (data_Net[pos] &lt; dark_thresh) ? <span class="number">1.0f</span> : elem1;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">flat_denoise_mask</span><span class="params">(Mat &amp;netDst, Mat &amp;flat_mask)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="type">float</span> flat_grad_thresh = <span class="number">0.5</span>;</span><br><span class="line"></span><br><span class="line">    Mat netDownX2  = <span class="built_in">Mat</span>(netDst.<span class="built_in">size</span>() / <span class="number">2</span>, netDst.<span class="built_in">type</span>());</span><br><span class="line">    Mat maskDownX2 = <span class="built_in">Mat</span>(flat_mask.<span class="built_in">size</span>() / <span class="number">2</span>, flat_mask.<span class="built_in">type</span>());</span><br><span class="line">    Mat netDownX4  = <span class="built_in">Mat</span>(netDownX<span class="number">2.</span><span class="built_in">size</span>() / <span class="number">2</span>, netDownX<span class="number">2.</span><span class="built_in">type</span>());</span><br><span class="line">    Mat maskDownX4 = <span class="built_in">Mat</span>(maskDownX<span class="number">2.</span><span class="built_in">size</span>() / <span class="number">2</span>, maskDownX<span class="number">2.</span><span class="built_in">type</span>());</span><br><span class="line"></span><br><span class="line">    Mat flatMaskUpBy2 = <span class="built_in">Mat</span>(flat_mask.<span class="built_in">size</span>(), flat_mask.<span class="built_in">type</span>());</span><br><span class="line">    Mat flatMaskUpBy4 = <span class="built_in">Mat</span>(flat_mask.<span class="built_in">size</span>(), flat_mask.<span class="built_in">type</span>());</span><br><span class="line"></span><br><span class="line">    <span class="built_in">flat_gradient_cpu</span>(netDst, flat_mask, flat_grad_thresh, <span class="literal">true</span>);</span><br><span class="line">    <span class="built_in">resize</span>(netDst, netDownX2, netDownX<span class="number">2.</span><span class="built_in">size</span>(), <span class="number">0</span>, <span class="number">0</span>, INTER_NEAREST);</span><br><span class="line">    <span class="built_in">flat_gradient_cpu</span>(netDownX2, maskDownX2, flat_grad_thresh, <span class="literal">true</span>);</span><br><span class="line">    <span class="built_in">resize</span>(netDownX2, netDownX4, netDownX<span class="number">4.</span><span class="built_in">size</span>(), <span class="number">0</span>, <span class="number">0</span>, INTER_NEAREST);</span><br><span class="line">    <span class="built_in">flat_gradient_cpu</span>(netDownX4, maskDownX4, flat_grad_thresh, <span class="literal">true</span>);</span><br><span class="line">    <span class="built_in">resize</span>(maskDownX2, flatMaskUpBy2, flatMaskUpBy<span class="number">2.</span><span class="built_in">size</span>(), <span class="number">0</span>, <span class="number">0</span>, INTER_NEAREST);</span><br><span class="line">    <span class="built_in">resize</span>(maskDownX4, flatMaskUpBy4, flatMaskUpBy<span class="number">4.</span><span class="built_in">size</span>(), <span class="number">0</span>, <span class="number">0</span>, INTER_NEAREST);</span><br><span class="line">    <span class="built_in">flat_3dark_thresh</span>(flat_mask, flatMaskUpBy2, flatMaskUpBy4, netDst, flat_grad_thresh);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    Mat img = <span class="built_in">imread</span>(<span class="string">&quot;/Users/huziliang/Documents/C++/funny/flat_area.png&quot;</span>, IMREAD_GRAYSCALE);</span><br><span class="line">    Mat img_f, dst_f;</span><br><span class="line">    img.<span class="built_in">convertTo</span>(img_f, CV_32FC1);</span><br><span class="line">    <span class="built_in">boxFilter</span>(img_f, img_f, <span class="number">-1</span>, <span class="built_in">Size</span>(<span class="number">3</span>, <span class="number">3</span>));</span><br><span class="line">    dst_f = Mat::<span class="built_in">zeros</span>(img_f.<span class="built_in">size</span>(), img_f.<span class="built_in">type</span>());</span><br><span class="line">    <span class="built_in">flat_denoise_mask</span>(img_f, dst_f);</span><br><span class="line">    <span class="built_in">imwrite</span>(<span class="string">&quot;/Users/huziliang/Documents/C++/funny/flat_area_result.png&quot;</span>, dst_f * <span class="number">255.0f</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 ]]></content>
       <tags>
-        <tag>Sensor</tag>
-        <tag>Noise</tag>
-        <tag>Model</tag>
-        <tag>Calibration</tag>
+        <tag>OpenCV</tag>
+        <tag>Detection</tag>
       </tags>
   </entry>
   <entry>
@@ -1719,19 +1550,6 @@ Transactions on Graphics</em>. 2017.</li>
       </tags>
   </entry>
   <entry>
-    <title>图像平坦区域检测(Flat Area Detection)</title>
-    <url>/2023/10/24/%E5%9B%BE%E5%83%8F%E5%B9%B3%E5%9D%A6%E5%8C%BA%E5%9F%9F%E6%A3%80%E6%B5%8B-Flat-Area-Detection/</url>
-    <content><![CDATA[<meta name="referrer" content="no-referrer" />
-<p>使用opecv进行平坦区域检测</p>
-<span id="more"></span>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;opencv2/opencv.hpp&quot;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> cv;</span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> CLAMP(x, a, b) (MAX(a, MIN(x, b)))</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">flat_gradient_cpu</span><span class="params">(Mat &amp;src, Mat &amp;dst, <span class="type">const</span> <span class="type">float</span> flatGradientThresh, <span class="type">bool</span> ones = <span class="literal">false</span>)</span> </span>&#123;</span><br><span class="line">    <span class="type">int</span> width  = src.cols;</span><br><span class="line">    <span class="type">int</span> height = src.rows;</span><br><span class="line">    <span class="type">int</span> one    = (ones) ? <span class="number">1</span> : <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="type">float</span> *data_src = (<span class="type">float</span> *) src.data;</span><br><span class="line">    <span class="type">float</span> *data_dst = (<span class="type">float</span> *) dst.data;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; height; i++) &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> j = <span class="number">0</span>; j &lt; width; j++) &#123;</span><br><span class="line"></span><br><span class="line">            <span class="type">int</span> x   = j;</span><br><span class="line">            <span class="type">int</span> y   = i;</span><br><span class="line">            <span class="type">int</span> pos = y * width + x;</span><br><span class="line"></span><br><span class="line">            data_dst[pos] = <span class="number">1.0f</span>;</span><br><span class="line">            <span class="keyword">if</span> (<span class="number">0</span> == x || <span class="number">0</span> == y || (width - <span class="number">1</span>) == x || (height - <span class="number">1</span>) == y) &#123;</span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="type">float</span> lrGrad   = (<span class="built_in">fabs</span>(data_src[pos + <span class="number">1</span>] - data_src[pos - <span class="number">1</span>]));</span><br><span class="line">            <span class="type">float</span> tbGrad   = (<span class="built_in">fabs</span>(data_src[(y + <span class="number">1</span>) * width + x] - data_src[(y - <span class="number">1</span>) * width + x]));</span><br><span class="line">            <span class="type">float</span> trblGrad = (<span class="built_in">fabs</span>(data_src[(y - <span class="number">1</span>) * width + x + <span class="number">1</span>] - data_src[(y + <span class="number">1</span>) * width + x - <span class="number">1</span>]));</span><br><span class="line">            <span class="type">float</span> tlbrGrad = (<span class="built_in">fabs</span>(data_src[(y - <span class="number">1</span>) * width + x - <span class="number">1</span>] - data_src[(y + <span class="number">1</span>) * width + x + <span class="number">1</span>]));</span><br><span class="line"></span><br><span class="line">            <span class="type">float</span> minGradClip = (<span class="built_in">min</span>(tbGrad, <span class="built_in">min</span>(trblGrad, tlbrGrad)));</span><br><span class="line">            <span class="type">float</span> minGrad     = (<span class="built_in">min</span>(lrGrad, minGradClip));</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (minGrad &gt; flatGradientThresh) &#123;</span><br><span class="line">                <span class="type">float</span> invGrad = <span class="number">1.0f</span> / (minGrad - flatGradientThresh);</span><br><span class="line">                data_dst[pos] = <span class="built_in">CLAMP</span>(invGrad, <span class="number">0.0f</span>, <span class="number">1.0f</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">flat_3dark_thresh</span><span class="params">(Mat &amp;src, Mat &amp;src2, Mat &amp;src3, Mat &amp;net, <span class="type">const</span> <span class="type">float</span> dark_thresh)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> width  = src.cols;</span><br><span class="line">    <span class="type">int</span> height = src.rows;</span><br><span class="line"></span><br><span class="line">    <span class="type">float</span> *data_src  = (<span class="type">float</span> *) src.data;</span><br><span class="line">    <span class="type">float</span> *data_src2 = (<span class="type">float</span> *) src<span class="number">2.</span>data;</span><br><span class="line">    <span class="type">float</span> *data_src3 = (<span class="type">float</span> *) src<span class="number">3.</span>data;</span><br><span class="line">    <span class="type">float</span> *data_Net  = (<span class="type">float</span> *) net.data;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; height; i++) &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> j = <span class="number">0</span>; j &lt; width; j++) &#123;</span><br><span class="line">            <span class="type">int</span> pos = i * width + j;</span><br><span class="line"></span><br><span class="line">            <span class="type">float</span> elem1 = (<span class="number">1.0f</span> - data_src[pos]);</span><br><span class="line">            <span class="type">float</span> elem2 = (<span class="number">1.0f</span> - data_src2[pos]);</span><br><span class="line">            <span class="type">float</span> elem3 = (<span class="number">1.0f</span> - data_src3[pos]);</span><br><span class="line"></span><br><span class="line">            elem1 = (elem1 + elem2 + elem3);</span><br><span class="line">            elem1 = <span class="number">1.0f</span> - (<span class="built_in">CLAMP</span>(elem1, <span class="number">0.0f</span>, <span class="number">1.0f</span>));</span><br><span class="line"></span><br><span class="line">            data_src[pos] = (data_Net[pos] &lt; dark_thresh) ? <span class="number">1.0f</span> : elem1;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">flat_denoise_mask</span><span class="params">(Mat &amp;netDst, Mat &amp;flat_mask)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="type">float</span> flat_grad_thresh = <span class="number">0.5</span>;</span><br><span class="line"></span><br><span class="line">    Mat netDownX2  = <span class="built_in">Mat</span>(netDst.<span class="built_in">size</span>() / <span class="number">2</span>, netDst.<span class="built_in">type</span>());</span><br><span class="line">    Mat maskDownX2 = <span class="built_in">Mat</span>(flat_mask.<span class="built_in">size</span>() / <span class="number">2</span>, flat_mask.<span class="built_in">type</span>());</span><br><span class="line">    Mat netDownX4  = <span class="built_in">Mat</span>(netDownX<span class="number">2.</span><span class="built_in">size</span>() / <span class="number">2</span>, netDownX<span class="number">2.</span><span class="built_in">type</span>());</span><br><span class="line">    Mat maskDownX4 = <span class="built_in">Mat</span>(maskDownX<span class="number">2.</span><span class="built_in">size</span>() / <span class="number">2</span>, maskDownX<span class="number">2.</span><span class="built_in">type</span>());</span><br><span class="line"></span><br><span class="line">    Mat flatMaskUpBy2 = <span class="built_in">Mat</span>(flat_mask.<span class="built_in">size</span>(), flat_mask.<span class="built_in">type</span>());</span><br><span class="line">    Mat flatMaskUpBy4 = <span class="built_in">Mat</span>(flat_mask.<span class="built_in">size</span>(), flat_mask.<span class="built_in">type</span>());</span><br><span class="line"></span><br><span class="line">    <span class="built_in">flat_gradient_cpu</span>(netDst, flat_mask, flat_grad_thresh, <span class="literal">true</span>);</span><br><span class="line">    <span class="built_in">resize</span>(netDst, netDownX2, netDownX<span class="number">2.</span><span class="built_in">size</span>(), <span class="number">0</span>, <span class="number">0</span>, INTER_NEAREST);</span><br><span class="line">    <span class="built_in">flat_gradient_cpu</span>(netDownX2, maskDownX2, flat_grad_thresh, <span class="literal">true</span>);</span><br><span class="line">    <span class="built_in">resize</span>(netDownX2, netDownX4, netDownX<span class="number">4.</span><span class="built_in">size</span>(), <span class="number">0</span>, <span class="number">0</span>, INTER_NEAREST);</span><br><span class="line">    <span class="built_in">flat_gradient_cpu</span>(netDownX4, maskDownX4, flat_grad_thresh, <span class="literal">true</span>);</span><br><span class="line">    <span class="built_in">resize</span>(maskDownX2, flatMaskUpBy2, flatMaskUpBy<span class="number">2.</span><span class="built_in">size</span>(), <span class="number">0</span>, <span class="number">0</span>, INTER_NEAREST);</span><br><span class="line">    <span class="built_in">resize</span>(maskDownX4, flatMaskUpBy4, flatMaskUpBy<span class="number">4.</span><span class="built_in">size</span>(), <span class="number">0</span>, <span class="number">0</span>, INTER_NEAREST);</span><br><span class="line">    <span class="built_in">flat_3dark_thresh</span>(flat_mask, flatMaskUpBy2, flatMaskUpBy4, netDst, flat_grad_thresh);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    Mat img = <span class="built_in">imread</span>(<span class="string">&quot;/Users/huziliang/Documents/C++/funny/flat_area.png&quot;</span>, IMREAD_GRAYSCALE);</span><br><span class="line">    Mat img_f, dst_f;</span><br><span class="line">    img.<span class="built_in">convertTo</span>(img_f, CV_32FC1);</span><br><span class="line">    <span class="built_in">boxFilter</span>(img_f, img_f, <span class="number">-1</span>, <span class="built_in">Size</span>(<span class="number">3</span>, <span class="number">3</span>));</span><br><span class="line">    dst_f = Mat::<span class="built_in">zeros</span>(img_f.<span class="built_in">size</span>(), img_f.<span class="built_in">type</span>());</span><br><span class="line">    <span class="built_in">flat_denoise_mask</span>(img_f, dst_f);</span><br><span class="line">    <span class="built_in">imwrite</span>(<span class="string">&quot;/Users/huziliang/Documents/C++/funny/flat_area_result.png&quot;</span>, dst_f * <span class="number">255.0f</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-]]></content>
-      <tags>
-        <tag>OpenCV</tag>
-        <tag>Detection</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>多曝光融合网络Loss设计</title>
     <url>/2023/03/18/%E5%A4%9A%E6%9B%9D%E5%85%89%E8%9E%8D%E5%90%88%E7%BD%91%E7%BB%9CLoss%E8%AE%BE%E8%AE%A1/</url>
     <content><![CDATA[<meta name="referrer" content="no-referrer" />
@@ -1838,6 +1656,247 @@ Lambda 表达式。通过 Lambda 表达式，C++
 ]]></content>
   </entry>
   <entry>
+    <title>ARM常用指令(3)</title>
+    <url>/2022/07/27/ARM%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4-3/</url>
+    <content><![CDATA[<meta name="referrer" content="no-referrer" />
+<style type="text/css" rel="stylesheet">
+col{
+    /* width: 0 !important; */
+    max-width: 10% !important;
+}
+</style>
+<h2 id="比较跳转指令">比较跳转指令</h2>
+<h3 id="比较指令">比较指令</h3>
+<ul>
+<li>cmn指令</li>
+</ul>
+<p>与cmp指令类似，不同的是cmn指令是将一个数与另一个数的相反数进行比较，并且在汇编过程中等同于adds指令</p>
+<span id="more"></span>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">cmn x1, x2</span><br><span class="line">=&gt;</span><br><span class="line">adds xzr, x1, x2</span><br></pre></td></tr></table></figure>
+<ul>
+<li>csel指令</li>
+</ul>
+<blockquote>
+<p>CSEL <em>Wd</em>, <em>Wn</em>, <em>Wm</em>, <em>cond</em> ;
+32-bit</p>
+</blockquote>
+<blockquote>
+<p>CSEL <em>Xd</em>, <em>Xn</em>, <em>Xm</em>, <em>cond</em> ;
+64-bit</p>
+</blockquote>
+<p>判断cond是否为真，为真返回Xn/Wn，为假返回Xm/Wm，返回值存放于Xd/Wd寄存器</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">mov x1, #<span class="number">3</span></span><br><span class="line">mov x2, #<span class="number">4</span></span><br><span class="line"></span><br><span class="line">cmp x1, x2</span><br><span class="line">csel x0, x1, x2, ge  <span class="comment">// x0 = 4</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>cset指令</li>
+</ul>
+<blockquote>
+<p>CSET <em>Wd</em>, <em>cond</em> ; 32-bit</p>
+</blockquote>
+<blockquote>
+<p>CSET <em>Xd</em>, <em>cond</em> ; 64-bit</p>
+</blockquote>
+<p>判断cond是否为真，为真设置Xd/Wd为1，否则设置为0</p>
+<ul>
+<li>csinc指令</li>
+</ul>
+<p>类似于csel，不过当cond为假是，返回Xm/Wm + 1</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">mov x1, #<span class="number">3</span></span><br><span class="line">mov x2, #<span class="number">4</span></span><br><span class="line"></span><br><span class="line">cmp x1, x2</span><br><span class="line">csinc x0, x1, x2, ge <span class="comment">// x0 = 5</span></span><br></pre></td></tr></table></figure>
+<h3 id="跳转指令">跳转指令</h3>
+<ul>
+<li><p>普通跳转指令</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>B</th>
+<th>B label 当前PC偏移量±128MB范围</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>B.cond</td>
+<td>B.cond label 当前PC偏移量±1MB范围</td>
+</tr>
+<tr>
+<td>BL</td>
+<td>BL label
+将返回值保存至X30寄存器，保存的值等于调用BL指令的当前PC值加4</td>
+</tr>
+<tr>
+<td>BR</td>
+<td>BR Xn 跳转到寄存器指定地址</td>
+</tr>
+<tr>
+<td>BLR</td>
+<td>BLR Xn 跳转到寄存器指定地址，并将返回地址保存在X30寄存器</td>
+</tr>
+</tbody>
+</table></li>
+<li><p>比较跳转指令</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>CBZ</th>
+<th>cbz Xt, label Xt == 0，跳转至label，跳转范围是当前PC地址±1MB</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CBNZ</td>
+<td>cbnz Xt, label Xt != 0，跳转至label，跳转范围是当前PC地址±1MB</td>
+</tr>
+<tr>
+<td>TBZ</td>
+<td>tbz R<t>, #imm, label
+Rt寄存器第imm位为0，跳转至label，跳转范围是当前PC地址±32KB</td>
+</tr>
+<tr>
+<td>TBNZ</td>
+<td>tbnz R<t>, #imm, label
+Rt寄存器第imm位不为0，跳转至label，跳转范围是当前PC地址±32KB</td>
+</tr>
+</tbody>
+</table></li>
+<li><p>X29和X30寄存器的使用</p>
+<p>调用子函数时，需要将X29和X30寄存器入栈，在主函数返回时，将X29和X30出栈，否则会出现主函数无法退出的情况。</p>
+<p>错误案例：</p>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">// main.cpp</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">extern</span> <span class="string">&quot;C&quot;</span> <span class="function"><span class="type">void</span> <span class="title">test2</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="built_in">test2</span>();</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// main.s</span></span><br><span class="line">.arch armv8-a</span><br><span class="line">.text</span><br><span class="line">.align	<span class="number">3</span></span><br><span class="line"></span><br><span class="line">.global csel_test</span><br><span class="line">csel_test:</span><br><span class="line">    cmp x0, <span class="number">0</span></span><br><span class="line">    sub x2, x1, <span class="number">1</span></span><br><span class="line">    add x3, x1, <span class="number">2</span></span><br><span class="line">    csel x0, x3, x2, eq</span><br><span class="line">    ret</span><br><span class="line"></span><br><span class="line">.global	test2</span><br><span class="line">test2:</span><br><span class="line">    mov x0, <span class="number">1</span></span><br><span class="line">    mov x2, <span class="number">3</span></span><br><span class="line">    bl csel_test</span><br><span class="line">    ret</span><br></pre></td></tr></table></figure></p>
+<p>Linux主机编译支持debug的arm跨平台可执行文件方法，参照另一篇文章《Android
+Toolchain编译与GDB调试》</p>
+<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">./gdb <span class="comment"># 进入gdb程序</span></span><br><span class="line">b main <span class="comment"># 加断点</span></span><br><span class="line">n <span class="comment"># next 下一步，不进入函数 执行至test2();</span></span><br><span class="line">s <span class="comment"># step 下一步，进入test2函数内部</span></span><br><span class="line">n</span><br><span class="line">n</span><br><span class="line">info r <span class="comment"># info register 打印寄存器，可以查看lr寄存器为0x4030f0，pc寄存器为0x4031ac</span></span><br><span class="line">s <span class="comment"># step 下一步，进入csel_test函数内部</span></span><br><span class="line">info r <span class="comment"># info register 打印寄存器，可以查看lr寄存器为0x4031b0，pc寄存器为0x403190</span></span><br></pre></td></tr></table></figure></p>
+<p>以上过程可以看出，lr寄存器的值，在csel_test子函数执行时lr寄存器的值为上一步pc寄存器值+4，即0x4031ac
++ 4 = 0x4031b0</p>
+<p>当csel_test函数返回值test2时，lr寄存器的值为0x4031ac，此时test2函数只有按在lr寄存器的值为0x4030f0时才能正确返回，因此函数会卡住</p>
+<p>正确案例：</p>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">.arch armv8-a</span><br><span class="line">.text</span><br><span class="line">.align	<span class="number">3</span></span><br><span class="line"></span><br><span class="line">.global csel_test</span><br><span class="line">csel_test:</span><br><span class="line">    cmp x0, <span class="number">0</span></span><br><span class="line">    sub x2, x1, <span class="number">1</span></span><br><span class="line">    add x3, x1, <span class="number">2</span></span><br><span class="line">    csel x0, x3, x2, eq</span><br><span class="line">    ret</span><br><span class="line"></span><br><span class="line">.global	main</span><br><span class="line">main:</span><br><span class="line">		stp x29, x30, [sp, <span class="number">-16</span>]!</span><br><span class="line">    mov x0, <span class="number">1</span></span><br><span class="line">    mov x2, <span class="number">3</span></span><br><span class="line">		ldp x29, x30, [sp], #<span class="number">16</span></span><br><span class="line">    bl csel_test</span><br><span class="line">    ret</span><br></pre></td></tr></table></figure></p>
+<p>重复上述gdb步骤，查看lr，pc寄存器的值</p>
+<p>test2，lr寄存器的值为0x4030f0，pc寄存器的值为0x4031b0</p>
+<p>csel_test，lr寄存器的值为0x4031b4，pc寄存器的值为0x4031a0</p>
+<p>返回test2函数后，lr寄存器的值为0x4030f0，pc寄存器的值为0x4031b8</p>
+<p>test2调用子函数前后lr寄存器的值保持不变，test2函数正常结束</p></li>
+</ul>
+<h3 id="pc相对地址加载指令">PC相对地址加载指令</h3>
+<ul>
+<li>ADR指令</li>
+</ul>
+<p>加载当前PC值±1MB范围内的label地址到目的寄存器</p>
+<ul>
+<li>ADRP指令</li>
+</ul>
+<p>加载当前PC值±4GB范围内的label 4KB对齐的地址到目的寄存器</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">.<span class="built_in">arch</span> armv8-a</span><br><span class="line">.text</span><br><span class="line">.align	3</span><br><span class="line"></span><br><span class="line">my_data1:</span><br><span class="line"> .dword 0x8a</span><br><span class="line"></span><br><span class="line">.global	test2</span><br><span class="line">test2:</span><br><span class="line">    adr x0, my_data1</span><br><span class="line">    ldr x1, [x0]</span><br><span class="line"></span><br><span class="line">    adrp x2, my_data1</span><br><span class="line">    ldr x3, [x2]</span><br><span class="line">    ret</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>可以通过gdb -tui进行界面模式，然后通过layout
+reg切换至寄存器显示模式</p>
+</blockquote>
+<p>通过GDB查看，x0地址为0x403190，x2地址为0x403000，前者为my_data1的地址，否则为my_data1地址按照4KB对齐后的地址，因此x1寄存器的值为0x8a，与定义相同，x3寄存器的值错误。</p>
+<figure>
+<img src="https://s2.loli.net/2022/05/23/4w1xtTYNIyQXb7J.png"
+alt="https://s2.loli.net/2022/05/23/4w1xtTYNIyQXb7J.png" />
+<figcaption
+aria-hidden="true">https://s2.loli.net/2022/05/23/4w1xtTYNIyQXb7J.png</figcaption>
+</figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">adrp x2, my_data1</span><br><span class="line">add x2, x2, <span class="comment">#:lo12:my_data1</span></span><br><span class="line">ldr x3, [x2]</span><br></pre></td></tr></table></figure>
+<p>“#:lo12:”，表示4KB大小的偏移量，再通过GDB查看，结果正确。</p>
+<figure>
+<img src="https://s2.loli.net/2022/05/23/CxqeDOmPaLQ4hgN.png"
+alt="https://s2.loli.net/2022/05/23/CxqeDOmPaLQ4hgN.png" />
+<figcaption
+aria-hidden="true">https://s2.loli.net/2022/05/23/CxqeDOmPaLQ4hgN.png</figcaption>
+</figure>
+<ul>
+<li>adr和ldr伪指令的区别
+<ol type="1">
+<li>ldr伪指令加载的是绝对地址，adr加载的是当前pc的相对地址</li>
+<li>当运行地址和链接地址相同时，adr和ldr伪指令等效</li>
+<li>当运行地址和链接地址不同时，ldr伪指令加载label的链接地址，adr加载label物理地址</li>
+</ol></li>
+</ul>
+<h3 id="系统寄存器访问指令">系统寄存器访问指令</h3>
+<ul>
+<li>mrs指令</li>
+</ul>
+<p>读取系统寄存器的值到通用寄存器</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mrs x0, nzcv</span><br><span class="line">// 读取NZCV寄存器，查看标志位是否为1</span><br></pre></td></tr></table></figure>
+<ul>
+<li>msr指令</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mrs x0, nzcv</span><br><span class="line">// 更新NZCV寄存器的值</span><br></pre></td></tr></table></figure>
+<h3 id="内存屏障指令">内存屏障指令</h3>
+<table>
+<thead>
+<tr class="header">
+<th>
+DMB
+</th>
+<th>
+数据存储屏障，Data Memory
+Barrier，确保在执行新的存储器访问前所有的存储器访问都已经完成
+</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>
+DSB
+</td>
+<td>
+数据同步屏障，Data Synchronization
+Barrier，确保在下一个指令执行前所有的存储器访问都已经完成
+</td>
+</tr>
+<tr class="even">
+<td>
+ISB
+</td>
+<td>
+指令同步屏障，Instruction Synchronization
+Barrier，清空流水线，确保在执行新的指令前，之前所有的指令都已经完成
+</td>
+</tr>
+<tr class="odd">
+<td>
+LDAR
+</td>
+<td>
+加载-获取指令，Load-acquire，LDAR指令后面的读写内存指令必须在LDAR指令之后才能完成
+</td>
+</tr>
+<tr class="even">
+<td>
+STLR
+</td>
+<td>
+存储-释放指令，Store-release，所有加载和存储指令必须在STLR指令之前完成
+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="伪指令">伪指令</h3>
+<ul>
+<li><p>对齐伪指令</p>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">.align <span class="number">2</span>  # 四字节对齐</span><br><span class="line">.align <span class="number">5</span>, <span class="number">0</span>, <span class="number">100</span>  # <span class="number">32</span>字节对齐，最多跳过字节数为<span class="number">100</span>，填充<span class="number">0</span></span><br></pre></td></tr></table></figure></p></li>
+<li><p>数据定义伪指令</p>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">.byte	          将<span class="number">8</span>位数作为数据插入汇编代码</span><br><span class="line">.hword/.<span class="type">short</span>	  将<span class="number">16</span>位数作为数据插入汇编代码</span><br><span class="line">.<span class="type">long</span>/.<span class="type">int</span>	    将<span class="number">32</span>位数作为数据插入汇编代码</span><br><span class="line">.word	          将<span class="number">32</span>位数作为数据插入汇编代码</span><br><span class="line">.quad	          将<span class="number">64</span>位数作为数据插入汇编代码</span><br><span class="line">.<span class="type">float</span>	        将浮点数作为数据插入汇编代码</span><br><span class="line">.ascii/.string	将字符串作为数据插入汇编代码</span><br><span class="line">.asciz	        将字符串作为数据插入汇编代码，自动插入结尾字符”\<span class="number">0</span>”</span><br><span class="line">.rept/.endr   	重复执行操作</span><br><span class="line">  .rept <span class="number">3</span></span><br><span class="line">  .<span class="type">long</span> <span class="number">0</span></span><br><span class="line">  .endr</span><br><span class="line">.equ	          符号赋值操作</span><br><span class="line">	.equ my_data, <span class="number">100</span></span><br></pre></td></tr></table></figure></p></li>
+<li><p>函数相关伪指令</p>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">.global                 全局函数符号，或者全局变量符号</span><br><span class="line">.include                引用头文件</span><br><span class="line">.<span class="keyword">if</span> .<span class="keyword">else</span> .endif        条件判断</span><br><span class="line">.ifdef/.ifndef symbol   判断符号是否定义</span><br><span class="line">.ifc/.ifeqs             判断两字符串是否相等</span><br><span class="line">.ifeq/.ifge/.ifle/.ifne 判断值是否为<span class="number">0</span>/大于等于/小于等于<span class="number">0</span>/不等于<span class="number">0</span></span><br></pre></td></tr></table></figure></p></li>
+<li><p>宏伪指令</p>
+<p><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">.macro add p1 p2</span><br><span class="line">add x0, \p1, \p2</span><br><span class="line">.endm</span><br></pre></td></tr></table></figure></p></li>
+</ul>
+]]></content>
+      <tags>
+        <tag>ARM</tag>
+        <tag>汇编</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>经典多层金字塔锐化(Multi-Level Pyramid Edge Enhancement)</title>
     <url>/2023/10/24/%E7%BB%8F%E5%85%B8%E5%A4%9A%E5%B1%82%E9%87%91%E5%AD%97%E5%A1%94%E9%94%90%E5%8C%96-Multi-Level-Pyramid-Edge-Enhancement/</url>
     <content><![CDATA[<meta name="referrer" content="no-referrer" />
@@ -1853,6 +1912,53 @@ Lambda 表达式。通过 Lambda 表达式，C++
       <tags>
         <tag>OpenCV</tag>
         <tag>Sharpening</tag>
+        <tag>SR</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>超分辨率Loss设计记录(1)</title>
+    <url>/2022/11/19/%E8%B6%85%E5%88%86%E8%BE%A8%E7%8E%87Loss%E8%AE%BE%E8%AE%A1%E8%AE%B0%E5%BD%95-1/</url>
+    <content><![CDATA[<meta name="referrer" content="no-referrer" />
+<p>在超分辨率(Super-Resolution)网络训练中使用均方误差(MSE)损失函数确实存在一个常见问题,
+即可能导致生成的结果过于平滑和模糊
+这是因为MSE损失函数鼓励模型生成像素值,
+以使其与目标图像的像素值之间的平方差最小化这种最小化平方差的方法有时会导致图像细节的丢失,
+使得生成的高分辨率图像看起来过于平滑.</p>
+<span id="more"></span>
+<p><img src="https://s2.loli.net/2023/10/19/WEjclfagntGVxbo.png" /></p>
+<p>相关材料可以查看<a
+href="https://arxiv.org/pdf/1609.04802v5.pdf">SRGAN</a>中Figure2以及1.1.3小节.
+虽然直接优化MSE可以产生较高的PSNR/SSIM, 但是在zoom scale较大的情况下,
+MSE作为loss function引导的学习无法使得重建图像捕获细节信息,
+从论文Figure2中可以看到, 左二图有较高的PSNR/SSIM, 但是从观感上判断,
+左三图明显具有更多的细节.</p>
+<p>为了解决这个问题, 通常在超分辨率网络中使用其他损失函数或技术,
+以更好地保留细节和纹理 以下是一些替代方法：</p>
+<ol type="1">
+<li><p><strong>感知损失(Perceptual Loss)</strong>：使用感知损失,
+通常是使用预训练的深度卷积神经网络(如VGG)来计算生成图像与目标图像之间的特征表示的差异
+这种方法更强调图像的结构和纹理, 而不仅仅是像素值
+这有助于生成更具细节和真实感的图像</p></li>
+<li><p><strong>对抗性损失(Adversarial
+Loss)</strong>：引入生成对抗网络(GAN)的方法,
+其中生成器网络和判别器网络相互竞争 生成器的目标是欺骗判别器,
+而判别器的目标是区分生成图像和真实图像
+这种对抗性训练有助于生成更逼真的图像</p></li>
+<li><p><strong>内容和风格损失(Content and Style
+Loss)</strong>：结合感知损失和风格损失,
+以确保生成的图像在内容和风格上都与目标图像相似</p></li>
+<li><p><strong>自适应权重调整</strong>：使用动态权重或损失加权方法,
+以平衡不同类型的损失函数,
+以便在训练过程中更好地控制平滑度和细节</p></li>
+</ol>
+<p>这些方法可以帮助超分辨率网络生成更锐利和更具细节的高分辨率图像,
+而不仅仅是通过最小化像素级差异来生成图像
+选择哪种方法取决于具体的问题和数据集, 以及对生成图像的期望质量</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">import</span> torch.nn <span class="keyword">as</span> nn</span><br><span class="line"><span class="keyword">import</span> torchvision.models <span class="keyword">as</span> models</span><br><span class="line"></span><br><span class="line"><span class="comment">#SRGAN使用预训练好的VGG19，用生成器的结果以及原始图像通过VGG后分别得到的特征图计算MSE，具体解释推荐看SRGAN的相关资料</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">VGG</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, device</span>):</span><br><span class="line">        <span class="built_in">super</span>(VGG, <span class="variable language_">self</span>).__init__()</span><br><span class="line">        vgg = models.vgg19(<span class="literal">True</span>)</span><br><span class="line">        <span class="keyword">for</span> pa <span class="keyword">in</span> vgg.parameters():</span><br><span class="line">            pa.requires_grad = <span class="literal">False</span></span><br><span class="line">        <span class="variable language_">self</span>.vgg = vgg.features[:<span class="number">16</span>]</span><br><span class="line">        <span class="variable language_">self</span>.vgg = <span class="variable language_">self</span>.vgg.to(device)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        out = <span class="variable language_">self</span>.vgg(x)</span><br><span class="line">        <span class="keyword">return</span> out</span><br><span class="line"></span><br><span class="line"><span class="comment">#内容损失</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ContentLoss</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, device</span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        <span class="variable language_">self</span>.mse = nn.MSELoss()</span><br><span class="line">        <span class="variable language_">self</span>.vgg19 = VGG(device)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, fake, real</span>):</span><br><span class="line">        feature_fake = <span class="variable language_">self</span>.vgg19(fake)</span><br><span class="line">        feature_real = <span class="variable language_">self</span>.vgg19(real)</span><br><span class="line">        loss = <span class="variable language_">self</span>.mse(feature_fake, feature_real)</span><br><span class="line">        <span class="keyword">return</span> loss</span><br><span class="line"></span><br><span class="line"><span class="comment">#对抗损失</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">AdversarialLoss</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        loss = torch.<span class="built_in">sum</span>(-torch.log(x))</span><br><span class="line">        <span class="keyword">return</span> loss</span><br><span class="line"></span><br><span class="line"><span class="comment">#感知损失</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">PerceptualLoss</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, device</span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        <span class="variable language_">self</span>.vgg_loss = ContentLoss(device)</span><br><span class="line">        <span class="variable language_">self</span>.adversarial = AdversarialLoss()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, fake, real, x</span>):</span><br><span class="line">        vgg_loss = <span class="variable language_">self</span>.vgg_loss(fake, real)</span><br><span class="line">        adversarial_loss = <span class="variable language_">self</span>.adversarial(x)</span><br><span class="line">        <span class="keyword">return</span> vgg_loss + <span class="number">1e-3</span>*adversarial_loss</span><br><span class="line"></span><br><span class="line"><span class="comment">#正则项，需要说明的是，在SRGAN的后续版本的论文中，这个正则项被删除了</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">RegularizationLoss</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        a = torch.square(</span><br><span class="line">            x[:, :, :x.shape[<span class="number">2</span>]-<span class="number">1</span>, :x.shape[<span class="number">3</span>]-<span class="number">1</span>] - x[:, :, <span class="number">1</span>:x.shape[<span class="number">2</span>], :x.shape[<span class="number">3</span>]-<span class="number">1</span>]</span><br><span class="line">        )</span><br><span class="line">        b = torch.square(</span><br><span class="line">            x[:, :, :x.shape[<span class="number">2</span>]-<span class="number">1</span>, :x.shape[<span class="number">3</span>]-<span class="number">1</span>] - x[:, :, :x.shape[<span class="number">2</span>]-<span class="number">1</span>, <span class="number">1</span>:x.shape[<span class="number">3</span>]]</span><br><span class="line">        )</span><br><span class="line">        loss = torch.<span class="built_in">sum</span>(torch.<span class="built_in">pow</span>(a+b, <span class="number">1.25</span>))</span><br><span class="line">        <span class="keyword">return</span> loss</span><br></pre></td></tr></table></figure>
+]]></content>
+      <tags>
+        <tag>Deep Learning</tag>
+        <tag>Loss</tag>
         <tag>SR</tag>
       </tags>
   </entry>
@@ -1918,146 +2024,6 @@ mask) * Y_bi. 这个过程产生了最终图像, 根据融合mask的区域,
       </tags>
   </entry>
   <entry>
-    <title>Android Toolchain编译与GDB调试</title>
-    <url>/2022/08/26/Android-Toolchain%E7%BC%96%E8%AF%91%E4%B8%8EGDB%E8%B0%83%E8%AF%95/</url>
-    <content><![CDATA[<meta name="referrer" content="no-referrer" />
-<p>在进行linux主机上进行arm跨平台进行pure c++开发时，可能混有Neon
-intrinsic或者ARM
-assembly代码，此时进行代码编译和调试，可以使用standalone
-toolchain进行编译，使用gdb+gdbserver进行调试。</p>
-<span id="more"></span>
-<p>首先需要在NDK
-website上下载一个NDK工具包并解压，本人使用的是r14b版本，链接：<a
-href="https://dl.google.com/android/repository/android-ndk-r14b-linux-x86_64.zip">https://dl.google.com/android/repository/android-ndk-r14b-linux-x86_64.zip</a></p>
-<ul>
-<li><p>Standalone Toolchain的编译</p>
-<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> android-ndk-r14b/build/tools/</span><br><span class="line">./make-standalone-toolchain.sh --platform=android-21 --install-dir=./android-aarch64 --<span class="built_in">arch</span>=arm64</span><br><span class="line">./make-standalone-toolchain.sh --platform=android-21 --install-dir=./android-armv7 --<span class="built_in">arch</span>=arm</span><br></pre></td></tr></table></figure></p>
-<p>通过以上命令，会生成android-aarch64，android-armv7两个目录，可以将生成的standalone
-toolchain拷贝至固定目录</p>
-<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> <span class="built_in">cp</span> -r android-ndk-r14b/build/tools/android-aarch64 /opt</span><br><span class="line"><span class="built_in">sudo</span> <span class="built_in">cp</span> -r android-ndk-r14b/build/tools/android-armv7 /opt</span><br></pre></td></tr></table></figure></p>
-<p>以上完成standalone toolchain生成</p></li>
-<li><p>Linux主机编译arm跨平台pure c++程序</p>
-<ol type="1">
-<li>在Linux主机上准备main.cpp源代码文件</li>
-</ol>
-<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment">#include &lt;iostream&gt;</span></span><br><span class="line"></span><br><span class="line">int <span class="function"><span class="title">main</span></span>() &#123;</span><br><span class="line">		std::cout &lt;&lt; <span class="string">&quot;hello world&quot;</span> &lt;&lt; <span class="string">std::endl;</span></span><br><span class="line"><span class="string">    return 0;</span></span><br><span class="line"><span class="string">&#125;</span></span><br></pre></td></tr></table></figure></p>
-<ol type="1">
-<li>编写CMakeLists.txt文件</li>
-</ol>
-<p><figure class="highlight makefile"><table><tr><td class="code"><pre><span class="line">cmake_minimum_required(VERSION 3.17)</span><br><span class="line"></span><br><span class="line">project(ARM)</span><br><span class="line"></span><br><span class="line">enable_language(ASM)</span><br><span class="line"></span><br><span class="line">set(CMAKE_CXX_STANDARD 11)</span><br><span class="line">set(CMAKE_CXX_STANDARD_REQUIRED ON)</span><br><span class="line">add_definitions(-w)</span><br><span class="line">SET(CMAKE_BUILD_TYPE <span class="string">&quot;Debug&quot;</span>)</span><br><span class="line">SET(CMAKE_CXX_FLAGS_DEBUG <span class="string">&quot;$ENV&#123;CXXFLAGS&#125; -O0 -Wall -g2 -ggdb&quot;</span>)</span><br><span class="line">SET(CMAKE_CXX_FLAGS_RELEASE <span class="string">&quot;$ENV&#123;CXXFLAGS&#125; -O3 -Wall&quot;</span>)</span><br><span class="line"></span><br><span class="line">set(TARGET_CPU aarch64)</span><br><span class="line"></span><br><span class="line">set(CMAKE_CXX_FLAGS <span class="string">&quot;$&#123;CMAKE_CXX_FLAGS&#125; -static -fPIE -flax-vector-conversions&quot;</span>)</span><br><span class="line">if(TARGET_CPU STREQUAL <span class="string">&quot;aarch64&quot;</span>)</span><br><span class="line">    include_directories(/opt/android-ndk-r14b/android-aarch64/lib64/clang/7.0.2/<span class="keyword">include</span>)</span><br><span class="line"><span class="keyword">else</span>()</span><br><span class="line">    set(CMAKE_CXX_FLAGS <span class="string">&quot;$&#123;CMAKE_CXX_FLAGS&#125; -mfloat-abi=softfp -mfpu=neon&quot;</span>)</span><br><span class="line">    include_directories(/opt/android-ndk-r14b/android-armv7/lib64/clang/7.0.2/<span class="keyword">include</span>)</span><br><span class="line"><span class="keyword">endif</span>()</span><br><span class="line"></span><br><span class="line">set(SOURCES</span><br><span class="line">    main.cpp</span><br><span class="line">    <span class="comment"># main.s</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">add_executable(main $&#123;SOURCES&#125;)</span><br></pre></td></tr></table></figure></p>
-<ol type="1">
-<li>编译ARM平台可执行文件</li>
-</ol>
-<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">CXX_COMPILER=/opt/android-ndk-r14b/android-aarch64/bin/aarch64-linux-android-g++</span><br><span class="line">CC_COMPILER=/opt/android-ndk-r14b/android-aarch64/bin/aarch64-linux-android-gcc</span><br><span class="line"><span class="built_in">cd</span> cmake-build-debug</span><br><span class="line">cmake .. -DCMAKE_C_COMPILER=<span class="variable">$CC_COMPILER</span> -DCMAKE_CXX_COMPILER=<span class="variable">$CXX_COMPILER</span></span><br></pre></td></tr></table></figure></p>
-<ol type="1">
-<li>ARM平台程序的执行</li>
-</ol>
-<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">adb push main /data/local/tmp</span><br><span class="line">adb shell ./data/local/tmp/main</span><br></pre></td></tr></table></figure></p></li>
-<li><p>GDB+GDBServer调试</p>
-<ol type="1">
-<li>准备GDBServer</li>
-</ol>
-<p>测试手机一般出厂不会自带gdbserver，可以将NDK工具包中对应平台gdbserver推入手机</p>
-<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">adb push android-ndk-r14b/prebuilt/android-arm64/gdbserver/gdbserver /data/local/tmp</span><br></pre></td></tr></table></figure></p>
-<ol type="1">
-<li>启动GDBServer</li>
-</ol>
-<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">adb shell <span class="comment"># 进入手机shell命令行</span></span><br><span class="line"><span class="built_in">cd</span> /data/local/tmp</span><br><span class="line">./gdbserver tcp:9090 main</span><br><span class="line"></span><br><span class="line"><span class="comment"># 正常输出如下：</span></span><br><span class="line">Process main created; pid = 7201</span><br><span class="line">gdbserver: Unable to determine the number of hardware watchpoints available.</span><br><span class="line">gdbserver: Unable to determine the number of hardware breakpoints available.</span><br><span class="line">Listening on port 9090</span><br></pre></td></tr></table></figure></p>
-<ol type="1">
-<li>在主机平台启动gdb调试程序</li>
-</ol>
-<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> android-ndk-r14b/prebuilt/linux-x86_64/bin <span class="comment"># 进入ndk gdb程序目录</span></span><br><span class="line">adb forward tcp:9090 tcp:9090 <span class="comment"># 端口转发</span></span><br><span class="line">./gdb <span class="comment"># 进入gdb程序</span></span><br><span class="line">target remote localhost:9090 <span class="comment"># 开始获取信息并开始调试</span></span><br><span class="line">b main <span class="comment"># 设置断点</span></span><br><span class="line"><span class="comment"># 后续与普通GDB调试相同</span></span><br></pre></td></tr></table></figure></p>
-<p><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">n  <span class="comment"># 下一步，不进入函数内部</span></span><br><span class="line">s  <span class="comment"># 下一步，进入函数内部</span></span><br><span class="line">l  <span class="comment"># 代码列表</span></span><br><span class="line">info r    <span class="comment"># 查看寄存器</span></span><br></pre></td></tr></table></figure></p></li>
-</ul>
-]]></content>
-      <tags>
-        <tag>Android</tag>
-        <tag>Toolchain</tag>
-        <tag>GDB</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>超分辨率Loss设计记录(1)</title>
-    <url>/2022/11/19/%E8%B6%85%E5%88%86%E8%BE%A8%E7%8E%87Loss%E8%AE%BE%E8%AE%A1%E8%AE%B0%E5%BD%95-1/</url>
-    <content><![CDATA[<meta name="referrer" content="no-referrer" />
-<p>在超分辨率(Super-Resolution)网络训练中使用均方误差(MSE)损失函数确实存在一个常见问题,
-即可能导致生成的结果过于平滑和模糊
-这是因为MSE损失函数鼓励模型生成像素值,
-以使其与目标图像的像素值之间的平方差最小化这种最小化平方差的方法有时会导致图像细节的丢失,
-使得生成的高分辨率图像看起来过于平滑.</p>
-<span id="more"></span>
-<p><img src="https://s2.loli.net/2023/10/19/WEjclfagntGVxbo.png" /></p>
-<p>相关材料可以查看<a
-href="https://arxiv.org/pdf/1609.04802v5.pdf">SRGAN</a>中Figure2以及1.1.3小节.
-虽然直接优化MSE可以产生较高的PSNR/SSIM, 但是在zoom scale较大的情况下,
-MSE作为loss function引导的学习无法使得重建图像捕获细节信息,
-从论文Figure2中可以看到, 左二图有较高的PSNR/SSIM, 但是从观感上判断,
-左三图明显具有更多的细节.</p>
-<p>为了解决这个问题, 通常在超分辨率网络中使用其他损失函数或技术,
-以更好地保留细节和纹理 以下是一些替代方法：</p>
-<ol type="1">
-<li><p><strong>感知损失(Perceptual Loss)</strong>：使用感知损失,
-通常是使用预训练的深度卷积神经网络(如VGG)来计算生成图像与目标图像之间的特征表示的差异
-这种方法更强调图像的结构和纹理, 而不仅仅是像素值
-这有助于生成更具细节和真实感的图像</p></li>
-<li><p><strong>对抗性损失(Adversarial
-Loss)</strong>：引入生成对抗网络(GAN)的方法,
-其中生成器网络和判别器网络相互竞争 生成器的目标是欺骗判别器,
-而判别器的目标是区分生成图像和真实图像
-这种对抗性训练有助于生成更逼真的图像</p></li>
-<li><p><strong>内容和风格损失(Content and Style
-Loss)</strong>：结合感知损失和风格损失,
-以确保生成的图像在内容和风格上都与目标图像相似</p></li>
-<li><p><strong>自适应权重调整</strong>：使用动态权重或损失加权方法,
-以平衡不同类型的损失函数,
-以便在训练过程中更好地控制平滑度和细节</p></li>
-</ol>
-<p>这些方法可以帮助超分辨率网络生成更锐利和更具细节的高分辨率图像,
-而不仅仅是通过最小化像素级差异来生成图像
-选择哪种方法取决于具体的问题和数据集, 以及对生成图像的期望质量</p>
-<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">import</span> torch.nn <span class="keyword">as</span> nn</span><br><span class="line"><span class="keyword">import</span> torchvision.models <span class="keyword">as</span> models</span><br><span class="line"></span><br><span class="line"><span class="comment">#SRGAN使用预训练好的VGG19，用生成器的结果以及原始图像通过VGG后分别得到的特征图计算MSE，具体解释推荐看SRGAN的相关资料</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">VGG</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, device</span>):</span><br><span class="line">        <span class="built_in">super</span>(VGG, <span class="variable language_">self</span>).__init__()</span><br><span class="line">        vgg = models.vgg19(<span class="literal">True</span>)</span><br><span class="line">        <span class="keyword">for</span> pa <span class="keyword">in</span> vgg.parameters():</span><br><span class="line">            pa.requires_grad = <span class="literal">False</span></span><br><span class="line">        <span class="variable language_">self</span>.vgg = vgg.features[:<span class="number">16</span>]</span><br><span class="line">        <span class="variable language_">self</span>.vgg = <span class="variable language_">self</span>.vgg.to(device)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        out = <span class="variable language_">self</span>.vgg(x)</span><br><span class="line">        <span class="keyword">return</span> out</span><br><span class="line"></span><br><span class="line"><span class="comment">#内容损失</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ContentLoss</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, device</span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        <span class="variable language_">self</span>.mse = nn.MSELoss()</span><br><span class="line">        <span class="variable language_">self</span>.vgg19 = VGG(device)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, fake, real</span>):</span><br><span class="line">        feature_fake = <span class="variable language_">self</span>.vgg19(fake)</span><br><span class="line">        feature_real = <span class="variable language_">self</span>.vgg19(real)</span><br><span class="line">        loss = <span class="variable language_">self</span>.mse(feature_fake, feature_real)</span><br><span class="line">        <span class="keyword">return</span> loss</span><br><span class="line"></span><br><span class="line"><span class="comment">#对抗损失</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">AdversarialLoss</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        loss = torch.<span class="built_in">sum</span>(-torch.log(x))</span><br><span class="line">        <span class="keyword">return</span> loss</span><br><span class="line"></span><br><span class="line"><span class="comment">#感知损失</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">PerceptualLoss</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, device</span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        <span class="variable language_">self</span>.vgg_loss = ContentLoss(device)</span><br><span class="line">        <span class="variable language_">self</span>.adversarial = AdversarialLoss()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, fake, real, x</span>):</span><br><span class="line">        vgg_loss = <span class="variable language_">self</span>.vgg_loss(fake, real)</span><br><span class="line">        adversarial_loss = <span class="variable language_">self</span>.adversarial(x)</span><br><span class="line">        <span class="keyword">return</span> vgg_loss + <span class="number">1e-3</span>*adversarial_loss</span><br><span class="line"></span><br><span class="line"><span class="comment">#正则项，需要说明的是，在SRGAN的后续版本的论文中，这个正则项被删除了</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">RegularizationLoss</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        a = torch.square(</span><br><span class="line">            x[:, :, :x.shape[<span class="number">2</span>]-<span class="number">1</span>, :x.shape[<span class="number">3</span>]-<span class="number">1</span>] - x[:, :, <span class="number">1</span>:x.shape[<span class="number">2</span>], :x.shape[<span class="number">3</span>]-<span class="number">1</span>]</span><br><span class="line">        )</span><br><span class="line">        b = torch.square(</span><br><span class="line">            x[:, :, :x.shape[<span class="number">2</span>]-<span class="number">1</span>, :x.shape[<span class="number">3</span>]-<span class="number">1</span>] - x[:, :, :x.shape[<span class="number">2</span>]-<span class="number">1</span>, <span class="number">1</span>:x.shape[<span class="number">3</span>]]</span><br><span class="line">        )</span><br><span class="line">        loss = torch.<span class="built_in">sum</span>(torch.<span class="built_in">pow</span>(a+b, <span class="number">1.25</span>))</span><br><span class="line">        <span class="keyword">return</span> loss</span><br></pre></td></tr></table></figure>
-]]></content>
-      <tags>
-        <tag>Deep Learning</tag>
-        <tag>Loss</tag>
-        <tag>SR</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>高通平台ISP调试记录(2)-ASF</title>
-    <url>/2023/06/12/%E9%AB%98%E9%80%9A%E5%B9%B3%E5%8F%B0ISP%E8%B0%83%E8%AF%95%E8%AE%B0%E5%BD%95-2-ASF/</url>
-    <content><![CDATA[<meta name="referrer" content="no-referrer" />
-<p>asf模块：</p>
-<span id="more"></span>
-<p>negative_thr</p>
-<p>值越小 -&gt; 黑边越小</p>
-<p>layer_1_gain_positive_lut</p>
-<p>layer_1_gain_negative_lut</p>
-<p>按照亮度分为64个点, 越大锐化越强</p>
-<p>layer_1_gain_contrast_positive_lut</p>
-<p>layer_1_gain_contrast_negative_lut</p>
-<p>8450平台后亮度区分, 越大锐化越强</p>
-<p>layer_1_gain_weight_lut</p>
-<p>不是细节, 但是也不是平坦区, 值越大锐化越强</p>
-<p>layer_1_clamp_ul</p>
-<p>layer_1_clamp_ll</p>
-<p>值为0, 约等于关闭asf, 主观上控制黑白边</p>
-<p>edge_thr</p>
-<p>控制detect edge的大小, 值越大, detect的范围越小, edge越少</p>
-<p>layer_1_positive_texture_preserve_factor</p>
-<p>layer_1_negtive_texture_preserve_factor</p>
-<p>控制还原一下儿positve和negtive的细节</p>
-<p>layer_1_sp</p>
-<p>radial_activity_adj</p>
-<p>值越小, 锐化越弱</p>
-<p>radial_gain_adj</p>
-<p>值越小, 锐化越弱</p>
-]]></content>
-      <tags>
-        <tag>ISP</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>高通平台ISP调试记录(1)-ANR</title>
     <url>/2023/05/07/%E9%AB%98%E9%80%9A%E5%B9%B3%E5%8F%B0ISP%E8%B0%83%E8%AF%95%E8%AE%B0%E5%BD%95-1-ANR/</url>
     <content><![CDATA[<meta name="referrer" content="no-referrer" />
@@ -2093,6 +2059,40 @@ threshold的2倍</p>
 <p>dcblend2_chroma_strength_function（0 0 0 0 64 128）融合权重最大值,
 去噪最强</p>
 <p>一般不动</p>
+]]></content>
+      <tags>
+        <tag>ISP</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>高通平台ISP调试记录(2)-ASF</title>
+    <url>/2023/06/12/%E9%AB%98%E9%80%9A%E5%B9%B3%E5%8F%B0ISP%E8%B0%83%E8%AF%95%E8%AE%B0%E5%BD%95-2-ASF/</url>
+    <content><![CDATA[<meta name="referrer" content="no-referrer" />
+<p>asf模块：</p>
+<span id="more"></span>
+<p>negative_thr</p>
+<p>值越小 -&gt; 黑边越小</p>
+<p>layer_1_gain_positive_lut</p>
+<p>layer_1_gain_negative_lut</p>
+<p>按照亮度分为64个点, 越大锐化越强</p>
+<p>layer_1_gain_contrast_positive_lut</p>
+<p>layer_1_gain_contrast_negative_lut</p>
+<p>8450平台后亮度区分, 越大锐化越强</p>
+<p>layer_1_gain_weight_lut</p>
+<p>不是细节, 但是也不是平坦区, 值越大锐化越强</p>
+<p>layer_1_clamp_ul</p>
+<p>layer_1_clamp_ll</p>
+<p>值为0, 约等于关闭asf, 主观上控制黑白边</p>
+<p>edge_thr</p>
+<p>控制detect edge的大小, 值越大, detect的范围越小, edge越少</p>
+<p>layer_1_positive_texture_preserve_factor</p>
+<p>layer_1_negtive_texture_preserve_factor</p>
+<p>控制还原一下儿positve和negtive的细节</p>
+<p>layer_1_sp</p>
+<p>radial_activity_adj</p>
+<p>值越小, 锐化越弱</p>
+<p>radial_gain_adj</p>
+<p>值越小, 锐化越弱</p>
 ]]></content>
       <tags>
         <tag>ISP</tag>
