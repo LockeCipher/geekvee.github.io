@@ -20,25 +20,27 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"huziliang.com","root":"/","images":"/images","scheme":"Pisces","darkmode":false,"version":"8.19.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":true,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":true,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="Just for record">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Cipher Locke">
-<meta property="og:url" content="https://huziliang.com/tags/Ray-Tracing/index.html">
+    <meta name="description" content="1. Why combine denoising and super-resolution? Rendering at low resolution with very few samples per pixel and then jointly denoising and upscaling can deliver near high‑resolution path‑traced qualit">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Combine Ray Tracing Denoising and Super-resolution">
+<meta property="og:url" content="https://huziliang.com/2025/10/30/combine-ray-tracing-denoising-and-super-resolution/index.html">
 <meta property="og:site_name" content="Cipher Locke">
-<meta property="og:description" content="Just for record">
+<meta property="og:description" content="1. Why combine denoising and super-resolution? Rendering at low resolution with very few samples per pixel and then jointly denoising and upscaling can deliver near high‑resolution path‑traced qualit">
 <meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2025-10-30T07:44:30.000Z">
+<meta property="article:modified_time" content="2025-11-14T06:50:46.267Z">
 <meta property="article:author" content="Cipher Locke">
 <meta name="twitter:card" content="summary">
 
 
-<link rel="canonical" href="https://huziliang.com/tags/Ray-Tracing/">
+<link rel="canonical" href="https://huziliang.com/2025/10/30/combine-ray-tracing-denoising-and-super-resolution/">
 
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":false,"lang":"en","comments":"","permalink":"","path":"tags/Ray-Tracing/index.html","title":""}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://huziliang.com/2025/10/30/combine-ray-tracing-denoising-and-super-resolution/","path":"2025/10/30/combine-ray-tracing-denoising-and-super-resolution/","title":"Combine Ray Tracing Denoising and Super-resolution"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>Tag: Ray-Tracing | Cipher Locke</title>
+<title>Combine Ray Tracing Denoising and Super-resolution | Cipher Locke</title>
   
 
 
@@ -125,7 +127,7 @@
   
   <aside class="sidebar">
 
-    <div class="sidebar-inner sidebar-overview-active">
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
       <ul class="sidebar-nav">
         <li class="sidebar-nav-toc">
           Table of Contents
@@ -138,6 +140,11 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#why-combine-denoising-and-super-resolution"><span class="nav-text">1. Why combine
+denoising and super-resolution?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#publicly-available-papers-and-resources"><span class="nav-text">2. Publicly available
+papers and resources</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#practical-integration-notes"><span class="nav-text">3. Practical integration notes</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#related-canonical-denoisersupscalers-for-baseline-comparisons"><span class="nav-text">4.
+Related canonical denoisers&#x2F;upscalers (for baseline comparisons)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#key-points-per-paper-joint-denoising-superresolution"><span class="nav-text">5. Key
+points per paper (joint denoising + super‑resolution)</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -199,50 +206,263 @@
 
     </div>
 
-    <div class="main-inner tag posts-collapse">
+    <div class="main-inner post posts-expand">
 
 
   
+
+
+<div class="post-block">
   
   
-  <div class="post-block">
-    <div class="post-content">
-      <div class="collection-title">
-        <h1 class="collection-header">Ray-Tracing
-          <small>Tag</small>
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://huziliang.com/2025/10/30/combine-ray-tracing-denoising-and-super-resolution/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/computer-chip_gray.svg">
+      <meta itemprop="name" content="Cipher Locke">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Cipher Locke">
+      <meta itemprop="description" content="Just for record">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Combine Ray Tracing Denoising and Super-resolution | Cipher Locke">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Combine Ray Tracing Denoising and Super-resolution
         </h1>
-      </div>
 
-      
-    <div class="collection-year">
-      <span class="collection-header">2025</span>
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2025-10-30 15:44:30" itemprop="dateCreated datePublished" datetime="2025-10-30T15:44:30+08:00">2025-10-30</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">Edited on</span>
+      <time title="Modified: 2025-11-14 14:50:46" itemprop="dateModified" datetime="2025-11-14T14:50:46+08:00">2025-11-14</time>
+    </span>
+
+  
+    <span class="post-meta-item" title="Views" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">Views: </span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+    <span class="post-meta-break"></span>
+    <span class="post-meta-item" title="Word count in article">
+      <span class="post-meta-item-icon">
+        <i class="far fa-file-word"></i>
+      </span>
+      <span class="post-meta-item-text">Word count in article: </span>
+      <span>4.5k</span>
+    </span>
+    <span class="post-meta-item" title="Reading time">
+      <span class="post-meta-item-icon">
+        <i class="far fa-clock"></i>
+      </span>
+      <span class="post-meta-item-text">Reading time &asymp;</span>
+      <span>4 mins.</span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><meta name="referrer" content="no-referrer" />
+<h3 id="why-combine-denoising-and-super-resolution">1. Why combine
+denoising and super-resolution?</h3>
+<p>Rendering at low resolution with very few samples per pixel and then
+jointly denoising and upscaling can deliver near high‑resolution
+path‑traced quality at a fraction of the cost. The design space spans:
+ordering (denoise→SR vs SR→denoise), temporal reuse, motion/geometry
+feature usage, and neural vs analytic filters.</p>
+<h3 id="publicly-available-papers-and-resources">2. Publicly available
+papers and resources</h3>
+<ul>
+<li><strong>Temporally Stable Real-Time Joint Neural Denoising and
+Supersampling (HPG 2022)</strong>
+<ul>
+<li>Joint network for denoising + supersampling with temporal stability;
+processes low‑res inputs to high‑res outputs.</li>
+<li>Link: <a
+target="_blank" rel="noopener" href="https://momentsingraphics.de/HPG2022.html">momentsingraphics.de
+(HPG 2022)</a></li>
+</ul></li>
+<li><strong>End-to-End Adaptive Monte Carlo Denoising and
+Super-Resolution (SRD) (2021)</strong>
+<ul>
+<li>Two‑stage deep network with deformable conv; takes low‑res noisy
+path‑traced inputs and outputs high‑res, denoised images.</li>
+<li>Link: <a
+target="_blank" rel="noopener" href="https://arxiv.org/abs/2108.06915">arXiv:2108.06915</a></li>
+</ul></li>
+<li><strong>Auxiliary Features‑Guided Super‑Resolution for Monte Carlo
+Rendering (2023)</strong>
+<ul>
+<li>Cross‑modality Transformer uses high‑res G‑buffers to guide SR of
+low‑res noisy render, improving fine detail.</li>
+<li>Link: <a
+target="_blank" rel="noopener" href="https://arxiv.org/abs/2310.13235">arXiv:2310.13235</a></li>
+</ul></li>
+<li><strong>Neural Supersampling and Denoising for Real‑Time Path
+Tracing (AMD GPUOpen)</strong>
+<ul>
+<li>Single U‑Net‑style model supports denoise‑only and denoise+upscale,
+targeting real‑time 1 spp inputs.</li>
+<li>Link: <a
+target="_blank" rel="noopener" href="https://gpuopen.com/learn/neural_supersampling_and_denoising_for_real-time_path_tracing/">AMD
+GPUOpen article</a></li>
+</ul></li>
+<li><strong>Denoising‑Aware Adaptive Sampling for Monte Carlo Ray
+Tracing</strong>
+<ul>
+<li>Couples deep denoising with adaptive sampling via variance of
+network outputs to reduce equal‑time error.</li>
+<li>Link: <a
+target="_blank" rel="noopener" href="https://graphics.ucsd.edu/~henrik/papers/daas.pdf">PDF</a></li>
+</ul></li>
+</ul>
+<h3 id="practical-integration-notes">3. Practical integration notes</h3>
+<ul>
+<li><strong>Ordering</strong>: For path‑traced inputs at sub‑pixel spp,
+denoise at render resolution first, then upscale temporally; joint
+models can learn both in one pass.</li>
+<li><strong>Inputs</strong>: Feed temporally reprojected history, motion
+vectors, per‑pixel hit distance/roughness/normal/albedo; keep them in
+sync across SR scale.</li>
+<li><strong>Stability</strong>: Use reactive masks/exposure, and clamp
+history in disocclusions; joint models often outperform TAA+denoise
+cascades.</li>
+<li><strong>Training data</strong>: Pair low‑res, low‑spp with high‑res,
+high‑spp references; randomize camera/lighting/materials and include
+motion.</li>
+</ul>
+<h3
+id="related-canonical-denoisersupscalers-for-baseline-comparisons">4.
+Related canonical denoisers/upscalers (for baseline comparisons)</h3>
+<ul>
+<li>Spatiotemporal Variance‑Guided Filtering (SVGF, 2017) — classic
+analytic baseline for path tracing denoise.</li>
+<li>Intel Open Image Denoise (OIDN) — CPU neural denoiser for
+offline/interactive use.</li>
+<li>Temporal upscalers (DLSS/XeSS/FSR2+) — industry SR baselines; DLSS
+3.5 "Ray Reconstruction" integrates a neural ray‑tracing denoiser with
+SR in practice.</li>
+</ul>
+<p>If you want, I can add summaries/figures per paper and a small
+experimental checklist (datasets, metrics, and ablations) tailored to
+your current pipeline.</p>
+<h3 id="key-points-per-paper-joint-denoising-superresolution">5. Key
+points per paper (joint denoising + super‑resolution)</h3>
+<ul>
+<li><strong>Temporally Stable Real‑Time Joint Neural Denoising and
+Supersampling (HPG 2022)</strong>
+<ul>
+<li>Joint task in a single network: denoise and upscale with temporal
+feedback for stability.</li>
+<li>Processes low‑res inputs; outputs high‑res, temporally stable
+results; avoids TAA ghosting.</li>
+<li>Shares a low‑precision feature extractor with higher‑precision
+filtering heads to balance cost/quality.</li>
+<li>Uses motion vectors, normals, albedo, and history buffers for
+reprojected guidance.</li>
+<li>Shows better quality than separate denoiser + TAA/neural SR cascades
+at similar budgets.</li>
+</ul></li>
+<li><strong>End‑to‑End Adaptive Monte Carlo Denoising and
+Super‑Resolution (SRD, 2021)</strong>
+<ul>
+<li>Two‑stage cascade: denoising and SR with shared components;
+deformable conv handles differing receptive fields.</li>
+<li>Trains on low‑res, low‑spp inputs to reconstruct high‑res, clean
+outputs; improves detail retention.</li>
+<li>End‑to‑end objective encourages the denoiser to be SR‑aware (reduced
+oversmoothing before upscaling).</li>
+<li>Demonstrates superior PSNR/SSIM/LPIPS vs. sequential pipelines on MC
+rendering datasets.</li>
+</ul></li>
+<li><strong>Auxiliary Features‑Guided Super‑Resolution for Monte Carlo
+Rendering (2023)</strong>
+<ul>
+<li>Treats SR with noisy low‑res color but leverages high‑res auxiliary
+buffers (normals, depth, albedo) as guidance.</li>
+<li>Cross‑modality Transformer fuses modalities; residual Swin groups
+preserve fine geometric/texture detail.</li>
+<li>Effectively performs denoising during SR by conditioning on
+noise‑free high‑res guides.</li>
+<li>Outperforms prior SR and denoising‑then‑SR baselines on MC scenes,
+especially thin features.</li>
+</ul></li>
+<li><strong>Neural Supersampling and Denoising for Real‑Time Path
+Tracing (AMD GPUOpen)</strong>
+<ul>
+<li>Single U‑Net‑style model supports both denoise‑only and
+denoise+upscale modes for real‑time 1‑spp inputs.</li>
+<li>Multi‑branch, multi‑scale design ingests noisy radiance and aliased
+but noise‑free guides (normals, depth, motion).</li>
+<li>Trained for temporal stability and detail recovery at display
+resolution &gt; render resolution (e.g., 4K from 1080p).</li>
+<li>Practical engineering notes for integration (history usage, reactive
+masks, disocclusion handling).</li>
+</ul></li>
+<li><strong>Denoising‑Aware Adaptive Sampling for Monte Carlo Ray
+Tracing</strong>
+<ul>
+<li>Not a joint SR+denoise network, but complements them: adaptively
+allocates samples where the denoiser (and SR) are most uncertain.</li>
+<li>Variance of network outputs guides per‑iteration sampling; improves
+equal‑time error vs. uniform sampling.</li>
+<li>Pairs well with joint pipelines by reducing artifacts in
+high‑frequency/reflective regions that SR struggles to reconstruct.</li>
+</ul></li>
+</ul>
+
     </div>
 
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2025-10-12T16:17:09+08:00"
-              content="2025-10-12">
-          10-12
-        </time>
-      </div>
+    
+    
+    
 
-      <div class="post-title">
-        <a class="post-title-link" href="/2025/10/12/%E5%85%89%E8%BF%BD%E5%8E%BB%E5%99%AA/" itemprop="url">
-          <span itemprop="name">光追去噪技术深度解析：从理论到实践</span>
-        </a>
-      </div>
+    <footer class="post-footer">
 
-      
-    </header>
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/10/12/%E5%85%89%E8%BF%BD%E5%8E%BB%E5%99%AA/" rel="prev" title="光追去噪技术深度解析：从理论到实践">
+                  <i class="fa fa-angle-left"></i> 光追去噪技术深度解析：从理论到实践
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
   </article>
+</div>
 
-    </div>
-  </div>
-  
-  
-  
+
+
+
+
 
 </div>
   </main>
@@ -350,7 +570,7 @@ setInterval("createtime()",250);
 
   
 
-  <script class="next-config" data-name="enableMath" type="application/json">false</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"per_page":true,"cdn":"//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML","mhchem":false,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"per_page":true,"cdn":"//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML","mhchem":false,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
 <script src="/js/third-party/math/mathjax.js"></script>
 
 
