@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#fff"><meta name="generator" content="Hexo 5.4.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/computer-chip_gray.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/computer-chip_gray.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/computer-chip_gray.svg">
+  <link rel="mask-icon" href="/images/computer-chip_gray.svg" color="#fff">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha256-yIDrPSXHZdOZhAqiBP7CKzIwMQmRCJ8UeB8Jo17YC4o=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/themes/blue/pace-theme-minimal.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/pace.min.js" integrity="sha256-gqd7YTjg/BtfqWSwsJOvndl0Bxc8gFImLEkXQT8+qj0=" crossorigin="anonymous"></script>
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"huziliang.com","root":"/","images":"/images","scheme":"Pisces","darkmode":false,"version":"8.19.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":true,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":true,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="写在前面 如果你像我一样，之前的工作主要集中在超分辨率和去噪，现在想入门光线追踪（Ray Tracing），这篇文章会详细规划一条可行的学习路线。 为什么选择光线追踪？ 行业趋势 1234567891011121314timeline    title 实时渲染技术演进    2018 : NVIDIA RTX发布          : 实时RT首次落地    2020 : DLSS 2.0">
+<meta property="og:type" content="website">
+<meta property="og:title" content="从超分辨率到光线追踪——我的技术路线规划">
+<meta property="og:url" content="https://huziliang.com/rt-learning-series-00-overview.html">
+<meta property="og:site_name" content="Locky Hu">
+<meta property="og:description" content="写在前面 如果你像我一样，之前的工作主要集中在超分辨率和去噪，现在想入门光线追踪（Ray Tracing），这篇文章会详细规划一条可行的学习路线。 为什么选择光线追踪？ 行业趋势 1234567891011121314timeline    title 实时渲染技术演进    2018 : NVIDIA RTX发布          : 实时RT首次落地    2020 : DLSS 2.0">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2026-03-16T01:13:53.000Z">
+<meta property="article:modified_time" content="2026-03-16T02:44:50.035Z">
+<meta property="article:author" content="Locky Hu">
+<meta property="article:tag" content="ray tracing">
+<meta property="article:tag" content="path tracing">
+<meta property="article:tag" content="career planning">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://huziliang.com/rt-learning-series-00-overview">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":false,"lang":"en","comments":true,"permalink":"https://huziliang.com/rt-learning-series-00-overview.html","path":"rt-learning-series-00-overview.html","title":"从超分辨率到光线追踪——我的技术路线规划"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>从超分辨率到光线追踪——我的技术路线规划 | Locky Hu
+</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title"></p>
+      <i class="logo-line"></i>
+    </a>
+    <a href="/" class="" rel="start">
+      <p class="site-subtitle" itemprop="description">Newbie Dad, Software Engineer</p>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%86%99%E5%9C%A8%E5%89%8D%E9%9D%A2"><span class="nav-text">写在前面</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%80%89%E6%8B%A9%E5%85%89%E7%BA%BF%E8%BF%BD%E8%B8%AA"><span class="nav-text">为什么选择光线追踪？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A1%8C%E4%B8%9A%E8%B6%8B%E5%8A%BF"><span class="nav-text">行业趋势</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%AA%E4%BA%BA%E4%BC%98%E5%8A%BF%E5%88%86%E6%9E%90"><span class="nav-text">个人优势分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8A%80%E6%9C%AF%E6%A0%88%E5%AF%B9%E5%BA%94%E5%85%B3%E7%B3%BB"><span class="nav-text">技术栈对应关系</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B4%E4%BD%93%E5%AD%A6%E4%B9%A0%E8%B7%AF%E7%BA%BF"><span class="nav-text">整体学习路线</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%9B%9B%E9%98%B6%E6%AE%B5%E8%A7%84%E5%88%92"><span class="nav-text">四阶段规划</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%B6%E9%97%B4%E4%B8%8E%E4%BA%A7%E5%87%BA"><span class="nav-text">时间与产出</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%98%B6%E6%AE%B5%E4%B8%80%E7%90%86%E8%A7%A3%E5%85%89%E7%BA%BF%E8%BF%BD%E8%B8%AA%E5%9F%BA%E7%A1%80"><span class="nav-text">阶段一：理解光线追踪基础</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9B%AE%E6%A0%87"><span class="nav-text">目标</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%B8%E5%BF%83%E5%86%85%E5%AE%B9"><span class="nav-text">核心内容</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E8%B7%B5%E9%A1%B9%E7%9B%AE"><span class="nav-text">实践项目</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%A6%E4%B9%A0%E8%B5%84%E6%BA%90"><span class="nav-text">学习资源</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%98%B6%E6%AE%B5%E4%BA%8C%E5%AE%9E%E6%97%B6%E5%85%89%E7%BA%BF%E8%BF%BD%E8%B8%AA"><span class="nav-text">阶段二：实时光线追踪</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9B%AE%E6%A0%87-1"><span class="nav-text">目标</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%B8%E5%BF%83%E5%86%85%E5%AE%B9-1"><span class="nav-text">核心内容</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E8%B7%B5%E9%A1%B9%E7%9B%AE-1"><span class="nav-text">实践项目</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%A6%E4%B9%A0%E8%B5%84%E6%BA%90-1"><span class="nav-text">学习资源</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%98%B6%E6%AE%B5%E4%B8%89ai-%E5%85%89%E7%BA%BF%E8%BF%BD%E8%B8%AA"><span class="nav-text">阶段三：AI + 光线追踪</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9B%AE%E6%A0%87-2"><span class="nav-text">目标</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%B8%E5%BF%83%E5%86%85%E5%AE%B9-2"><span class="nav-text">核心内容</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E8%B7%B5%E9%A1%B9%E7%9B%AE-2"><span class="nav-text">实践项目</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%A6%E4%B9%A0%E8%B5%84%E6%BA%90-2"><span class="nav-text">学习资源</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%98%B6%E6%AE%B5%E5%9B%9B%E7%A7%BB%E5%8A%A8%E7%AB%AF%E5%85%89%E7%BA%BF%E8%BF%BD%E8%B8%AA"><span class="nav-text">阶段四：移动端光线追踪</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9B%AE%E6%A0%87-3"><span class="nav-text">目标</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%B8%E5%BF%83%E5%86%85%E5%AE%B9-3"><span class="nav-text">核心内容</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E8%B7%B5%E9%A1%B9%E7%9B%AE-3"><span class="nav-text">实践项目</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E9%94%AE%E8%AE%BA%E6%96%87%E4%B8%8E%E8%B5%84%E6%BA%90%E6%B1%87%E6%80%BB"><span class="nav-text">关键论文与资源汇总</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%BA%E6%96%87%E6%B8%85%E5%8D%95"><span class="nav-text">论文清单</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE"><span class="nav-text">开源项目</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AD%A6%E4%B9%A0%E5%BB%BA%E8%AE%AE"><span class="nav-text">学习建议</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%B6%E9%97%B4%E5%88%86%E9%85%8D"><span class="nav-text">时间分配</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%A6%E4%B9%A0%E5%8E%9F%E5%88%99"><span class="nav-text">学习原则</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B3%BB%E5%88%97%E6%96%87%E7%AB%A0%E5%AF%BC%E8%88%AA"><span class="nav-text">系列文章导航</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <style>
+    .pixel-slime {
+      height: 100px;
+      width: 105px;
+      position: relative;
+      display: inline-block;
+      margin: 20px;
+      &::before {
+        content: "";
+        position: absolute;
+        background: 0 0;
+        width: 5px;
+        height: 5px;
+        top: -5px;
+        left: -5px;
+        box-shadow: 65px 5px rgb(91, 155, 213), 55px 10px rgb(91, 155, 213), 60px 10px rgb(91, 155, 213), 70px 10px rgb(91, 155, 213), 40px 15px rgb(91, 155, 213), 45px 15px rgb(91, 155, 213), 50px 15px rgb(91, 155, 213), 75px 15px rgb(91, 155, 213), 30px 20px rgb(91, 155, 213), 35px 20px rgb(91, 155, 213), 80px 20px rgb(91, 155, 213), 20px 25px rgb(91, 155, 213), 25px 25px rgb(91, 155, 213), 85px 25px rgb(91, 155, 213), 90px 25px rgb(91, 155, 213), 15px 30px rgb(91, 155, 213), 95px 30px rgb(91, 155, 213), 10px 35px rgb(91, 155, 213), 100px 35px rgb(91, 155, 213), 10px 40px rgb(91, 155, 213), 100px 40px rgb(91, 155, 213), 5px 45px rgb(91, 155, 213), 105px 45px rgb(91, 155, 213), 5px 50px rgb(91, 155, 213), 105px 50px rgb(91, 155, 213), 5px 55px rgb(91, 155, 213), 105px 55px rgb(91, 155, 213), 5px 60px rgb(91, 155, 213), 105px 60px rgb(91, 155, 213), 5px 65px rgb(91, 155, 213), 105px 65px rgb(91, 155, 213), 5px 70px rgb(91, 155, 213), 105px 70px rgb(91, 155, 213), 10px 75px rgb(91, 155, 213), 100px 75px rgb(91, 155, 213), 10px 80px rgb(91, 155, 213), 100px 80px rgb(91, 155, 213), 15px 85px rgb(91, 155, 213), 95px 85px rgb(91, 155, 213), 20px 90px rgb(91, 155, 213), 25px 90px rgb(91, 155, 213), 85px 90px rgb(91, 155, 213), 90px 90px rgb(91, 155, 213), 30px 95px rgb(91, 155, 213), 35px 95px rgb(91, 155, 213), 75px 95px rgb(91, 155, 213), 80px 95px rgb(91, 155, 213), 40px 100px rgb(91, 155, 213), 45px 100px rgb(91, 155, 213), 50px 100px rgb(91, 155, 213), 55px 100px rgb(91, 155, 213), 60px 100px rgb(91, 155, 213), 65px 100px rgb(91, 155, 213), 70px 100px rgb(91, 155, 213), 65px 10px rgb(221, 235, 247), 55px 15px rgb(221, 235, 247), 60px 15px rgb(221, 235, 247), 70px 15px rgb(221, 235, 247), 50px 20px rgb(221, 235, 247), 75px 20px rgb(221, 235, 247), 80px 25px rgb(221, 235, 247), 85px 30px rgb(221, 235, 247), 90px 30px rgb(221, 235, 247), 15px 35px rgb(221, 235, 247), 100px 55px rgb(221, 235, 247), 100px 60px rgb(221, 235, 247), 85px 65px rgb(221, 235, 247), 15px 60px rgb(221, 235, 247), 40px 20px rgb(242, 247, 252), 45px 20px rgb(242, 247, 252), 30px 25px rgb(242, 247, 252), 35px 25px rgb(242, 247, 252), 20px 30px rgb(242, 247, 252), 25px 30px rgb(242, 247, 252), 95px 35px rgb(242, 247, 252), 95px 40px rgb(242, 247, 252), 100px 45px rgb(242, 247, 252), 100px 50px rgb(242, 247, 252), 25px 50px rgb(242, 247, 252), 20px 60px rgb(242, 247, 252), 70px 55px rgb(242, 247, 252), 80px 65px rgb(242, 247, 252), 65px 15px rgb(189, 215, 238), 55px 20px rgb(189, 215, 238), 60px 20px rgb(189, 215, 238), 65px 20px rgb(189, 215, 238), 70px 20px rgb(189, 215, 238), 40px 25px rgb(189, 215, 238), 45px 25px rgb(189, 215, 238), 50px 25px rgb(189, 215, 238), 55px 25px rgb(189, 215, 238), 60px 25px rgb(189, 215, 238), 65px 25px rgb(189, 215, 238), 70px 25px rgb(189, 215, 238), 75px 25px rgb(189, 215, 238), 30px 30px rgb(189, 215, 238), 35px 30px rgb(189, 215, 238), 40px 30px rgb(189, 215, 238), 45px 30px rgb(189, 215, 238), 50px 30px rgb(189, 215, 238), 55px 30px rgb(189, 215, 238), 60px 30px rgb(189, 215, 238), 65px 30px rgb(189, 215, 238), 70px 30px rgb(189, 215, 238), 75px 30px rgb(189, 215, 238), 80px 30px rgb(189, 215, 238), 20px 35px rgb(189, 215, 238), 25px 35px rgb(189, 215, 238), 30px 35px rgb(189, 215, 238), 35px 35px rgb(189, 215, 238), 40px 35px rgb(189, 215, 238), 45px 35px rgb(189, 215, 238), 50px 35px rgb(189, 215, 238), 55px 35px rgb(189, 215, 238), 60px 35px rgb(189, 215, 238), 65px 35px rgb(189, 215, 238), 70px 35px rgb(189, 215, 238), 75px 35px rgb(189, 215, 238), 80px 35px rgb(189, 215, 238), 85px 35px rgb(189, 215, 238), 90px 35px rgb(189, 215, 238), 15px 40px rgb(189, 215, 238), 20px 40px rgb(189, 215, 238), 25px 40px rgb(189, 215, 238), 30px 40px rgb(189, 215, 238), 35px 40px rgb(189, 215, 238), 40px 40px rgb(189, 215, 238), 45px 40px rgb(189, 215, 238), 50px 40px rgb(189, 215, 238), 55px 40px rgb(189, 215, 238), 60px 40px rgb(189, 215, 238), 65px 40px rgb(189, 215, 238), 70px 40px rgb(189, 215, 238), 75px 40px rgb(189, 215, 238), 80px 40px rgb(189, 215, 238), 85px 40px rgb(189, 215, 238), 90px 40px rgb(189, 215, 238), 10px 45px rgb(189, 215, 238), 15px 45px rgb(189, 215, 238), 20px 45px rgb(189, 215, 238), 25px 45px rgb(189, 215, 238), 30px 45px rgb(189, 215, 238), 90px 45px rgb(189, 215, 238), 95px 45px rgb(189, 215, 238), 10px 50px rgb(189, 215, 238), 15px 50px rgb(189, 215, 238), 20px 50px rgb(189, 215, 238), 95px 50px rgb(189, 215, 238), 10px 55px rgb(189, 215, 238), 15px 55px rgb(189, 215, 238), 10px 60px rgb(189, 215, 238), 10px 65px rgb(189, 215, 238), 10px 70px rgb(189, 215, 238), 15px 75px rgb(189, 215, 238), 15px 80px rgb(189, 215, 238), 20px 85px rgb(189, 215, 238), 25px 85px rgb(189, 215, 238), 30px 90px rgb(189, 215, 238), 35px 90px rgb(189, 215, 238), 100px 65px rgb(189, 215, 238), 100px 70px rgb(189, 215, 238), 95px 75px rgb(189, 215, 238), 95px 80px rgb(189, 215, 238), 85px 85px rgb(189, 215, 238), 90px 85px rgb(189, 215, 238), 75px 90px rgb(189, 215, 238), 80px 90px rgb(189, 215, 238), 40px 95px rgb(189, 215, 238), 45px 95px rgb(189, 215, 238), 50px 95px rgb(189, 215, 238), 55px 95px rgb(189, 215, 238), 60px 95px rgb(189, 215, 238), 65px 95px rgb(189, 215, 238), 70px 95px rgb(189, 215, 238), 20px 55px rgb(180, 198, 231), 35px 45px rgb(180, 198, 231), 40px 45px rgb(180, 198, 231), 45px 45px rgb(180, 198, 231), 50px 45px rgb(180, 198, 231), 55px 45px rgb(180, 198, 231), 60px 45px rgb(180, 198, 231), 65px 45px rgb(180, 198, 231), 70px 45px rgb(180, 198, 231), 75px 45px rgb(180, 198, 231), 80px 45px rgb(180, 198, 231), 85px 45px rgb(180, 198, 231), 35px 50px rgb(180, 198, 231), 40px 50px rgb(180, 198, 231), 45px 50px rgb(180, 198, 231), 50px 50px rgb(180, 198, 231), 55px 50px rgb(180, 198, 231), 60px 50px rgb(180, 198, 231), 65px 50px rgb(180, 198, 231), 70px 50px rgb(180, 198, 231), 75px 50px rgb(180, 198, 231), 80px 50px rgb(180, 198, 231), 85px 50px rgb(180, 198, 231), 90px 50px rgb(180, 198, 231), 35px 55px rgb(180, 198, 231), 40px 55px rgb(180, 198, 231), 45px 55px rgb(180, 198, 231), 50px 55px rgb(180, 198, 231), 55px 55px rgb(180, 198, 231), 60px 55px rgb(180, 198, 231), 65px 55px rgb(180, 198, 231), 80px 55px rgb(180, 198, 231), 85px 55px rgb(180, 198, 231), 90px 55px rgb(180, 198, 231), 95px 55px rgb(180, 198, 231), 25px 60px rgb(180, 198, 231), 30px 60px rgb(180, 198, 231), 35px 60px rgb(180, 198, 231), 40px 60px rgb(180, 198, 231), 45px 60px rgb(180, 198, 231), 50px 60px rgb(180, 198, 231), 55px 60px rgb(180, 198, 231), 60px 60px rgb(180, 198, 231), 65px 60px rgb(180, 198, 231), 80px 60px rgb(180, 198, 231), 85px 60px rgb(180, 198, 231), 90px 60px rgb(180, 198, 231), 95px 60px rgb(180, 198, 231), 15px 65px rgb(180, 198, 231), 20px 65px rgb(180, 198, 231), 25px 65px rgb(180, 198, 231), 30px 65px rgb(180, 198, 231), 90px 65px rgb(180, 198, 231), 95px 65px rgb(180, 198, 231), 15px 70px rgb(180, 198, 231), 20px 70px rgb(180, 198, 231), 90px 70px rgb(180, 198, 231), 95px 70px rgb(180, 198, 231), 35px 65px rgb(142, 169, 219), 40px 65px rgb(142, 169, 219), 45px 65px rgb(142, 169, 219), 50px 65px rgb(142, 169, 219), 55px 65px rgb(142, 169, 219), 60px 65px rgb(142, 169, 219), 65px 65px rgb(142, 169, 219), 70px 65px rgb(142, 169, 219), 75px 65px rgb(142, 169, 219), 35px 70px rgb(142, 169, 219), 40px 70px rgb(142, 169, 219), 45px 70px rgb(142, 169, 219), 50px 70px rgb(142, 169, 219), 55px 70px rgb(142, 169, 219), 60px 70px rgb(142, 169, 219), 65px 70px rgb(142, 169, 219), 70px 70px rgb(142, 169, 219), 75px 70px rgb(142, 169, 219), 80px 70px rgb(142, 169, 219), 85px 70px rgb(142, 169, 219), 35px 75px rgb(142, 169, 219), 40px 75px rgb(142, 169, 219), 25px 70px rgb(142, 169, 219), 20px 75px rgb(142, 169, 219), 25px 75px rgb(142, 169, 219), 20px 80px rgb(142, 169, 219), 25px 80px rgb(142, 169, 219), 30px 80px rgb(142, 169, 219), 50px 75px rgb(142, 169, 219), 55px 75px rgb(142, 169, 219), 65px 75px rgb(142, 169, 219), 70px 75px rgb(142, 169, 219), 75px 75px rgb(142, 169, 219), 80px 75px rgb(142, 169, 219), 85px 75px rgb(142, 169, 219), 90px 75px rgb(142, 169, 219), 45px 80px rgb(142, 169, 219), 60px 80px rgb(142, 169, 219), 65px 80px rgb(142, 169, 219), 70px 80px rgb(142, 169, 219), 75px 80px rgb(142, 169, 219), 80px 80px rgb(142, 169, 219), 85px 80px rgb(142, 169, 219), 90px 80px rgb(142, 169, 219), 30px 85px rgb(142, 169, 219), 35px 85px rgb(142, 169, 219), 40px 85px rgb(142, 169, 219), 45px 85px rgb(142, 169, 219), 50px 85px rgb(142, 169, 219), 55px 85px rgb(142, 169, 219), 60px 85px rgb(142, 169, 219), 65px 85px rgb(142, 169, 219), 70px 85px rgb(142, 169, 219), 75px 85px rgb(142, 169, 219), 80px 85px rgb(142, 169, 219), 40px 90px rgb(142, 169, 219), 45px 90px rgb(142, 169, 219), 50px 90px rgb(142, 169, 219), 55px 90px rgb(142, 169, 219), 60px 90px rgb(142, 169, 219), 65px 90px rgb(142, 169, 219), 70px 90px rgb(142, 169, 219), 30px 70px rgb(248, 203, 173), 30px 75px rgb(248, 203, 173), 35px 80px rgb(248, 203, 173), 40px 80px rgb(248, 203, 173), 45px 75px rgb(248, 203, 173), 50px 80px rgb(248, 203, 173), 55px 80px rgb(248, 203, 173), 60px 75px rgb(248, 203, 173), 30px 50px rgb(64, 64, 64), 25px 55px rgb(64, 64, 64), 30px 55px rgb(64, 64, 64), 75px 55px rgb(64, 64, 64), 70px 60px rgb(64, 64, 64), 75px 60px rgb(64, 64, 64);
+      }
+    }
+  </style>
+
+
+<div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <a href="/" class="" rel="start" style="border-bottom: None !important">
+      <i class="pixel-slime"></i>
+    </a>
+    <!-- <img class="site-author-image" itemprop="image" alt="Locky Hu" src="/images/computer-chip_gray.svg"> -->
+  <a href="/" class="" rel="start"><p class="site-author-name" itemprop="name">Locky Hu</p></a>
+  <div class="site-description" itemprop="description">Just for record</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+        <div class="back-to-top animated" role="button" aria-label="Back to top">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner page posts-expand">
+
+
+    
+    
+    
+    <div class="post-block" lang="en"><header class="post-header">
+
+<h1 class="post-title" itemprop="name headline">从超分辨率到光线追踪——我的技术路线规划
+</h1>
+
+<div class="post-meta-container">
+</div>
+
+</header>
+
+      
+      
+      <div class="post-body">
+          <meta name="referrer" content="no-referrer" />
+<h2 id="写在前面">写在前面</h2>
+<p>如果你像我一样，之前的工作主要集中在超分辨率和去噪，现在想入门光线追踪（Ray
+Tracing），这篇文章会详细规划一条可行的学习路线。</p>
+<h2 id="为什么选择光线追踪">为什么选择光线追踪？</h2>
+<h3 id="行业趋势">行业趋势</h3>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">timeline</span><br><span class="line">    title 实时渲染技术演进</span><br><span class="line">    2018 : NVIDIA RTX发布</span><br><span class="line">          : 实时RT首次落地</span><br><span class="line">    2020 : DLSS 2.0</span><br><span class="line">          : AI超分成为标配</span><br><span class="line">    2022 : UE5 Lumen</span><br><span class="line">          : 软件RT大规模应用</span><br><span class="line">    2023 : DLSS 3.5 Ray Reconstruction</span><br><span class="line">          : AI降噪成为标准</span><br><span class="line">    2024 : 移动端RT成熟</span><br><span class="line">          : 骁龙8 Gen3支持RT</span><br><span class="line">    2025+ : AI+RT深度融合</span><br><span class="line">           : 神经渲染新范式</span><br></pre></td></tr></table></figure>
+<h3 id="个人优势分析">个人优势分析</h3>
+<p>我之前的超分辨率和去噪经验可以如何迁移？</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">mindmap</span><br><span class="line">  root((超分辨率经验))</span><br><span class="line">    网络设计</span><br><span class="line">      CNN架构</span><br><span class="line">      UNet编解码器</span><br><span class="line">      Transformer</span><br><span class="line">      可直接迁移到RT降噪</span><br><span class="line">    时域处理</span><br><span class="line">      运动向量重投影</span><br><span class="line">      历史帧融合</span><br><span class="line">      TAA相关技术</span><br><span class="line">      RT降噪核心</span><br><span class="line">    移动端优化</span><br><span class="line">      INT8量化</span><br><span class="line">      NCNN/MNN部署</span><br><span class="line">      推理优化</span><br><span class="line">      移动端RT需要</span><br><span class="line">    训练数据</span><br><span class="line">      离线渲染配对</span><br><span class="line">      多分辨率数据集</span><br><span class="line">      可直接复用</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">mindmap</span><br><span class="line">  root((去噪经验))</span><br><span class="line">    特征引导</span><br><span class="line">      G-Buffer条件输入</span><br><span class="line">      边缘感知</span><br><span class="line">      多模态融合</span><br><span class="line">      RT降噪必备</span><br><span class="line">    噪声建模</span><br><span class="line">      噪声类型分析</span><br><span class="line">      空间-频率特性</span><br><span class="line">      可迁移到MC噪声</span><br><span class="line">    损失函数</span><br><span class="line">      L1/L2损失</span><br><span class="line">      感知损失(VGG)</span><br><span class="line">      时域一致性损失</span><br><span class="line">      RT降噪损失设计</span><br><span class="line">    后处理</span><br><span class="line">      颜色校正</span><br><span class="line">      色调映射</span><br><span class="line">      通用</span><br></pre></td></tr></table></figure>
+<h3 id="技术栈对应关系">技术栈对应关系</h3>
+<table>
+<thead>
+<tr>
+<th>现有能力</th>
+<th>光线追踪场景</th>
+<th>迁移难度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>图像降噪</td>
+<td>1-4 spp RT降噪</td>
+<td>低</td>
+</tr>
+<tr>
+<td>视频降噪</td>
+<td>时域RT降噪</td>
+<td>低</td>
+</tr>
+<tr>
+<td>超分辨率</td>
+<td>RT + 超分联合</td>
+<td>低</td>
+</tr>
+<tr>
+<td>移动端部署</td>
+<td>移动端RT推理</td>
+<td>低</td>
+</tr>
+<tr>
+<td>BRDF/材质</td>
+<td>需要新学</td>
+<td>中</td>
+</tr>
+<tr>
+<td>采样理论</td>
+<td>需要新学</td>
+<td>中</td>
+</tr>
+<tr>
+<td>BVH等加速结构</td>
+<td>需要新学</td>
+<td>高</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="整体学习路线">整体学习路线</h2>
+<h3 id="四阶段规划">四阶段规划</h3>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">flowchart LR</span><br><span class="line">    A[阶段一&lt;br/&gt;RT基础&lt;br/&gt;2-3周] --&gt; B[阶段二&lt;br/&gt;实时RT&lt;br/&gt;3-4周]</span><br><span class="line">    B --&gt; C[阶段三&lt;br/&gt;AI+RT&lt;br/&gt;4-6周]</span><br><span class="line">    C --&gt; D[阶段四&lt;br/&gt;移动端RT&lt;br/&gt;2-4周]</span><br><span class="line">    </span><br><span class="line">    A -.- A1[CPU路径追踪器]</span><br><span class="line">    B -.- B1[混合渲染器]</span><br><span class="line">    C -.- C1[神经降噪系统]</span><br><span class="line">    D -.- D1[移动端RT Demo]</span><br></pre></td></tr></table></figure>
+<h3 id="时间与产出">时间与产出</h3>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>周数</th>
+<th>核心产出</th>
+<th>验证标准</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>一</td>
+<td>2-3</td>
+<td>CPU路径追踪器</td>
+<td>渲染Cornell Box</td>
+</tr>
+<tr>
+<td>二</td>
+<td>3-4</td>
+<td>混合渲染器Demo</td>
+<td>RT阴影+反射</td>
+</tr>
+<tr>
+<td>三</td>
+<td>4-6</td>
+<td>神经降噪系统</td>
+<td>达到SVGF质量</td>
+</tr>
+<tr>
+<td>四</td>
+<td>2-4</td>
+<td>移动端RT Demo</td>
+<td>手机30fps</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="阶段一理解光线追踪基础">阶段一：理解光线追踪基础</h2>
+<h3 id="目标">目标</h3>
+<p>从零理解光线追踪的数学原理和实现方法。</p>
+<h3 id="核心内容">核心内容</h3>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">Week 1: 光线追踪基础</span><br><span class="line">├── 光线求交算法</span><br><span class="line">├── 递归光线追踪</span><br><span class="line">└── 基础材质(漫反射、镜面)</span><br><span class="line"></span><br><span class="line">Week 2: 路径追踪</span><br><span class="line">├── 渲染方程</span><br><span class="line">├── 蒙特卡洛积分</span><br><span class="line">├── 重要性采样</span><br><span class="line">└── Russian Roulette</span><br><span class="line"></span><br><span class="line">Week 3: 加速结构</span><br><span class="line">├── BVH构建</span><br><span class="line">├── BVH遍历</span><br><span class="line">└── 空间索引</span><br></pre></td></tr></table></figure>
+<h3 id="实践项目">实践项目</h3>
+<p><strong>Project: Mini Path Tracer</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 目标: 用C++实现一个CPU路径追踪器</span></span><br><span class="line"><span class="comment">// 参考: Ray Tracing in One Weekend系列</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">PathTracer</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">Vec3f <span class="title">trace</span><span class="params">(<span class="type">const</span> Ray&amp; ray, <span class="type">int</span> depth)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (depth &lt;= <span class="number">0</span>) <span class="keyword">return</span> <span class="built_in">Vec3f</span>(<span class="number">0</span>);</span><br><span class="line">        </span><br><span class="line">        Intersection isect;</span><br><span class="line">        <span class="keyword">if</span> (!scene.<span class="built_in">intersect</span>(ray, isect)) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">environment</span>(ray.direction);</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 直接光照</span></span><br><span class="line">        Vec3f direct = <span class="built_in">estimateDirect</span>(isect);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 间接光照 (MC采样)</span></span><br><span class="line">        <span class="function">Vec3f <span class="title">indirect</span><span class="params">(<span class="number">0</span>)</span></span>;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; samples_per_pixel; ++i) &#123;</span><br><span class="line">            Vec3f dir = <span class="built_in">sampleHemisphere</span>(isect.normal);</span><br><span class="line">            <span class="function">Ray <span class="title">next_ray</span><span class="params">(isect.position, dir)</span></span>;</span><br><span class="line">            indirect += <span class="built_in">trace</span>(next_ray, depth - <span class="number">1</span>) * <span class="built_in">brdf</span>(isect, dir);</span><br><span class="line">        &#125;</span><br><span class="line">        indirect /= samples_per_pixel;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">return</span> isct.emission + direct + indirect;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h3 id="学习资源">学习资源</h3>
+<table>
+<thead>
+<tr>
+<th>内容</th>
+<th>资源</th>
+<th>重要程度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>入门</td>
+<td>Ray Tracing in One Weekend</td>
+<td>★★★★★</td>
+</tr>
+<tr>
+<td>进阶</td>
+<td>PBRT 4th 第1-5章</td>
+<td>★★★★</td>
+</tr>
+<tr>
+<td>数学</td>
+<td>蒙特卡洛方法</td>
+<td>★★★★</td>
+</tr>
+<tr>
+<td>视频</td>
+<td>GAMES101 Lecture 17-20</td>
+<td>★★★★</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="阶段二实时光线追踪">阶段二：实时光线追踪</h2>
+<h3 id="目标-1">目标</h3>
+<p>理解实时RT的硬件支持和软件实现。</p>
+<h3 id="核心内容-1">核心内容</h3>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">Week 4: RT API入门</span><br><span class="line">├── DXR/Vulkan RT架构</span><br><span class="line">├── 光线生成着色器</span><br><span class="line">├── 相交着色器</span><br><span class="line">└── 最近命中着色器</span><br><span class="line"></span><br><span class="line">Week 5: 混合渲染</span><br><span class="line">├── G-Buffer生成</span><br><span class="line">├── Rasterized直接光照</span><br><span class="line">├── RT阴影</span><br><span class="line">└── RT环境光遮蔽</span><br><span class="line"></span><br><span class="line">Week 6: RT效果</span><br><span class="line">├── RT反射</span><br><span class="line">├── RT全局光照(简化)</span><br><span class="line">└── 降噪流程</span><br><span class="line"></span><br><span class="line">Week 7: 集成降噪</span><br><span class="line">├── SVGF集成</span><br><span class="line">├── 或自定义降噪</span><br><span class="line">└── 时域复用</span><br></pre></td></tr></table></figure>
+<h3 id="实践项目-1">实践项目</h3>
+<p><strong>Project: Hybrid Renderer</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 目标: 实现混合渲染管线</span></span><br><span class="line"><span class="comment">// 光栅化: G-Buffer + 直接光照</span></span><br><span class="line"><span class="comment">// RT: 阴影 + 反射 + AO</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">HybridRenderer</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">render</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 阶段1: 光栅化G-Buffer</span></span><br><span class="line">        <span class="built_in">renderGBuffer</span>();</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 阶段2: 光栅化直接光照</span></span><br><span class="line">        <span class="built_in">renderDirectLight</span>();</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 阶段3: RT阴影</span></span><br><span class="line">        <span class="built_in">traceShadowsRT</span>();</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 阶段4: RT反射</span></span><br><span class="line">        <span class="built_in">traceReflectionsRT</span>();</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 阶段5: RTAO (可选)</span></span><br><span class="line">        <span class="built_in">traceAmbientOcclusionRT</span>();</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 阶段6: 合成与降噪</span></span><br><span class="line">        <span class="built_in">composite</span>();</span><br><span class="line">        <span class="built_in">denoise</span>();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h3 id="学习资源-1">学习资源</h3>
+<table>
+<thead>
+<tr>
+<th>内容</th>
+<th>资源</th>
+<th>重要程度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DXR入门</td>
+<td>NVIDIA DXR Tutorial</td>
+<td>★★★★★</td>
+</tr>
+<tr>
+<td>Vulkan RT</td>
+<td>vulkan-tutorial.com</td>
+<td>★★★★</td>
+</tr>
+<tr>
+<td>框架学习</td>
+<td>Falcor, Cauldron</td>
+<td>★★★</td>
+</tr>
+<tr>
+<td>论文</td>
+<td>Hybrid Rendering papers</td>
+<td>★★★</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="阶段三ai-光线追踪">阶段三：AI + 光线追踪</h2>
+<h3 id="目标-2">目标</h3>
+<p>结合神经网络优化RT质量和性能。</p>
+<h3 id="核心内容-2">核心内容</h3>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">Week 8: RT降噪深入</span><br><span class="line">├── MC噪声特性分析</span><br><span class="line">├── SVGF源码分析</span><br><span class="line">├── OIDN源码分析</span><br><span class="line">└── 工业\u9645降噪流程</span><br><span class="line"></span><br><span class="line">Week 9: 神经降噪定制</span><br><span class="line">├── 网络架构适配</span><br><span class="line">├── 损失函数设计</span><br><span class="line">├── 训练数据生成</span><br><span class="line">└── 时域稳定化</span><br><span class="line"></span><br><span class="line">Week 10: 神经采样</span><br><span class="line">├── 重要性采样原理</span><br><span class="line">├── 学习采样分布</span><br><span class="line">├── 方差分析</span><br><span class="line">└── 效果评估</span><br><span class="line"></span><br><span class="line">Week 11: 神经全局光照</span><br><span class="line">├── 辐射度缓存原理</span><br><span class="line">├── Neural Radiance Caching</span><br><span class="line">├── 在线学习vs离线预训练</span><br><span class="line">└── 移动端适配</span><br><span class="line"></span><br><span class="line">Week 12: 联合优化</span><br><span class="line">├── 降噪+超分联合</span><br><span class="line">├── 端到端训练</span><br><span class="line">└── 性能优化</span><br></pre></td></tr></table></figure>
+<h3 id="实践项目-2">实践项目</h3>
+<p><strong>Project: Neural RT Denoiser</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 目标: 实现一个神经降噪器，达到或超过SVGF质量</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">RTDenoiser</span>(nn.Module):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    专为RT设计的降噪网络</span></span><br><span class="line"><span class="string">    输入:</span></span><br><span class="line"><span class="string">      - noisy_color (1-4 spp)</span></span><br><span class="line"><span class="string">      - albedo</span></span><br><span class="line"><span class="string">      - normal</span></span><br><span class="line"><span class="string">      - depth</span></span><br><span class="line"><span class="string">      - motion_vectors</span></span><br><span class="line"><span class="string">    输出:</span></span><br><span class="line"><span class="string">      - denoised_color</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="comment"># 基于你之前去噪网络的改进版本</span></span><br><span class="line">        <span class="variable language_">self</span>.encoder = UNetEncoder()</span><br><span class="line">        <span class="variable language_">self</span>.temporal_fusion = TemporalFusion()</span><br><span class="line">        <span class="variable language_">self</span>.decoder = UNetDecoder()</span><br><span class="line">        </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, noisy_color, g_buffer, history</span>):</span><br><span class="line">        <span class="comment"># 空间特征提取</span></span><br><span class="line">        features = <span class="variable language_">self</span>.encoder(noisy_color, g_buffer)</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 时域融合</span></span><br><span class="line">        features = <span class="variable language_">self</span>.temporal_fusion(features, history)</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 解码</span></span><br><span class="line">        output = <span class="variable language_">self</span>.decoder(features)</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">return</span> output</span><br></pre></td></tr></table></figure>
+<h3 id="学习资源-2">学习资源</h3>
+<table>
+<thead>
+<tr>
+<th>内容</th>
+<th>资源</th>
+<th>重要程度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SVGF</td>
+<td>论文 + 源码</td>
+<td>★★★★★</td>
+</tr>
+<tr>
+<td>OIDN</td>
+<td>Intel开源代码</td>
+<td>★★★★★</td>
+</tr>
+<tr>
+<td>NRC</td>
+<td>NVIDIA论文</td>
+<td>★★★★</td>
+</tr>
+<tr>
+<td>采样</td>
+<td>Neural Importance Sampling</td>
+<td>★★★</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="阶段四移动端光线追踪">阶段四：移动端光线追踪</h2>
+<h3 id="目标-3">目标</h3>
+<p>将RT技术落地到移动端。</p>
+<h3 id="核心内容-3">核心内容</h3>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">Week 13: 移动端RT现状</span><br><span class="line">├── 硬件能力分析</span><br><span class="line">├── Vulkan RT移动端支持</span><br><span class="line">├── 性能基线测试</span><br><span class="line">└── 优化方向</span><br><span class="line"></span><br><span class="line">Week 14: 极低SPP渲染</span><br><span class="line">├── 1-2 spp渲染流程</span><br><span class="line">├── 采样策略优化</span><br><span class="line">├── 自适应采样</span><br><span class="line">└── 降噪适配</span><br><span class="line"></span><br><span class="line">Week 15: 神经网络部署</span><br><span class="line">├── 网络量化</span><br><span class="line">├── NCNN/MNN集成</span><br><span class="line">├── 推理优化</span><br><span class="line">└── 内存管理</span><br><span class="line"></span><br><span class="line">Week 16: 整体优化</span><br><span class="line">├── 分辨率策略</span><br><span class="line">├── 帧率稳定</span><br><span class="line">├── 功耗控制</span><br><span class="line">└── 效果调优</span><br></pre></td></tr></table></figure>
+<h3 id="实践项目-3">实践项目</h3>
+<p><strong>Project: Mobile RT Demo</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 目标: 在移动端实现30fps的RT效果</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">MobileRTRenderer</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">render</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 分辨率: 960x540 (后超分到1920x1080)</span></span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 1-spp RT</span></span><br><span class="line">        <span class="built_in">trace</span>(<span class="number">1</span>);  <span class="comment">// 每像素1条光线</span></span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 神经降噪 (量化后的网络)</span></span><br><span class="line">        <span class="built_in">denoise</span>(neural_denoiser_);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 超分辨率</span></span><br><span class="line">        <span class="built_in">upscale</span>(neural_sr_);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// TAA</span></span><br><span class="line">        <span class="built_in">temporal_stabilize</span>();</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    ncnn::Net* neural_denoiser_;  <span class="comment">// INT8量化</span></span><br><span class="line">    ncnn::Net* neural_sr_;        <span class="comment">// INT8量化</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<hr />
+<h2 id="关键论文与资源汇总">关键论文与资源汇总</h2>
+<h3 id="论文清单">论文清单</h3>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">基础理论 (必读):</span><br><span class="line">├── The Rendering Equation (Kajiya 1986)</span><br><span class="line">├── Monte Carlo Methods in Rendering</span><br><span class="line">└── PBRT相关章节</span><br><span class="line"></span><br><span class="line">实时RT核心:</span><br><span class="line">├── Real-Time Rendering 4th - Chapter 26</span><br><span class="line">├── NVIDIA RTX白皮书</span><br><span class="line">└── Hybrid Rendering (各种实现)</span><br><span class="line"></span><br><span class="line">降噪方法:</span><br><span class="line">├── SVGF (2017) - 经典分析式</span><br><span class="line">├── AFGSA (2018) - 时域</span><br><span class="line">├── Kernel-Predicting CNN (2017)</span><br><span class="line">└── OIDN (2019) - 工业\u9645</span><br><span class="line"></span><br><span class="line">AI+RT:</span><br><span class="line">├── Neural Radiance Caching (2021)</span><br><span class="line">├── Neural Importance Sampling (2019)</span><br><span class="line">├── Real-time Neural Radiance Caching (2022)</span><br><span class="line">└── 每年SIGGRAPH最新论文</span><br><span class="line"></span><br><span class="line">移动端RT:</span><br><span class="line">├── 移动GPU架构分析</span><br><span class="line">├── Snapdragon Profiler文档</span><br><span class="line">└── 各厂商Best Practices</span><br></pre></td></tr></table></figure>
+<h3 id="开源项目">开源项目</h3>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">学习框架:</span><br><span class="line">├── pbrt-v4 (离线路径追踪参考)</span><br><span class="line">├── Mitsuba 3 (研究用途)</span><br><span class="line">├── Falcor (NVIDIA RT框架)</span><br><span class="line">└── OIDN (Intel降噪库)</span><br><span class="line"></span><br><span class="line">移动端:</span><br><span class="line">├── Filament (Google)</span><br><span class="line">├── WebGL RT Samples</span><br><span class="line">└── Vulkan Samples</span><br></pre></td></tr></table></figure>
+<hr />
+<h2 id="学习建议">学习建议</h2>
+<h3 id="时间分配">时间分配</h3>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">pie title 每周时间分配建议</span><br><span class="line">    &quot;理论学习&quot; : 30</span><br><span class="line">    &quot;代码实践&quot; : 40</span><br><span class="line">    &quot;论文阅读&quot; : 20</span><br><span class="line">    &quot;调试优化&quot; : 10</span><br></pre></td></tr></table></figure>
+<h3 id="学习原则">学习原则</h3>
+<ol type="1">
+<li><strong>先跑通，再优化</strong>
+<ul>
+<li>第一遍不求完美实现</li>
+<li>重点是理解原理</li>
+<li>优化是后续迭代</li>
+</ul></li>
+<li><strong>理论与实践结合</strong>
+<ul>
+<li>每个概念都要有代码验证</li>
+<li>不能只看不做</li>
+</ul></li>
+<li><strong>及时总结</strong>
+<ul>
+<li>每周写学习笔记</li>
+<li>记录踩过的坑</li>
+<li>形成自己的知识库</li>
+</ul></li>
+<li><strong>目标驱动</strong>
+<ul>
+<li>每个阶段有明确的产出</li>
+<li>用Demo验证学习成效</li>
+</ul></li>
+</ol>
+<hr />
+<h2 id="系列文章导航">系列文章导航</h2>
+<p>本系列将按以下顺序发布，每篇深入一个阶段：</p>
+<ul>
+<li><strong>[阶段一] 理解光线追踪基础</strong> -
+从渲染方程到路径追踪</li>
+<li><strong>[阶段二] 实时光线追踪</strong> - 硬件RT与混合渲染</li>
+<li><strong>[阶段三] AI + 光线追踪</strong> - 神经降噪与采样优化</li>
+<li><strong>[阶段四] 移动端光线追踪</strong> - 极致优化的落地之路</li>
+</ul>
+<p>下一篇，我们将开始第一阶段的学习。</p>
+
+      </div>
+      
+      
+      
+    </div>
+
+    
+    
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">粤ICP备17055045号 </a>
+  </div>
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Locky Hu</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>Word count total: </span>
+    <span title="Word count total">65k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span>Reading time total &asymp;</span>
+    <span title="Reading time total">59 mins.</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+<div>
+<span id="timeDate">载入天数...</span><span id="times">载入时分秒...</span>
+<script>
+    var now = new Date(); 
+    function createtime() { 
+        var grt= new Date("12/24/2021 19:43:01");//在此处修改你的建站时间
+        now.setTime(now.getTime()+250); 
+        days = (now - grt ) / 1000 / 60 / 60 / 24; dnum = Math.floor(days); 
+        hours = (now - grt ) / 1000 / 60 / 60 - (24 * dnum); hnum = Math.floor(hours); 
+        if(String(hnum).length ==1 ){hnum = "0" + hnum;} minutes = (now - grt ) / 1000 /60 - (24 * 60 * dnum) - (60 * hnum); 
+        mnum = Math.floor(minutes); if(String(mnum).length ==1 ){mnum = "0" + mnum;} 
+        seconds = (now - grt ) / 1000 - (24 * 60 * 60 * dnum) - (60 * 60 * hnum) - (60 * mnum); 
+        snum = Math.round(seconds); if(String(snum).length ==1 ){snum = "0" + snum;} 
+        document.getElementById("timeDate").innerHTML = "已运行 "+dnum+" 天 "; 
+        document.getElementById("times").innerHTML = hnum + " 小时 " + mnum + " 分 " + snum + " 秒"; 
+    } 
+setInterval("createtime()",250);
+</script>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+    </div>
+  </footer>
+
+  
+  <div class="reading-progress-bar"></div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/next-theme-pjax/0.6.0/pjax.min.js" integrity="sha256-vxLn1tSKWD4dqbMRyv940UYw4sXgMtYcK6reefzZrao=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/next-boot.js"></script><script src="/js/pjax.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+  <script src="/js/third-party/pace.js"></script>
+
+
+  
+  <script data-pjax async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"per_page":true,"cdn":"//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML","mhchem":false,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

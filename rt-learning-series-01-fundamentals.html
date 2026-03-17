@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#fff"><meta name="generator" content="Hexo 5.4.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/computer-chip_gray.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/computer-chip_gray.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/computer-chip_gray.svg">
+  <link rel="mask-icon" href="/images/computer-chip_gray.svg" color="#fff">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha256-yIDrPSXHZdOZhAqiBP7CKzIwMQmRCJ8UeB8Jo17YC4o=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/themes/blue/pace-theme-minimal.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/pace.min.js" integrity="sha256-gqd7YTjg/BtfqWSwsJOvndl0Bxc8gFImLEkXQT8+qj0=" crossorigin="anonymous"></script>
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"huziliang.com","root":"/","images":"/images","scheme":"Pisces","darkmode":false,"version":"8.19.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":true,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":true,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="系列导航  总览：从超分辨率到光线追踪——我的技术路线规划 阶段一：理解光线追踪基础（本文） 阶段二：实时光线追踪 阶段三：AI + 光线追踪 阶段四：移动端光线追踪   阶段目标 完成本阶段学习后，你将能够：  理解光线追踪的数学基础——渲染方程 实现一个CPU路径追踪器 渲染出经典的Cornell Box场景 理解为什么实时RT需要降噪   Week 1：光线追踪基础 1.1 什么是光线追踪">
+<meta property="og:type" content="website">
+<meta property="og:title" content="光线追踪入门（一）：从渲染方程到路径追踪">
+<meta property="og:url" content="https://huziliang.com/rt-learning-series-01-fundamentals.html">
+<meta property="og:site_name" content="Locky Hu">
+<meta property="og:description" content="系列导航  总览：从超分辨率到光线追踪——我的技术路线规划 阶段一：理解光线追踪基础（本文） 阶段二：实时光线追踪 阶段三：AI + 光线追踪 阶段四：移动端光线追踪   阶段目标 完成本阶段学习后，你将能够：  理解光线追踪的数学基础——渲染方程 实现一个CPU路径追踪器 渲染出经典的Cornell Box场景 理解为什么实时RT需要降噪   Week 1：光线追踪基础 1.1 什么是光线追踪">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2026-03-16T01:23:53.000Z">
+<meta property="article:modified_time" content="2026-03-16T02:44:56.668Z">
+<meta property="article:author" content="Locky Hu">
+<meta property="article:tag" content="ray tracing">
+<meta property="article:tag" content="path tracing">
+<meta property="article:tag" content="rendering equation">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://huziliang.com/rt-learning-series-01-fundamentals">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":false,"lang":"en","comments":true,"permalink":"https://huziliang.com/rt-learning-series-01-fundamentals.html","path":"rt-learning-series-01-fundamentals.html","title":"光线追踪入门（一）：从渲染方程到路径追踪"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>光线追踪入门（一）：从渲染方程到路径追踪 | Locky Hu
+</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title"></p>
+      <i class="logo-line"></i>
+    </a>
+    <a href="/" class="" rel="start">
+      <p class="site-subtitle" itemprop="description">Newbie Dad, Software Engineer</p>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B3%BB%E5%88%97%E5%AF%BC%E8%88%AA"><span class="nav-text">系列导航</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%98%B6%E6%AE%B5%E7%9B%AE%E6%A0%87"><span class="nav-text">阶段目标</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#week-1%E5%85%89%E7%BA%BF%E8%BF%BD%E8%B8%AA%E5%9F%BA%E7%A1%80"><span class="nav-text">Week 1：光线追踪基础</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E5%85%89%E7%BA%BF%E8%BF%BD%E8%B8%AA"><span class="nav-text">1.1 什么是光线追踪？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%89%E7%BA%BF-%E7%89%A9%E4%BD%93%E6%B1%82%E4%BA%A4"><span class="nav-text">1.2 光线-物体求交</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AC%AC%E4%B8%80%E6%AC%A1%E5%AE%9E%E8%B7%B5%E7%94%9F%E6%88%90%E5%9B%BE%E5%83%8F"><span class="nav-text">1.3 第一次实践：生成图像</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#week-2%E8%B7%AF%E5%BE%84%E8%BF%BD%E8%B8%AA%E4%B8%8E%E6%B8%B2%E6%9F%93%E6%96%B9%E7%A8%8B"><span class="nav-text">Week 2：路径追踪与渲染方程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%B8%B2%E6%9F%93%E6%96%B9%E7%A8%8B"><span class="nav-text">2.1 渲染方程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%92%99%E7%89%B9%E5%8D%A1%E6%B4%9B%E7%A7%AF%E5%88%86"><span class="nav-text">2.2 蒙特卡洛积分</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%87%8D%E8%A6%81%E6%80%A7%E9%87%87%E6%A0%B7"><span class="nav-text">2.3 重要性采样</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E5%85%89%E7%85%A7%E4%B8%8E%E9%97%B4%E6%8E%A5%E5%85%89%E7%85%A7"><span class="nav-text">2.4 直接光照与间接光照</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#russian-roulette"><span class="nav-text">2.5 Russian Roulette</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#week-3%E5%8A%A0%E9%80%9F%E7%BB%93%E6%9E%84%E4%B8%8E%E5%AE%8C%E6%95%B4%E5%AE%9E%E7%8E%B0"><span class="nav-text">Week 3：加速结构与完整实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#bvh-bounding-volume-hierarchy"><span class="nav-text">3.1 BVH (Bounding Volume
+Hierarchy)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%8C%E6%95%B4%E8%B7%AF%E5%BE%84%E8%BF%BD%E8%B8%AA%E5%99%A8"><span class="nav-text">3.2 完整路径追踪器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#cornell-box%E5%9C%BA%E6%99%AF"><span class="nav-text">3.3 Cornell Box场景</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E8%B7%B5%E4%BD%9C%E4%B8%9A"><span class="nav-text">实践作业</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%9C%E4%B8%9A1%E5%9F%BA%E7%A1%80%E8%B7%AF%E5%BE%84%E8%BF%BD%E8%B8%AA%E5%99%A8-week-1-2"><span class="nav-text">作业1：基础路径追踪器 (Week
+1-2)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%9C%E4%B8%9A2cornell-box-week-3"><span class="nav-text">作业2：Cornell Box (Week 3)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%AC%E5%91%A8%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95"><span class="nav-text">本周踩坑记录</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%97%AE%E9%A2%981%E8%87%AA%E7%9B%B8%E4%BA%A4-self-intersection"><span class="nav-text">问题1：自相交
+(Self-intersection)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%97%AE%E9%A2%982%E9%A2%9C%E8%89%B2%E6%BA%A2%E5%87%BA"><span class="nav-text">问题2：颜色溢出</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%97%AE%E9%A2%983%E6%96%B9%E5%B7%AE%E8%BF%87%E5%A4%A7"><span class="nav-text">问题3：方差过大</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BB%B6%E4%BC%B8%E9%98%85%E8%AF%BB"><span class="nav-text">延伸阅读</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8E%A8%E8%8D%90%E6%95%99%E7%A8%8B"><span class="nav-text">推荐教程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%86%E9%A2%91%E8%AF%BE%E7%A8%8B"><span class="nav-text">视频课程</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93"><span class="nav-text">小结</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <style>
+    .pixel-slime {
+      height: 100px;
+      width: 105px;
+      position: relative;
+      display: inline-block;
+      margin: 20px;
+      &::before {
+        content: "";
+        position: absolute;
+        background: 0 0;
+        width: 5px;
+        height: 5px;
+        top: -5px;
+        left: -5px;
+        box-shadow: 65px 5px rgb(91, 155, 213), 55px 10px rgb(91, 155, 213), 60px 10px rgb(91, 155, 213), 70px 10px rgb(91, 155, 213), 40px 15px rgb(91, 155, 213), 45px 15px rgb(91, 155, 213), 50px 15px rgb(91, 155, 213), 75px 15px rgb(91, 155, 213), 30px 20px rgb(91, 155, 213), 35px 20px rgb(91, 155, 213), 80px 20px rgb(91, 155, 213), 20px 25px rgb(91, 155, 213), 25px 25px rgb(91, 155, 213), 85px 25px rgb(91, 155, 213), 90px 25px rgb(91, 155, 213), 15px 30px rgb(91, 155, 213), 95px 30px rgb(91, 155, 213), 10px 35px rgb(91, 155, 213), 100px 35px rgb(91, 155, 213), 10px 40px rgb(91, 155, 213), 100px 40px rgb(91, 155, 213), 5px 45px rgb(91, 155, 213), 105px 45px rgb(91, 155, 213), 5px 50px rgb(91, 155, 213), 105px 50px rgb(91, 155, 213), 5px 55px rgb(91, 155, 213), 105px 55px rgb(91, 155, 213), 5px 60px rgb(91, 155, 213), 105px 60px rgb(91, 155, 213), 5px 65px rgb(91, 155, 213), 105px 65px rgb(91, 155, 213), 5px 70px rgb(91, 155, 213), 105px 70px rgb(91, 155, 213), 10px 75px rgb(91, 155, 213), 100px 75px rgb(91, 155, 213), 10px 80px rgb(91, 155, 213), 100px 80px rgb(91, 155, 213), 15px 85px rgb(91, 155, 213), 95px 85px rgb(91, 155, 213), 20px 90px rgb(91, 155, 213), 25px 90px rgb(91, 155, 213), 85px 90px rgb(91, 155, 213), 90px 90px rgb(91, 155, 213), 30px 95px rgb(91, 155, 213), 35px 95px rgb(91, 155, 213), 75px 95px rgb(91, 155, 213), 80px 95px rgb(91, 155, 213), 40px 100px rgb(91, 155, 213), 45px 100px rgb(91, 155, 213), 50px 100px rgb(91, 155, 213), 55px 100px rgb(91, 155, 213), 60px 100px rgb(91, 155, 213), 65px 100px rgb(91, 155, 213), 70px 100px rgb(91, 155, 213), 65px 10px rgb(221, 235, 247), 55px 15px rgb(221, 235, 247), 60px 15px rgb(221, 235, 247), 70px 15px rgb(221, 235, 247), 50px 20px rgb(221, 235, 247), 75px 20px rgb(221, 235, 247), 80px 25px rgb(221, 235, 247), 85px 30px rgb(221, 235, 247), 90px 30px rgb(221, 235, 247), 15px 35px rgb(221, 235, 247), 100px 55px rgb(221, 235, 247), 100px 60px rgb(221, 235, 247), 85px 65px rgb(221, 235, 247), 15px 60px rgb(221, 235, 247), 40px 20px rgb(242, 247, 252), 45px 20px rgb(242, 247, 252), 30px 25px rgb(242, 247, 252), 35px 25px rgb(242, 247, 252), 20px 30px rgb(242, 247, 252), 25px 30px rgb(242, 247, 252), 95px 35px rgb(242, 247, 252), 95px 40px rgb(242, 247, 252), 100px 45px rgb(242, 247, 252), 100px 50px rgb(242, 247, 252), 25px 50px rgb(242, 247, 252), 20px 60px rgb(242, 247, 252), 70px 55px rgb(242, 247, 252), 80px 65px rgb(242, 247, 252), 65px 15px rgb(189, 215, 238), 55px 20px rgb(189, 215, 238), 60px 20px rgb(189, 215, 238), 65px 20px rgb(189, 215, 238), 70px 20px rgb(189, 215, 238), 40px 25px rgb(189, 215, 238), 45px 25px rgb(189, 215, 238), 50px 25px rgb(189, 215, 238), 55px 25px rgb(189, 215, 238), 60px 25px rgb(189, 215, 238), 65px 25px rgb(189, 215, 238), 70px 25px rgb(189, 215, 238), 75px 25px rgb(189, 215, 238), 30px 30px rgb(189, 215, 238), 35px 30px rgb(189, 215, 238), 40px 30px rgb(189, 215, 238), 45px 30px rgb(189, 215, 238), 50px 30px rgb(189, 215, 238), 55px 30px rgb(189, 215, 238), 60px 30px rgb(189, 215, 238), 65px 30px rgb(189, 215, 238), 70px 30px rgb(189, 215, 238), 75px 30px rgb(189, 215, 238), 80px 30px rgb(189, 215, 238), 20px 35px rgb(189, 215, 238), 25px 35px rgb(189, 215, 238), 30px 35px rgb(189, 215, 238), 35px 35px rgb(189, 215, 238), 40px 35px rgb(189, 215, 238), 45px 35px rgb(189, 215, 238), 50px 35px rgb(189, 215, 238), 55px 35px rgb(189, 215, 238), 60px 35px rgb(189, 215, 238), 65px 35px rgb(189, 215, 238), 70px 35px rgb(189, 215, 238), 75px 35px rgb(189, 215, 238), 80px 35px rgb(189, 215, 238), 85px 35px rgb(189, 215, 238), 90px 35px rgb(189, 215, 238), 15px 40px rgb(189, 215, 238), 20px 40px rgb(189, 215, 238), 25px 40px rgb(189, 215, 238), 30px 40px rgb(189, 215, 238), 35px 40px rgb(189, 215, 238), 40px 40px rgb(189, 215, 238), 45px 40px rgb(189, 215, 238), 50px 40px rgb(189, 215, 238), 55px 40px rgb(189, 215, 238), 60px 40px rgb(189, 215, 238), 65px 40px rgb(189, 215, 238), 70px 40px rgb(189, 215, 238), 75px 40px rgb(189, 215, 238), 80px 40px rgb(189, 215, 238), 85px 40px rgb(189, 215, 238), 90px 40px rgb(189, 215, 238), 10px 45px rgb(189, 215, 238), 15px 45px rgb(189, 215, 238), 20px 45px rgb(189, 215, 238), 25px 45px rgb(189, 215, 238), 30px 45px rgb(189, 215, 238), 90px 45px rgb(189, 215, 238), 95px 45px rgb(189, 215, 238), 10px 50px rgb(189, 215, 238), 15px 50px rgb(189, 215, 238), 20px 50px rgb(189, 215, 238), 95px 50px rgb(189, 215, 238), 10px 55px rgb(189, 215, 238), 15px 55px rgb(189, 215, 238), 10px 60px rgb(189, 215, 238), 10px 65px rgb(189, 215, 238), 10px 70px rgb(189, 215, 238), 15px 75px rgb(189, 215, 238), 15px 80px rgb(189, 215, 238), 20px 85px rgb(189, 215, 238), 25px 85px rgb(189, 215, 238), 30px 90px rgb(189, 215, 238), 35px 90px rgb(189, 215, 238), 100px 65px rgb(189, 215, 238), 100px 70px rgb(189, 215, 238), 95px 75px rgb(189, 215, 238), 95px 80px rgb(189, 215, 238), 85px 85px rgb(189, 215, 238), 90px 85px rgb(189, 215, 238), 75px 90px rgb(189, 215, 238), 80px 90px rgb(189, 215, 238), 40px 95px rgb(189, 215, 238), 45px 95px rgb(189, 215, 238), 50px 95px rgb(189, 215, 238), 55px 95px rgb(189, 215, 238), 60px 95px rgb(189, 215, 238), 65px 95px rgb(189, 215, 238), 70px 95px rgb(189, 215, 238), 20px 55px rgb(180, 198, 231), 35px 45px rgb(180, 198, 231), 40px 45px rgb(180, 198, 231), 45px 45px rgb(180, 198, 231), 50px 45px rgb(180, 198, 231), 55px 45px rgb(180, 198, 231), 60px 45px rgb(180, 198, 231), 65px 45px rgb(180, 198, 231), 70px 45px rgb(180, 198, 231), 75px 45px rgb(180, 198, 231), 80px 45px rgb(180, 198, 231), 85px 45px rgb(180, 198, 231), 35px 50px rgb(180, 198, 231), 40px 50px rgb(180, 198, 231), 45px 50px rgb(180, 198, 231), 50px 50px rgb(180, 198, 231), 55px 50px rgb(180, 198, 231), 60px 50px rgb(180, 198, 231), 65px 50px rgb(180, 198, 231), 70px 50px rgb(180, 198, 231), 75px 50px rgb(180, 198, 231), 80px 50px rgb(180, 198, 231), 85px 50px rgb(180, 198, 231), 90px 50px rgb(180, 198, 231), 35px 55px rgb(180, 198, 231), 40px 55px rgb(180, 198, 231), 45px 55px rgb(180, 198, 231), 50px 55px rgb(180, 198, 231), 55px 55px rgb(180, 198, 231), 60px 55px rgb(180, 198, 231), 65px 55px rgb(180, 198, 231), 80px 55px rgb(180, 198, 231), 85px 55px rgb(180, 198, 231), 90px 55px rgb(180, 198, 231), 95px 55px rgb(180, 198, 231), 25px 60px rgb(180, 198, 231), 30px 60px rgb(180, 198, 231), 35px 60px rgb(180, 198, 231), 40px 60px rgb(180, 198, 231), 45px 60px rgb(180, 198, 231), 50px 60px rgb(180, 198, 231), 55px 60px rgb(180, 198, 231), 60px 60px rgb(180, 198, 231), 65px 60px rgb(180, 198, 231), 80px 60px rgb(180, 198, 231), 85px 60px rgb(180, 198, 231), 90px 60px rgb(180, 198, 231), 95px 60px rgb(180, 198, 231), 15px 65px rgb(180, 198, 231), 20px 65px rgb(180, 198, 231), 25px 65px rgb(180, 198, 231), 30px 65px rgb(180, 198, 231), 90px 65px rgb(180, 198, 231), 95px 65px rgb(180, 198, 231), 15px 70px rgb(180, 198, 231), 20px 70px rgb(180, 198, 231), 90px 70px rgb(180, 198, 231), 95px 70px rgb(180, 198, 231), 35px 65px rgb(142, 169, 219), 40px 65px rgb(142, 169, 219), 45px 65px rgb(142, 169, 219), 50px 65px rgb(142, 169, 219), 55px 65px rgb(142, 169, 219), 60px 65px rgb(142, 169, 219), 65px 65px rgb(142, 169, 219), 70px 65px rgb(142, 169, 219), 75px 65px rgb(142, 169, 219), 35px 70px rgb(142, 169, 219), 40px 70px rgb(142, 169, 219), 45px 70px rgb(142, 169, 219), 50px 70px rgb(142, 169, 219), 55px 70px rgb(142, 169, 219), 60px 70px rgb(142, 169, 219), 65px 70px rgb(142, 169, 219), 70px 70px rgb(142, 169, 219), 75px 70px rgb(142, 169, 219), 80px 70px rgb(142, 169, 219), 85px 70px rgb(142, 169, 219), 35px 75px rgb(142, 169, 219), 40px 75px rgb(142, 169, 219), 25px 70px rgb(142, 169, 219), 20px 75px rgb(142, 169, 219), 25px 75px rgb(142, 169, 219), 20px 80px rgb(142, 169, 219), 25px 80px rgb(142, 169, 219), 30px 80px rgb(142, 169, 219), 50px 75px rgb(142, 169, 219), 55px 75px rgb(142, 169, 219), 65px 75px rgb(142, 169, 219), 70px 75px rgb(142, 169, 219), 75px 75px rgb(142, 169, 219), 80px 75px rgb(142, 169, 219), 85px 75px rgb(142, 169, 219), 90px 75px rgb(142, 169, 219), 45px 80px rgb(142, 169, 219), 60px 80px rgb(142, 169, 219), 65px 80px rgb(142, 169, 219), 70px 80px rgb(142, 169, 219), 75px 80px rgb(142, 169, 219), 80px 80px rgb(142, 169, 219), 85px 80px rgb(142, 169, 219), 90px 80px rgb(142, 169, 219), 30px 85px rgb(142, 169, 219), 35px 85px rgb(142, 169, 219), 40px 85px rgb(142, 169, 219), 45px 85px rgb(142, 169, 219), 50px 85px rgb(142, 169, 219), 55px 85px rgb(142, 169, 219), 60px 85px rgb(142, 169, 219), 65px 85px rgb(142, 169, 219), 70px 85px rgb(142, 169, 219), 75px 85px rgb(142, 169, 219), 80px 85px rgb(142, 169, 219), 40px 90px rgb(142, 169, 219), 45px 90px rgb(142, 169, 219), 50px 90px rgb(142, 169, 219), 55px 90px rgb(142, 169, 219), 60px 90px rgb(142, 169, 219), 65px 90px rgb(142, 169, 219), 70px 90px rgb(142, 169, 219), 30px 70px rgb(248, 203, 173), 30px 75px rgb(248, 203, 173), 35px 80px rgb(248, 203, 173), 40px 80px rgb(248, 203, 173), 45px 75px rgb(248, 203, 173), 50px 80px rgb(248, 203, 173), 55px 80px rgb(248, 203, 173), 60px 75px rgb(248, 203, 173), 30px 50px rgb(64, 64, 64), 25px 55px rgb(64, 64, 64), 30px 55px rgb(64, 64, 64), 75px 55px rgb(64, 64, 64), 70px 60px rgb(64, 64, 64), 75px 60px rgb(64, 64, 64);
+      }
+    }
+  </style>
+
+
+<div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <a href="/" class="" rel="start" style="border-bottom: None !important">
+      <i class="pixel-slime"></i>
+    </a>
+    <!-- <img class="site-author-image" itemprop="image" alt="Locky Hu" src="/images/computer-chip_gray.svg"> -->
+  <a href="/" class="" rel="start"><p class="site-author-name" itemprop="name">Locky Hu</p></a>
+  <div class="site-description" itemprop="description">Just for record</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+        <div class="back-to-top animated" role="button" aria-label="Back to top">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner page posts-expand">
+
+
+    
+    
+    
+    <div class="post-block" lang="en"><header class="post-header">
+
+<h1 class="post-title" itemprop="name headline">光线追踪入门（一）：从渲染方程到路径追踪
+</h1>
+
+<div class="post-meta-container">
+</div>
+
+</header>
+
+      
+      
+      <div class="post-body">
+          <meta name="referrer" content="no-referrer" />
+<h2 id="系列导航">系列导航</h2>
+<ul>
+<li>总览：<a
+href="/2025/03/16/rt-learning-series-00-overview/">从超分辨率到光线追踪——我的技术路线规划</a></li>
+<li><strong>阶段一：理解光线追踪基础</strong>（本文）</li>
+<li>阶段二：实时光线追踪</li>
+<li>阶段三：AI + 光线追踪</li>
+<li>阶段四：移动端光线追踪</li>
+</ul>
+<hr />
+<h2 id="阶段目标">阶段目标</h2>
+<p>完成本阶段学习后，你将能够：</p>
+<ol type="1">
+<li>理解光线追踪的数学基础——渲染方程</li>
+<li>实现一个CPU路径追踪器</li>
+<li>渲染出经典的Cornell Box场景</li>
+<li>理解为什么实时RT需要降噪</li>
+</ol>
+<hr />
+<h2 id="week-1光线追踪基础">Week 1：光线追踪基础</h2>
+<h3 id="什么是光线追踪">1.1 什么是光线追踪？</h3>
+<p><strong>核心思想：</strong> 模拟光在场景中的传播。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">flowchart LR</span><br><span class="line">    E[光源] --&gt; |发射光子| S[场景物体]</span><br><span class="line">    S --&gt; |反射/折射| S2[场景物体]</span><br><span class="line">    S2 --&gt; |进入| C[相机/眼睛]</span><br></pre></td></tr></table></figure>
+<p><strong>两种追踪方向：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">正向追踪 (Forward Tracing):</span><br><span class="line">光源 → 发射光子 → 场景 → 一部分进入相机</span><br><span class="line">问题: 效率极低，大部分光子不会进入相机</span><br><span class="line"></span><br><span class="line">逆向追踪 (Backward Tracing):</span><br><span class="line">相机 → 发射光线 → 场景 → 求交 → 计算光照</span><br><span class="line">优势: 只计算贡献最终图像的光线</span><br><span class="line">现代光线追踪都采用逆向追踪</span><br></pre></td></tr></table></figure>
+<h3 id="光线-物体求交">1.2 光线-物体求交</h3>
+<p><strong>光线表示：</strong></p>
+<p><span class="math display">\[\mathbf{r}(t) = \mathbf{o} +
+t\mathbf{d}, \quad t \geq 0\]</span></p>
+<p>其中 <span class="math inline">\(\mathbf{o}\)</span>
+是光线起点，<span class="math inline">\(\mathbf{d}\)</span>
+是方向（单位向量），<span class="math inline">\(t\)</span> 是参数。</p>
+<p><strong>球体求交：</strong></p>
+<p>最基础的求交，从实现开始理解。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 球体: 中心 c，半径 r</span></span><br><span class="line"><span class="comment">// 光线: 起点 o，方向 d</span></span><br><span class="line"><span class="comment">// 求交公式推导:</span></span><br><span class="line"><span class="comment">// ||o + t*d - c||^2 = r^2</span></span><br><span class="line"><span class="comment">// 展开: (o + t*d - c)·(o + t*d - c) = r^2</span></span><br><span class="line"><span class="comment">// 令 Δ = o - c</span></span><br><span class="line"><span class="comment">// 则: (t*d + Δ)·(t*d + Δ) = r^2</span></span><br><span class="line"><span class="comment">// 展开: t^2(d·d) + 2t(d·Δ) + (Δ·Δ) - r^2 = 0</span></span><br><span class="line"><span class="comment">// 这是一元二次方程 at^2 + bt + c = 0</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">Ray</span> &#123;</span><br><span class="line">    Vec3f origin;</span><br><span class="line">    Vec3f direction;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">Sphere</span> &#123;</span><br><span class="line">    Vec3f center;</span><br><span class="line">    <span class="type">float</span> radius;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">bool</span> <span class="title">intersect</span><span class="params">(<span class="type">const</span> Ray&amp; ray, <span class="type">const</span> Sphere&amp; sphere, <span class="type">float</span>&amp; t)</span> </span>&#123;</span><br><span class="line">    Vec3f oc = ray.origin - sphere.center;</span><br><span class="line">    </span><br><span class="line">    <span class="type">float</span> a = <span class="built_in">dot</span>(ray.direction, ray.direction);</span><br><span class="line">    <span class="type">float</span> b = <span class="number">2.0f</span> * <span class="built_in">dot</span>(oc, ray.direction);</span><br><span class="line">    <span class="type">float</span> c = <span class="built_in">dot</span>(oc, oc) - sphere.radius * sphere.radius;</span><br><span class="line">    </span><br><span class="line">    <span class="type">float</span> discriminant = b * b - <span class="number">4</span> * a * c;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (discriminant &lt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;  <span class="comment">// 无交点</span></span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="type">float</span> sqrtD = std::<span class="built_in">sqrt</span>(discriminant);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 取最近的正根</span></span><br><span class="line">    <span class="type">float</span> t1 = (-b - sqrtD) / (<span class="number">2.0f</span> * a);</span><br><span class="line">    <span class="type">float</span> t2 = (-b + sqrtD) / (<span class="number">2.0f</span> * a);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (t1 &gt; <span class="number">0.001f</span>) &#123;  <span class="comment">// 避免浮点误差导致的自相交</span></span><br><span class="line">        t = t1;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (t2 &gt; <span class="number">0.001f</span>) &#123;</span><br><span class="line">        t = t2;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>平面求交：</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Plane</span> &#123;</span><br><span class="line">    Vec3f normal;    <span class="comment">// 法线</span></span><br><span class="line">    <span class="type">float</span> distance;  <span class="comment">// 到原点距离</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">bool</span> <span class="title">intersect</span><span class="params">(<span class="type">const</span> Ray&amp; ray, <span class="type">const</span> Plane&amp; plane, <span class="type">float</span>&amp; t)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 平面方程: P·N = d</span></span><br><span class="line">    <span class="comment">// 代入光线: (O + t*D)·N = d</span></span><br><span class="line">    <span class="comment">// 解得: t = (d - O·N) / (D·N)</span></span><br><span class="line">    </span><br><span class="line">    <span class="type">float</span> denom = <span class="built_in">dot</span>(ray.direction, plane.normal);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (std::<span class="built_in">abs</span>(denom) &lt; <span class="number">1e-6f</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;  <span class="comment">// 光线与平面平行</span></span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    t = (plane.distance - <span class="built_in">dot</span>(ray.origin, plane.normal)) / denom;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> t &gt; <span class="number">0.001f</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>三角形求交：</strong></p>
+<p>实际场景中，所有复杂几何最终都表示为三角形。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">Triangle</span> &#123;</span><br><span class="line">    Vec3f v0, v1, v2;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">bool</span> <span class="title">intersect</span><span class="params">(<span class="type">const</span> Ray&amp; ray, <span class="type">const</span> Triangle&amp; tri, <span class="type">float</span>&amp; t, Vec2f&amp; uv)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// Möller–Trumbore算法</span></span><br><span class="line">    <span class="comment">// 使用重心坐标系表示交点: P = (1-u-v)*v0 + u*v1 + v*v2</span></span><br><span class="line">    </span><br><span class="line">    Vec3f edge1 = tri.v1 - tri.v0;</span><br><span class="line">    Vec3f edge2 = tri.v2 - tri.v0;</span><br><span class="line">    </span><br><span class="line">    Vec3f h = <span class="built_in">cross</span>(ray.direction, edge2);</span><br><span class="line">    <span class="type">float</span> a = <span class="built_in">dot</span>(edge1, h);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (std::<span class="built_in">abs</span>(a) &lt; <span class="number">1e-6f</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;  <span class="comment">// 光线与三角形平行</span></span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="type">float</span> f = <span class="number">1.0f</span> / a;</span><br><span class="line">    Vec3f s = ray.origin - tri.v0;</span><br><span class="line">    </span><br><span class="line">    uv.x = f * <span class="built_in">dot</span>(s, h);</span><br><span class="line">    <span class="keyword">if</span> (uv.x &lt; <span class="number">0.0f</span> || uv.x &gt; <span class="number">1.0f</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    Vec3f q = <span class="built_in">cross</span>(s, edge1);</span><br><span class="line">    uv.y = f * <span class="built_in">dot</span>(ray.direction, q);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (uv.y &lt; <span class="number">0.0f</span> || uv.x + uv.y &gt; <span class="number">1.0f</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    t = f * <span class="built_in">dot</span>(edge2, q);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> t &gt; <span class="number">0.001f</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="第一次实践生成图像">1.3 第一次实践：生成图像</h3>
+<p><strong>最简单的光线追踪器：</strong> 只检测光线是否击中物体。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">Vec3f <span class="title">trace</span><span class="params">(<span class="type">const</span> Ray&amp; ray, <span class="type">const</span> Scene&amp; scene)</span> </span>&#123;</span><br><span class="line">    <span class="type">float</span> <span class="type">closest_t</span> = FLT_MAX;</span><br><span class="line">    <span class="type">const</span> Object* hit_object = <span class="literal">nullptr</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 遍历所有物体找最近交点</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="type">const</span> <span class="keyword">auto</span>&amp; obj : scene.objects) &#123;</span><br><span class="line">        <span class="type">float</span> t;</span><br><span class="line">        <span class="keyword">if</span> (obj.<span class="built_in">intersect</span>(ray, t) &amp;&amp; t &lt; <span class="type">closest_t</span>) &#123;</span><br><span class="line">            <span class="type">closest_t</span> = t;</span><br><span class="line">            hit_object = &amp;obj;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (hit_object) &#123;</span><br><span class="line">        <span class="keyword">return</span> hit_object-&gt;color;  <span class="comment">// 返回物体颜色</span></span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">Vec3f</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);  <span class="comment">// 背景色：黑色</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>生成图像：</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">render</span><span class="params">(<span class="type">const</span> Scene&amp; scene, Image&amp; image)</span> </span>&#123;</span><br><span class="line">    <span class="type">float</span> aspect = (<span class="type">float</span>)image.width / image.height;</span><br><span class="line">    <span class="type">float</span> fov = <span class="number">60.0f</span> * M_PI / <span class="number">180.0f</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> y = <span class="number">0</span>; y &lt; image.height; ++y) &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> x = <span class="number">0</span>; x &lt; image.width; ++x) &#123;</span><br><span class="line">            <span class="comment">// 像素坐标转NDC [-1, 1]</span></span><br><span class="line">            <span class="type">float</span> nx = (<span class="number">2.0f</span> * (x + <span class="number">0.5f</span>) / image.width - <span class="number">1.0f</span>) * aspect;</span><br><span class="line">            <span class="type">float</span> ny = <span class="number">1.0f</span> - <span class="number">2.0f</span> * (y + <span class="number">0.5f</span>) / image.height;</span><br><span class="line">            </span><br><span class="line">            <span class="comment">// 计算光线方向</span></span><br><span class="line">            <span class="type">float</span> scale = std::<span class="built_in">tan</span>(fov / <span class="number">2.0f</span>);</span><br><span class="line">            Vec3f dir = <span class="built_in">normalize</span>(<span class="built_in">Vec3f</span>(nx * scale, ny * scale, <span class="number">-1.0f</span>));</span><br><span class="line">            </span><br><span class="line">            Ray ray&#123;<span class="built_in">Vec3f</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>), dir&#125;;  <span class="comment">// 相机在原点</span></span><br><span class="line">            </span><br><span class="line">            <span class="built_in">image</span>(x, y) = <span class="built_in">trace</span>(ray, scene);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>输出效果：</strong></p>
+<p>这是最基础的"可视化"，只是把物体投影到屏幕上，没有光照计算。</p>
+<hr />
+<h2 id="week-2路径追踪与渲染方程">Week 2：路径追踪与渲染方程</h2>
+<h3 id="渲染方程">2.1 渲染方程</h3>
+<p><strong>物理基础：</strong> 光的行为由渲染方程描述。</p>
+<p><span class="math display">\[L_o(\mathbf{x}, \omega_o) =
+L_e(\mathbf{x}, \omega_o) + \int_{\Omega} f_r(\mathbf{x}, \omega_i,
+\omega_o) L_i(\mathbf{x}, \omega_i) (\mathbf{n} \cdot \omega_i)
+d\omega_i\]</span></p>
+<p><strong>方程解读：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">flowchart LR</span><br><span class="line">    Le[自发光&lt;br/&gt;L_e] --&gt; Lo[出射 radiance&lt;br/&gt;L_o]</span><br><span class="line">    Li[入射 radiance&lt;br/&gt;L_i] --&gt; BRDF[f_r&lt;br/&gt;材质属性]</span><br><span class="line">    BRDF --&gt; Int[积分]</span><br><span class="line">    Cos[cos项&lt;br/&gt;几何衰减] --&gt; Int</span><br><span class="line">    Int --&gt; Lo</span><br></pre></td></tr></table></figure>
+<table>
+<thead>
+<tr>
+<th>符号</th>
+<th>含义</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="math inline">\(L_o\)</span></td>
+<td>出射radiance</td>
+<td>我们需要计算的</td>
+</tr>
+<tr>
+<td><span class="math inline">\(L_e\)</span></td>
+<td>自发光</td>
+<td>物体本身发光</td>
+</tr>
+<tr>
+<td><span class="math inline">\(f_r\)</span></td>
+<td>BRDF</td>
+<td>材质反射特性</td>
+</tr>
+<tr>
+<td><span class="math inline">\(L_i\)</span></td>
+<td>入射 radiance</td>
+<td>来自其他物体的光</td>
+</tr>
+<tr>
+<td><span class="math inline">\(\mathbf{n} \cdot \omega_i\)</span></td>
+<td>cosine项</td>
+<td>入射角度的影响</td>
+</tr>
+<tr>
+<td><span class="math inline">\(\Omega\)</span></td>
+<td>半球积分域</td>
+<td>所有可能的入射方向</td>
+</tr>
+</tbody>
+</table>
+<h3 id="蒙特卡洛积分">2.2 蒙特卡洛积分</h3>
+<p>渲染方程的积分没有解析解，需要用蒙特卡洛方法数值求解。</p>
+<p><strong>蒙特卡洛估计：</strong></p>
+<p><span class="math display">\[\int f(x) dx \approx \frac{1}{N}
+\sum_{i=1}^{N} \frac{f(X_i)}{p(X_i)}\]</span></p>
+<p>其中 <span class="math inline">\(X_i\)</span> 是从分布 <span
+class="math inline">\(p(x)\)</span> 采样的随机变量。</p>
+<p><strong>应用到渲染方程：</strong></p>
+<p><span class="math display">\[L_o \approx L_e + \frac{1}{N}
+\sum_{i=1}^{N} \frac{f_r(\omega_i, \omega_o) L_i(\omega_i) (\mathbf{n}
+\cdot \omega_i)}{p(\omega_i)}\]</span></p>
+<p><strong>代码实现：</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">Vec3f <span class="title">estimateIndirect</span><span class="params">(<span class="type">const</span> Intersection&amp; isect, <span class="type">int</span> depth)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (depth &lt;= <span class="number">0</span>) <span class="keyword">return</span> <span class="built_in">Vec3f</span>(<span class="number">0</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="function">Vec3f <span class="title">indirect</span><span class="params">(<span class="number">0</span>)</span></span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; N_samples; ++i) &#123;</span><br><span class="line">        <span class="comment">// 采样一个方向</span></span><br><span class="line">        Vec3f wi = <span class="built_in">sampleHemisphere</span>(isect.normal);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 计算PDF (均匀半球采样)</span></span><br><span class="line">        <span class="type">float</span> pdf = <span class="number">1.0f</span> / (<span class="number">2.0f</span> * M_PI);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 发射新光线</span></span><br><span class="line">        <span class="function">Ray <span class="title">ray</span><span class="params">(isect.position, wi)</span></span>;</span><br><span class="line">        Vec3f Li = <span class="built_in">trace</span>(ray, depth - <span class="number">1</span>);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// BRDF</span></span><br><span class="line">        Vec3f brdf = isect.material-&gt;<span class="built_in">evaluate</span>(wi, isect.wo, isect.normal);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 累加</span></span><br><span class="line">        indirect += brdf * Li * <span class="built_in">dot</span>(isect.normal, wi) / pdf;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> indirect / N_samples;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="重要性采样">2.3 重要性采样</h3>
+<p>均匀采样效率低，因为很多方向贡献很小。重要性采样优先采样贡献大的方向。</p>
+<p><strong>余弦加权采样：</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">Vec3f <span class="title">sampleCosineHemisphere</span><span class="params">(<span class="type">const</span> Vec3f&amp; normal, <span class="type">float</span>&amp; pdf)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 余弦加权半球采样</span></span><br><span class="line">    <span class="comment">// PDF ∝ cos(θ)</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 使用半球坐标</span></span><br><span class="line">    <span class="type">float</span> r1 = <span class="built_in">random</span>();</span><br><span class="line">    <span class="type">float</span> r2 = <span class="built_in">random</span>();</span><br><span class="line">    </span><br><span class="line">    <span class="type">float</span> phi = <span class="number">2.0f</span> * M_PI * r1;</span><br><span class="line">    <span class="type">float</span> sqrt_r2 = std::<span class="built_in">sqrt</span>(r2);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 局部坐标</span></span><br><span class="line">    <span class="type">float</span> x = std::<span class="built_in">cos</span>(phi) * sqrt_r2;</span><br><span class="line">    <span class="type">float</span> y = std::<span class="built_in">sin</span>(phi) * sqrt_r2;</span><br><span class="line">    <span class="type">float</span> z = std::<span class="built_in">sqrt</span>(<span class="number">1</span> - r2);  <span class="comment">// cos(θ) = sqrt(1 - r2)</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">// PDF = cos(θ) / π</span></span><br><span class="line">    pdf = z / M_PI;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 转换到世界坐标</span></span><br><span class="line">    Vec3f tangent, bitangent;</span><br><span class="line">    <span class="built_in">buildOrthonormalBasis</span>(normal, tangent, bitangent);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">normalize</span>(tangent * x + bitangent * y + normal * z);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>效果对比：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">均匀采样, 64 samples per pixel:</span><br><span class="line">- 噪声明显</span><br><span class="line">- 渲染时间: 30s</span><br><span class="line"></span><br><span class="line">余弦加权采样, 64 samples per pixel:</span><br><span class="line">- 噪声降低约50%</span><br><span class="line">- 渲染时间: 32s (开销很小)</span><br></pre></td></tr></table></figure>
+<h3 id="直接光照与间接光照">2.4 直接光照与间接光照</h3>
+<p>将光照分解为直接和间接部分：</p>
+<p><span class="math display">\[L_o = L_e + L_{direct} +
+L_{indirect}\]</span></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">Vec3f <span class="title">shade</span><span class="params">(<span class="type">const</span> Intersection&amp; isect, <span class="type">int</span> depth)</span> </span>&#123;</span><br><span class="line">    Vec3f Lo = isect.emission;  <span class="comment">// 自发光</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 直接光照: 采样光源</span></span><br><span class="line">    Lo += <span class="built_in">estimateDirect</span>(isect);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 间接光照: 采样半球</span></span><br><span class="line">    <span class="keyword">if</span> (depth &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        Lo += <span class="built_in">estimateIndirect</span>(isect, depth);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> Lo;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>直接光照采样：</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">Vec3f <span class="title">estimateDirect</span><span class="params">(<span class="type">const</span> Intersection&amp; isect)</span> </span>&#123;</span><br><span class="line">    <span class="function">Vec3f <span class="title">direct</span><span class="params">(<span class="number">0</span>)</span></span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> (<span class="type">const</span> <span class="keyword">auto</span>&amp; light : scene.lights) &#123;</span><br><span class="line">        <span class="comment">// 采样光源</span></span><br><span class="line">        LightSample ls = light-&gt;<span class="built_in">sample</span>(isect.position);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 阴影检测</span></span><br><span class="line">        <span class="function">Ray <span class="title">shadowRay</span><span class="params">(isect.position, ls.direction)</span></span>;</span><br><span class="line">        <span class="keyword">if</span> (!scene.<span class="built_in">occluded</span>(shadowRay, ls.distance)) &#123;</span><br><span class="line">            <span class="comment">// 计算贡献</span></span><br><span class="line">            Vec3f brdf = isect.material-&gt;<span class="built_in">evaluate</span>(ls.direction, isect.wo, isect.normal);</span><br><span class="line">            direct += brdf * ls.radiance * std::<span class="built_in">max</span>(<span class="number">0.0f</span>, <span class="built_in">dot</span>(isect.normal, ls.direction));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> direct;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="russian-roulette">2.5 Russian Roulette</h3>
+<p>路径追踪的递归可能无限进行，Russian Roulette (RR)
+用于终止无限递归。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">Vec3f <span class="title">trace</span><span class="params">(<span class="type">const</span> Ray&amp; ray, <span class="type">int</span> depth)</span> </span>&#123;</span><br><span class="line">    Intersection isect;</span><br><span class="line">    <span class="keyword">if</span> (!scene.<span class="built_in">intersect</span>(ray, isect)) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">environment</span>(ray.direction);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// Russian Roulette终止</span></span><br><span class="line">    <span class="type">float</span> rr_prob = <span class="number">0.9f</span>;  <span class="comment">// 90%概率继续</span></span><br><span class="line">    <span class="keyword">if</span> (depth &gt; <span class="number">3</span>) &#123;  <span class="comment">// 前几帧不使用RR</span></span><br><span class="line">        <span class="keyword">if</span> (<span class="built_in">random</span>() &gt; rr_prob) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">Vec3f</span>(<span class="number">0</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    Vec3f L = isect.emission;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 直接光照</span></span><br><span class="line">    L += <span class="built_in">estimateDirect</span>(isect);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 间接光照</span></span><br><span class="line">    <span class="keyword">if</span> (depth &lt; max_depth) &#123;</span><br><span class="line">        Vec3f indirect = <span class="built_in">estimateIndirect</span>(isect, depth + <span class="number">1</span>);</span><br><span class="line">        <span class="keyword">if</span> (depth &gt; <span class="number">3</span>) &#123;</span><br><span class="line">            indirect /= rr_prob;  <span class="comment">// 补偿RR的无偏性</span></span><br><span class="line">        &#125;</span><br><span class="line">        L += indirect;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> L;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr />
+<h2 id="week-3加速结构与完整实现">Week 3：加速结构与完整实现</h2>
+<h3 id="bvh-bounding-volume-hierarchy">3.1 BVH (Bounding Volume
+Hierarchy)</h3>
+<p>朴素的光线-物体求交需要遍历所有物体，复杂度 <span
+class="math inline">\(O(n)\)</span>。BVH将复杂度降低到 <span
+class="math inline">\(O(\log n)\)</span>。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">flowchart TB</span><br><span class="line">    A[Root BVH Node&lt;br/&gt;整个场景包围盒] --&gt; B[Left Child&lt;br/&gt;子集A]</span><br><span class="line">    A --&gt; C[Right Child&lt;br/&gt;子集B]</span><br><span class="line">    B --&gt; D[Leaf&lt;br/&gt;物体1,2]</span><br><span class="line">    B --&gt; E[Leaf&lt;br/&gt;物体3]</span><br><span class="line">    C --&gt; F[Leaf&lt;br/&gt;物体4,5]</span><br><span class="line">    C --&gt; G[Leaf&lt;br/&gt;物体6]</span><br></pre></td></tr></table></figure>
+<p><strong>BVH节点结构：</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">BVHNode</span> &#123;</span><br><span class="line">    AABB bounds;           <span class="comment">// 包围盒</span></span><br><span class="line">    BVHNode* left;         <span class="comment">// 左子节点</span></span><br><span class="line">    BVHNode* right;        <span class="comment">// 右子节点</span></span><br><span class="line">    std::vector&lt;Object*&gt; objects;  <span class="comment">// 叶节点的物体列表</span></span><br><span class="line">    <span class="type">bool</span> is_leaf;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">AABB</span> &#123;</span><br><span class="line">    Vec3f min, max;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">intersect</span><span class="params">(<span class="type">const</span> Ray&amp; ray, <span class="type">float</span>&amp; t_min, <span class="type">float</span>&amp; t_max)</span> <span class="type">const</span> </span>&#123;</span><br><span class="line">        <span class="comment">// Slabs method</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">3</span>; ++i) &#123;</span><br><span class="line">            <span class="type">float</span> invD = <span class="number">1.0f</span> / ray.direction[i];</span><br><span class="line">            <span class="type">float</span> t0 = (min[i] - ray.origin[i]) * invD;</span><br><span class="line">            <span class="type">float</span> t1 = (max[i] - ray.origin[i]) * invD;</span><br><span class="line">            </span><br><span class="line">            <span class="keyword">if</span> (invD &lt; <span class="number">0.0f</span>) std::<span class="built_in">swap</span>(t0, t1);</span><br><span class="line">            </span><br><span class="line">            t_min = std::<span class="built_in">max</span>(t_min, t0);</span><br><span class="line">            t_max = std::<span class="built_in">min</span>(t_max, t1);</span><br><span class="line">            </span><br><span class="line">            <span class="keyword">if</span> (t_max &lt; t_min) <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p><strong>BVH构建：</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">BVHNode* <span class="title">buildBVH</span><span class="params">(std::vector&lt;Object*&gt;&amp; objects, <span class="type">int</span> depth = <span class="number">0</span>)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (objects.<span class="built_in">empty</span>()) <span class="keyword">return</span> <span class="literal">nullptr</span>;</span><br><span class="line">    </span><br><span class="line">    BVHNode* node = <span class="keyword">new</span> <span class="built_in">BVHNode</span>();</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 计算整体包围盒</span></span><br><span class="line">    node-&gt;bounds = <span class="built_in">computeBounds</span>(objects);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 终止条件: 物体数量少</span></span><br><span class="line">    <span class="keyword">if</span> (objects.<span class="built_in">size</span>() &lt;= <span class="number">4</span> || depth &gt; <span class="number">20</span>) &#123;</span><br><span class="line">        node-&gt;is_leaf = <span class="literal">true</span>;</span><br><span class="line">        node-&gt;objects = objects;</span><br><span class="line">        <span class="keyword">return</span> node;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 选择分割轴(最长轴)</span></span><br><span class="line">    <span class="type">int</span> axis = node-&gt;bounds.<span class="built_in">longestAxis</span>();</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 按轴排序</span></span><br><span class="line">    std::<span class="built_in">sort</span>(objects.<span class="built_in">begin</span>(), objects.<span class="built_in">end</span>(), [axis](Object* a, Object* b) &#123;</span><br><span class="line">        <span class="keyword">return</span> a-&gt;<span class="built_in">centroid</span>()[axis] &lt; b-&gt;<span class="built_in">centroid</span>()[axis];</span><br><span class="line">    &#125;);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 分割</span></span><br><span class="line">    <span class="type">size_t</span> mid = objects.<span class="built_in">size</span>() / <span class="number">2</span>;</span><br><span class="line">    <span class="function">std::vector&lt;Object*&gt; <span class="title">left_objs</span><span class="params">(objects.begin(), objects.begin() + mid)</span></span>;</span><br><span class="line">    <span class="function">std::vector&lt;Object*&gt; <span class="title">right_objs</span><span class="params">(objects.begin() + mid, objects.end())</span></span>;</span><br><span class="line">    </span><br><span class="line">    node-&gt;is_leaf = <span class="literal">false</span>;</span><br><span class="line">    node-&gt;left = <span class="built_in">buildBVH</span>(left_objs, depth + <span class="number">1</span>);</span><br><span class="line">    node-&gt;right = <span class="built_in">buildBVH</span>(right_objs, depth + <span class="number">1</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> node;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>BVH遍历：</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">bool</span> <span class="title">intersectBVH</span><span class="params">(<span class="type">const</span> Ray&amp; ray, <span class="type">const</span> BVHNode* node, Intersection&amp; isect)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!node) <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 检查光线是否与包围盒相交</span></span><br><span class="line">    <span class="type">float</span> t_min, t_max;</span><br><span class="line">    <span class="keyword">if</span> (!node-&gt;bounds.<span class="built_in">intersect</span>(ray, t_min, t_max)) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">if</span> (node-&gt;is_leaf) &#123;</span><br><span class="line">        <span class="comment">// 叶节点: 检查所有物体</span></span><br><span class="line">        <span class="type">bool</span> hit = <span class="literal">false</span>;</span><br><span class="line">        <span class="keyword">for</span> (Object* obj : node-&gt;objects) &#123;</span><br><span class="line">            <span class="keyword">if</span> (obj-&gt;<span class="built_in">intersect</span>(ray, isect)) &#123;</span><br><span class="line">                hit = <span class="literal">true</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> hit;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 内节点: 递归检查子节点</span></span><br><span class="line">    <span class="type">bool</span> hit_left = <span class="built_in">intersectBVH</span>(ray, node-&gt;left, isect);</span><br><span class="line">    <span class="type">bool</span> hit_right = <span class="built_in">intersectBVH</span>(ray, node-&gt;right, isect);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> hit_left || hit_right;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="完整路径追踪器">3.2 完整路径追踪器</h3>
+<p>整合所有组件：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">PathTracer</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">PathTracer</span>(<span class="type">int</span> max_depth = <span class="number">5</span>, <span class="type">int</span> spp = <span class="number">64</span>)</span><br><span class="line">        : <span class="built_in">max_depth_</span>(max_depth), <span class="built_in">spp_</span>(spp) &#123;&#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">render</span><span class="params">(<span class="type">const</span> Scene&amp; scene, Image&amp; image)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 构建加速结构</span></span><br><span class="line">        scene_ = &amp;scene;</span><br><span class="line">        bvh_ = <span class="built_in">buildBVH</span>(scene.objects);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 并行渲染</span></span><br><span class="line">        <span class="meta">#<span class="keyword">pragma</span> omp parallel for</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> y = <span class="number">0</span>; y &lt; image.height; ++y) &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> x = <span class="number">0</span>; x &lt; image.width; ++x) &#123;</span><br><span class="line">                <span class="function">Vec3f <span class="title">color</span><span class="params">(<span class="number">0</span>)</span></span>;</span><br><span class="line">                </span><br><span class="line">                <span class="keyword">for</span> (<span class="type">int</span> s = <span class="number">0</span>; s &lt; spp_; ++s) &#123;</span><br><span class="line">                    <span class="comment">// 生成光线(带抖动)</span></span><br><span class="line">                    <span class="type">float</span> nx = (x + <span class="built_in">random</span>()) / image.width;</span><br><span class="line">                    <span class="type">float</span> ny = (y + <span class="built_in">random</span>()) / image.height;</span><br><span class="line">                    </span><br><span class="line">                    Ray ray = camera_-&gt;<span class="built_in">generateRay</span>(nx, ny);</span><br><span class="line">                    </span><br><span class="line">                    <span class="comment">// 路径追踪</span></span><br><span class="line">                    color += <span class="built_in">trace</span>(ray, max_depth_);</span><br><span class="line">                &#125;</span><br><span class="line">                </span><br><span class="line">                <span class="built_in">image</span>(x, y) = color / spp_;</span><br><span class="line">            &#125;</span><br><span class="line">            </span><br><span class="line">            <span class="comment">// 进度输出</span></span><br><span class="line">            <span class="keyword">if</span> (y % <span class="number">50</span> == <span class="number">0</span>) &#123;</span><br><span class="line">                <span class="built_in">printf</span>(<span class="string">&quot;Progress: %d/%d\n&quot;</span>, y, image.height);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="function">Vec3f <span class="title">trace</span><span class="params">(<span class="type">const</span> Ray&amp; ray, <span class="type">int</span> depth)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// Russian Roulette</span></span><br><span class="line">        <span class="type">float</span> rr_prob = <span class="number">0.9f</span>;</span><br><span class="line">        <span class="keyword">if</span> (depth &gt; <span class="number">3</span> &amp;&amp; <span class="built_in">random</span>() &gt; rr_prob) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">Vec3f</span>(<span class="number">0</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 场景求交</span></span><br><span class="line">        Intersection isect;</span><br><span class="line">        <span class="keyword">if</span> (!<span class="built_in">intersectBVH</span>(ray, bvh_, isect)) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">environment</span>(ray.direction);</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 自发光</span></span><br><span class="line">        Vec3f L = isect.emission;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 直接光照</span></span><br><span class="line">        L += <span class="built_in">estimateDirect</span>(isect);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 间接光照</span></span><br><span class="line">        <span class="keyword">if</span> (depth &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            Vec3f indirect = <span class="built_in">estimateIndirect</span>(isect, depth - <span class="number">1</span>);</span><br><span class="line">            <span class="keyword">if</span> (depth &gt; <span class="number">3</span>) &#123;</span><br><span class="line">                indirect /= rr_prob;</span><br><span class="line">            &#125;</span><br><span class="line">            L += indirect;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">return</span> L;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function">Vec3f <span class="title">estimateDirect</span><span class="params">(<span class="type">const</span> Intersection&amp; isect)</span> </span>&#123;</span><br><span class="line">        <span class="function">Vec3f <span class="title">L</span><span class="params">(<span class="number">0</span>)</span></span>;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">for</span> (Light* light : scene_-&gt;lights) &#123;</span><br><span class="line">            LightSample ls = light-&gt;<span class="built_in">sample</span>(isect.position);</span><br><span class="line">            </span><br><span class="line">            <span class="comment">// 阴影检测</span></span><br><span class="line">            <span class="function">Ray <span class="title">shadow_ray</span><span class="params">(isect.position + ls.direction * <span class="number">0.001f</span>, ls.direction)</span></span>;</span><br><span class="line">            <span class="keyword">if</span> (!<span class="built_in">intersectBVH</span>(shadow_ray, bvh_, isect.shadow_hit)) &#123;</span><br><span class="line">                <span class="comment">// BRDF</span></span><br><span class="line">                Vec3f brdf = isect.material-&gt;<span class="built_in">evaluate</span>(ls.direction, isect.wo, isect.normal);</span><br><span class="line">                <span class="type">float</span> cos_term = std::<span class="built_in">max</span>(<span class="number">0.0f</span>, <span class="built_in">dot</span>(isect.normal, ls.direction));</span><br><span class="line">                </span><br><span class="line">                L += brdf * ls.radiance * cos_term / ls.pdf;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">return</span> L;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function">Vec3f <span class="title">estimateIndirect</span><span class="params">(<span class="type">const</span> Intersection&amp; isect, <span class="type">int</span> depth)</span> </span>&#123;</span><br><span class="line">        <span class="function">Vec3f <span class="title">L</span><span class="params">(<span class="number">0</span>)</span></span>;</span><br><span class="line">        <span class="type">int</span> N = <span class="number">1</span>;  <span class="comment">// 路径追踪每路径只采样一个方向</span></span><br><span class="line">        </span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; N; ++i) &#123;</span><br><span class="line">            <span class="type">float</span> pdf;</span><br><span class="line">            Vec3f wi = <span class="built_in">sampleCosineHemisphere</span>(isect.normal, pdf);</span><br><span class="line">            </span><br><span class="line">            <span class="function">Ray <span class="title">ray</span><span class="params">(isect.position + wi * <span class="number">0.001f</span>, wi)</span></span>;</span><br><span class="line">            Vec3f Li = <span class="built_in">trace</span>(ray, depth);</span><br><span class="line">            </span><br><span class="line">            Vec3f brdf = isect.material-&gt;<span class="built_in">evaluate</span>(wi, isect.wo, isect.normal);</span><br><span class="line">            <span class="type">float</span> cos_term = std::<span class="built_in">max</span>(<span class="number">0.0f</span>, <span class="built_in">dot</span>(isect.normal, wi));</span><br><span class="line">            </span><br><span class="line">            L += brdf * Li * cos_term / pdf;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">return</span> L / N;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="type">const</span> Scene* scene_;</span><br><span class="line">    BVHNode* bvh_;</span><br><span class="line">    <span class="type">int</span> max_depth_;</span><br><span class="line">    <span class="type">int</span> spp_;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h3 id="cornell-box场景">3.3 Cornell Box场景</h3>
+<p>经典的测试场景：</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">Scene <span class="title">createCornellBox</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    Scene scene;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 尺寸</span></span><br><span class="line">    <span class="type">float</span> size = <span class="number">2.0f</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 地面(白色)</span></span><br><span class="line">    scene.<span class="built_in">add</span>(<span class="built_in">Plane</span>(</span><br><span class="line">        <span class="built_in">Vec3f</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>), <span class="built_in">Vec3f</span>(<span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>),</span><br><span class="line">        Material::<span class="built_in">diffuse</span>(<span class="built_in">Vec3f</span>(<span class="number">0.75f</span>))</span><br><span class="line">    ));</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 天花板(白色)</span></span><br><span class="line">    scene.<span class="built_in">add</span>(<span class="built_in">Plane</span>(</span><br><span class="line">        <span class="built_in">Vec3f</span>(<span class="number">0</span>, size, <span class="number">0</span>), <span class="built_in">Vec3f</span>(<span class="number">0</span>, <span class="number">-1</span>, <span class="number">0</span>),</span><br><span class="line">        Material::<span class="built_in">diffuse</span>(<span class="built_in">Vec3f</span>(<span class="number">0.75f</span>))</span><br><span class="line">    ));</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 后墙(白色)</span></span><br><span class="line">    scene.<span class="built_in">add</span>(<span class="built_in">Plane</span>(</span><br><span class="line">        <span class="built_in">Vec3f</span>(<span class="number">0</span>, <span class="number">0</span>, -size), <span class="built_in">Vec3f</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>),</span><br><span class="line">        Material::<span class="built_in">diffuse</span>(<span class="built_in">Vec3f</span>(<span class="number">0.75f</span>))</span><br><span class="line">    ));</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 左墙(红色)</span></span><br><span class="line">    scene.<span class="built_in">add</span>(<span class="built_in">Plane</span>(</span><br><span class="line">        <span class="built_in">Vec3f</span>(-size, <span class="number">0</span>, <span class="number">0</span>), <span class="built_in">Vec3f</span>(<span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>),</span><br><span class="line">        Material::<span class="built_in">diffuse</span>(<span class="built_in">Vec3f</span>(<span class="number">0.75f</span>, <span class="number">0.15f</span>, <span class="number">0.15f</span>))</span><br><span class="line">    ));</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 右墙(绿色)</span></span><br><span class="line">    scene.<span class="built_in">add</span>(<span class="built_in">Plane</span>(</span><br><span class="line">        <span class="built_in">Vec3f</span>(size, <span class="number">0</span>, <span class="number">0</span>), <span class="built_in">Vec3f</span>(<span class="number">-1</span>, <span class="number">0</span>, <span class="number">0</span>),</span><br><span class="line">        Material::<span class="built_in">diffuse</span>(<span class="built_in">Vec3f</span>(<span class="number">0.15f</span>, <span class="number">0.75f</span>, <span class="number">0.15f</span>))</span><br><span class="line">    ));</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 两个立方体</span></span><br><span class="line">    scene.<span class="built_in">add</span>(<span class="built_in">Box</span>(</span><br><span class="line">        <span class="built_in">Vec3f</span>(<span class="number">-0.7f</span>, <span class="number">0</span>, <span class="number">-0.5f</span>), <span class="built_in">Vec3f</span>(<span class="number">-0.2f</span>, <span class="number">0.8f</span>, <span class="number">0.0f</span>),</span><br><span class="line">        Material::<span class="built_in">diffuse</span>(<span class="built_in">Vec3f</span>(<span class="number">0.75f</span>))</span><br><span class="line">    ));</span><br><span class="line">    </span><br><span class="line">    scene.<span class="built_in">add</span>(<span class="built_in">Box</span>(</span><br><span class="line">        <span class="built_in">Vec3f</span>(<span class="number">0.2f</span>, <span class="number">0</span>, <span class="number">-0.8f</span>), <span class="built_in">Vec3f</span>(<span class="number">0.7f</span>, <span class="number">0.5f</span>, <span class="number">-0.3f</span>),</span><br><span class="line">        Material::<span class="built_in">diffuse</span>(<span class="built_in">Vec3f</span>(<span class="number">0.75f</span>))</span><br><span class="line">    ));</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 顶部面光源</span></span><br><span class="line">    scene.<span class="built_in">add</span>(<span class="built_in">RectLight</span>(</span><br><span class="line">        <span class="built_in">Vec3f</span>(<span class="number">0</span>, size - <span class="number">0.01f</span>, <span class="number">0</span>),</span><br><span class="line">        <span class="built_in">Vec3f</span>(<span class="number">-0.5f</span>, <span class="number">0</span>, <span class="number">-0.5f</span>),</span><br><span class="line">        <span class="built_in">Vec3f</span>(<span class="number">0.5f</span>, <span class="number">0</span>, <span class="number">-0.5f</span>),</span><br><span class="line">        <span class="built_in">Vec3f</span>(<span class="number">15.0f</span>)  <span class="comment">// 较亮的发光</span></span><br><span class="line">    ));</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> scene;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr />
+<h2 id="实践作业">实践作业</h2>
+<h3 id="作业1基础路径追踪器-week-1-2">作业1：基础路径追踪器 (Week
+1-2)</h3>
+<p><strong>目标：</strong> 实现一个能渲染简单场景的路径追踪器</p>
+<p><strong>要求：</strong> - 支持球体和平面 - 支持漫反射材质 -
+支持点光源 - 使用BVH加速</p>
+<p><strong>验收标准：</strong> <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 测试场景: 球体在平面上</span></span><br><span class="line">Scene scene;</span><br><span class="line">scene.<span class="built_in">add</span>(<span class="built_in">Sphere</span>(<span class="built_in">Vec3f</span>(<span class="number">0</span>, <span class="number">1</span>, <span class="number">-5</span>), <span class="number">1.0f</span>, Material::<span class="built_in">diffuse</span>(<span class="built_in">Vec3f</span>(<span class="number">0.8f</span>))));</span><br><span class="line">scene.<span class="built_in">add</span>(<span class="built_in">Plane</span>(<span class="built_in">Vec3f</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>), <span class="built_in">Vec3f</span>(<span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>), Material::<span class="built_in">diffuse</span>(<span class="built_in">Vec3f</span>(<span class="number">0.5f</span>))));</span><br><span class="line">scene.<span class="built_in">add</span>(<span class="built_in">PointLight</span>(<span class="built_in">Vec3f</span>(<span class="number">5</span>, <span class="number">10</span>, <span class="number">5</span>), <span class="built_in">Vec3f</span>(<span class="number">100.0f</span>)));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 渲染</span></span><br><span class="line"><span class="function">PathTracer <span class="title">tracer</span><span class="params">(<span class="number">5</span>, <span class="number">64</span>)</span></span>;  <span class="comment">// 5深度, 64spp</span></span><br><span class="line">tracer.<span class="built_in">render</span>(scene, image);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 保存</span></span><br><span class="line">image.<span class="built_in">save</span>(<span class="string">&quot;output.ppm&quot;</span>);</span><br></pre></td></tr></table></figure></p>
+<h3 id="作业2cornell-box-week-3">作业2：Cornell Box (Week 3)</h3>
+<p><strong>目标：</strong> 渲染经典的Cornell Box</p>
+<p><strong>要求：</strong> - 正确的颜色反射(红墙、绿墙) - 全局光照效果 -
+软阴影</p>
+<p><strong>验收标准：</strong> - SPP ≥ 256时，噪点可接受 - 渲染时间 &lt;
+5分钟 (512x512)</p>
+<hr />
+<h2 id="本周踩坑记录">本周踩坑记录</h2>
+<h3 id="问题1自相交-self-intersection">问题1：自相交
+(Self-intersection)</h3>
+<p><strong>现象：</strong> 球体表面出现黑色噪点</p>
+<p><strong>原因：</strong> 浮点误差导致光线从交点出发时又击中自己</p>
+<p><strong>解决：</strong> <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">Ray <span class="title">new_ray</span><span class="params">(isect.position + isect.normal * <span class="number">0.001f</span>, direction)</span></span>;</span><br><span class="line"><span class="comment">// 沿法线偏移一小段距离</span></span><br></pre></td></tr></table></figure></p>
+<h3 id="问题2颜色溢出">问题2：颜色溢出</h3>
+<p><strong>现象：</strong> 渲染结果有奇怪的亮斑</p>
+<p><strong>原因：</strong> RGB值超出[0,1]，写入图像时溢出</p>
+<p><strong>解决：</strong> <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 方法1: clamp</span></span><br><span class="line">color = <span class="built_in">clamp</span>(color, <span class="number">0.0f</span>, <span class="number">1.0f</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 方法2: Reinhard色调映射</span></span><br><span class="line">color = color / (color + <span class="built_in">Vec3f</span>(<span class="number">1.0f</span>));</span><br></pre></td></tr></table></figure></p>
+<h3 id="问题3方差过大">问题3：方差过大</h3>
+<p><strong>现象：</strong> 即使很多采样仍然很噪</p>
+<p><strong>原因：</strong> 采样策略不当，或光源被遮挡</p>
+<p><strong>解决：</strong> - 显式采样光源 (NEE: Next Event Estimation) -
+使用重要性采样 - 增加采样数</p>
+<hr />
+<h2 id="延伸阅读">延伸阅读</h2>
+<h3 id="推荐教程">推荐教程</h3>
+<ol type="1">
+<li><strong>Ray Tracing in One Weekend</strong> - 最适合入门
+<ul>
+<li>地址: raytracing.github.io</li>
+<li>特点: 从零开始，代码可运行</li>
+</ul></li>
+<li><strong>PBRT v4</strong> - 学术界标准参考
+<ul>
+<li>地址: pbrt.org</li>
+<li>特点: 完整、严谨，适合深入学习</li>
+</ul></li>
+<li><strong>Scratchapixel</strong> - 图形学教程网站
+<ul>
+<li>地址: scratchapixel.com</li>
+<li>特点: 图文并茂，概念解释清晰</li>
+</ul></li>
+</ol>
+<h3 id="视频课程">视频课程</h3>
+<ul>
+<li><strong>GAMES101</strong> - 闫令琪的图形学入门
+<ul>
+<li>Lecture 13-20 涵盖光线追踪</li>
+</ul></li>
+<li><strong>CMU 15-462</strong> - 计算机图形学
+<ul>
+<li>完整的渲染管线讲解</li>
+</ul></li>
+</ul>
+<hr />
+<h2 id="小结">小结</h2>
+<p>本周我们学习了：</p>
+<ol type="1">
+<li>光线追踪的基本原理和数学基础</li>
+<li>渲染方程及其物理含义</li>
+<li>蒙特卡洛积分与重要性采样</li>
+<li>BVH加速结构</li>
+<li>完整路径追踪器的实现</li>
+</ol>
+<p><strong>关键收获：</strong>
+理解了为什么光线追踪天然需要降噪——蒙特卡洛方法的方差导致噪声。</p>
+<p><span class="math display">\[\text{Variance} \propto
+\frac{1}{N}\]</span></p>
+<p>要达到可接受的噪声水平，需要大量样本，这在实时渲染中是不可行的。这就是AI降噪的用武之地。</p>
+<p>下一篇，我们将学习实时光线追踪，看看现代GPU是如何加速RT的。</p>
+
+      </div>
+      
+      
+      
+    </div>
+
+    
+    
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">粤ICP备17055045号 </a>
+  </div>
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Locky Hu</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>Word count total: </span>
+    <span title="Word count total">65k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span>Reading time total &asymp;</span>
+    <span title="Reading time total">59 mins.</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+<div>
+<span id="timeDate">载入天数...</span><span id="times">载入时分秒...</span>
+<script>
+    var now = new Date(); 
+    function createtime() { 
+        var grt= new Date("12/24/2021 19:43:01");//在此处修改你的建站时间
+        now.setTime(now.getTime()+250); 
+        days = (now - grt ) / 1000 / 60 / 60 / 24; dnum = Math.floor(days); 
+        hours = (now - grt ) / 1000 / 60 / 60 - (24 * dnum); hnum = Math.floor(hours); 
+        if(String(hnum).length ==1 ){hnum = "0" + hnum;} minutes = (now - grt ) / 1000 /60 - (24 * 60 * dnum) - (60 * hnum); 
+        mnum = Math.floor(minutes); if(String(mnum).length ==1 ){mnum = "0" + mnum;} 
+        seconds = (now - grt ) / 1000 - (24 * 60 * 60 * dnum) - (60 * 60 * hnum) - (60 * mnum); 
+        snum = Math.round(seconds); if(String(snum).length ==1 ){snum = "0" + snum;} 
+        document.getElementById("timeDate").innerHTML = "已运行 "+dnum+" 天 "; 
+        document.getElementById("times").innerHTML = hnum + " 小时 " + mnum + " 分 " + snum + " 秒"; 
+    } 
+setInterval("createtime()",250);
+</script>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+    </div>
+  </footer>
+
+  
+  <div class="reading-progress-bar"></div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/next-theme-pjax/0.6.0/pjax.min.js" integrity="sha256-vxLn1tSKWD4dqbMRyv940UYw4sXgMtYcK6reefzZrao=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/next-boot.js"></script><script src="/js/pjax.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+  <script src="/js/third-party/pace.js"></script>
+
+
+  
+  <script data-pjax async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"per_page":true,"cdn":"//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML","mhchem":false,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

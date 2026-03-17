@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#fff"><meta name="generator" content="Hexo 5.4.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/computer-chip_gray.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/computer-chip_gray.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/computer-chip_gray.svg">
+  <link rel="mask-icon" href="/images/computer-chip_gray.svg" color="#fff">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha256-yIDrPSXHZdOZhAqiBP7CKzIwMQmRCJ8UeB8Jo17YC4o=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/themes/blue/pace-theme-minimal.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/pace.min.js" integrity="sha256-gqd7YTjg/BtfqWSwsJOvndl0Bxc8gFImLEkXQT8+qj0=" crossorigin="anonymous"></script>
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"huziliang.com","root":"/","images":"/images","scheme":"Pisces","darkmode":false,"version":"8.19.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":true,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":true,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="DLSS 4.0 如何解决拖影问题 拖影（Ghosting）是时间上采样（Temporal Upsampling）和帧生成（Frame Generation）技术中的常见问题。当物体快速移动或场景发生突变时，历史帧信息的不正确复用会导致残影、模糊和伪影。DLSS 4.0 通过多项技术改进显著缓解了这一问题。 一、拖影问题的根本原因 1.1 时间累积的挑战 在时间上采样中，算法需要将历史帧信息累积">
+<meta property="og:type" content="website">
+<meta property="og:title" content="DLSS4.0如何解决拖影问题">
+<meta property="og:url" content="https://huziliang.com/DLSS4-0%E5%A6%82%E4%BD%95%E8%A7%A3%E5%86%B3%E6%8B%96%E5%BD%B1%E9%97%AE%E9%A2%98.html">
+<meta property="og:site_name" content="Locky Hu">
+<meta property="og:description" content="DLSS 4.0 如何解决拖影问题 拖影（Ghosting）是时间上采样（Temporal Upsampling）和帧生成（Frame Generation）技术中的常见问题。当物体快速移动或场景发生突变时，历史帧信息的不正确复用会导致残影、模糊和伪影。DLSS 4.0 通过多项技术改进显著缓解了这一问题。 一、拖影问题的根本原因 1.1 时间累积的挑战 在时间上采样中，算法需要将历史帧信息累积">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2025-11-21T08:52:16.000Z">
+<meta property="article:modified_time" content="2025-11-21T08:55:33.507Z">
+<meta property="article:author" content="Locky Hu">
+<meta property="article:tag" content="超分辨率">
+<meta property="article:tag" content="AI">
+<meta property="article:tag" content="DLSS">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://huziliang.com/DLSS4-0%E5%A6%82%E4%BD%95%E8%A7%A3%E5%86%B3%E6%8B%96%E5%BD%B1%E9%97%AE%E9%A2%98">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":false,"lang":"en","comments":true,"permalink":"https://huziliang.com/DLSS4-0%E5%A6%82%E4%BD%95%E8%A7%A3%E5%86%B3%E6%8B%96%E5%BD%B1%E9%97%AE%E9%A2%98.html","path":"DLSS4-0如何解决拖影问题.html","title":"DLSS4.0如何解决拖影问题"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>DLSS4.0如何解决拖影问题 | Locky Hu
+</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title"></p>
+      <i class="logo-line"></i>
+    </a>
+    <a href="/" class="" rel="start">
+      <p class="site-subtitle" itemprop="description">Newbie Dad, Software Engineer</p>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#dlss-4.0-%E5%A6%82%E4%BD%95%E8%A7%A3%E5%86%B3%E6%8B%96%E5%BD%B1%E9%97%AE%E9%A2%98"><span class="nav-text">DLSS 4.0 如何解决拖影问题</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E6%8B%96%E5%BD%B1%E9%97%AE%E9%A2%98%E7%9A%84%E6%A0%B9%E6%9C%AC%E5%8E%9F%E5%9B%A0"><span class="nav-text">一、拖影问题的根本原因</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%97%B6%E9%97%B4%E7%B4%AF%E7%A7%AF%E7%9A%84%E6%8C%91%E6%88%98"><span class="nav-text">1.1 时间累积的挑战</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%95%B0%E5%AD%A6%E8%A1%A8%E8%BE%BE"><span class="nav-text">1.2 数学表达</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8Cdlss-4.0-%E7%9A%84%E6%A0%B8%E5%BF%83%E6%94%B9%E8%BF%9B"><span class="nav-text">二、DLSS 4.0 的核心改进</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A2%9E%E5%BC%BA%E7%9A%84%E8%BF%90%E5%8A%A8%E4%BC%B0%E8%AE%A1%E4%B8%8E%E9%AA%8C%E8%AF%81"><span class="nav-text">2.1 增强的运动估计与验证</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%99%BA%E8%83%BD%E5%8E%86%E5%8F%B2%E6%8B%92%E7%BB%9D%E6%9C%BA%E5%88%B6"><span class="nav-text">2.2 智能历史拒绝机制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%94%B9%E8%BF%9B%E7%9A%84%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84"><span class="nav-text">2.3 改进的神经网络架构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%81%AE%E6%8C%A1%E4%B8%8E%E6%98%BE%E9%9C%B2%E7%9A%84%E4%B8%93%E9%97%A8%E5%A4%84%E7%90%86"><span class="nav-text">2.4 遮挡与显露的专门处理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%89%B9%E6%AE%8A%E5%9C%BA%E6%99%AF%E4%BC%98%E5%8C%96"><span class="nav-text">2.5 特殊场景优化</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E6%8A%80%E6%9C%AF%E5%AE%9E%E7%8E%B0%E7%BB%86%E8%8A%82"><span class="nav-text">三、技术实现细节</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%89%E6%B5%81%E5%8A%A0%E9%80%9F%E5%99%A8%E7%9A%84%E6%94%B9%E8%BF%9B"><span class="nav-text">3.1 光流加速器的改进</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E8%AE%AD%E7%BB%83%E7%AD%96%E7%95%A5"><span class="nav-text">3.2 神经网络训练策略</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%9E%E6%97%B6%E8%87%AA%E9%80%82%E5%BA%94"><span class="nav-text">3.3 实时自适应</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E6%95%88%E6%9E%9C%E8%AF%84%E4%BC%B0"><span class="nav-text">四、效果评估</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8B%96%E5%BD%B1%E5%87%8F%E5%B0%91"><span class="nav-text">4.1 拖影减少</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%94%BB%E8%B4%A8%E6%8F%90%E5%8D%87"><span class="nav-text">4.2 画质提升</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94%E6%80%BB%E7%BB%93"><span class="nav-text">五、总结</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%B3%E9%94%AE%E6%8A%80%E6%9C%AF%E8%A6%81%E7%82%B9"><span class="nav-text">关键技术要点</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <style>
+    .pixel-slime {
+      height: 100px;
+      width: 105px;
+      position: relative;
+      display: inline-block;
+      margin: 20px;
+      &::before {
+        content: "";
+        position: absolute;
+        background: 0 0;
+        width: 5px;
+        height: 5px;
+        top: -5px;
+        left: -5px;
+        box-shadow: 65px 5px rgb(91, 155, 213), 55px 10px rgb(91, 155, 213), 60px 10px rgb(91, 155, 213), 70px 10px rgb(91, 155, 213), 40px 15px rgb(91, 155, 213), 45px 15px rgb(91, 155, 213), 50px 15px rgb(91, 155, 213), 75px 15px rgb(91, 155, 213), 30px 20px rgb(91, 155, 213), 35px 20px rgb(91, 155, 213), 80px 20px rgb(91, 155, 213), 20px 25px rgb(91, 155, 213), 25px 25px rgb(91, 155, 213), 85px 25px rgb(91, 155, 213), 90px 25px rgb(91, 155, 213), 15px 30px rgb(91, 155, 213), 95px 30px rgb(91, 155, 213), 10px 35px rgb(91, 155, 213), 100px 35px rgb(91, 155, 213), 10px 40px rgb(91, 155, 213), 100px 40px rgb(91, 155, 213), 5px 45px rgb(91, 155, 213), 105px 45px rgb(91, 155, 213), 5px 50px rgb(91, 155, 213), 105px 50px rgb(91, 155, 213), 5px 55px rgb(91, 155, 213), 105px 55px rgb(91, 155, 213), 5px 60px rgb(91, 155, 213), 105px 60px rgb(91, 155, 213), 5px 65px rgb(91, 155, 213), 105px 65px rgb(91, 155, 213), 5px 70px rgb(91, 155, 213), 105px 70px rgb(91, 155, 213), 10px 75px rgb(91, 155, 213), 100px 75px rgb(91, 155, 213), 10px 80px rgb(91, 155, 213), 100px 80px rgb(91, 155, 213), 15px 85px rgb(91, 155, 213), 95px 85px rgb(91, 155, 213), 20px 90px rgb(91, 155, 213), 25px 90px rgb(91, 155, 213), 85px 90px rgb(91, 155, 213), 90px 90px rgb(91, 155, 213), 30px 95px rgb(91, 155, 213), 35px 95px rgb(91, 155, 213), 75px 95px rgb(91, 155, 213), 80px 95px rgb(91, 155, 213), 40px 100px rgb(91, 155, 213), 45px 100px rgb(91, 155, 213), 50px 100px rgb(91, 155, 213), 55px 100px rgb(91, 155, 213), 60px 100px rgb(91, 155, 213), 65px 100px rgb(91, 155, 213), 70px 100px rgb(91, 155, 213), 65px 10px rgb(221, 235, 247), 55px 15px rgb(221, 235, 247), 60px 15px rgb(221, 235, 247), 70px 15px rgb(221, 235, 247), 50px 20px rgb(221, 235, 247), 75px 20px rgb(221, 235, 247), 80px 25px rgb(221, 235, 247), 85px 30px rgb(221, 235, 247), 90px 30px rgb(221, 235, 247), 15px 35px rgb(221, 235, 247), 100px 55px rgb(221, 235, 247), 100px 60px rgb(221, 235, 247), 85px 65px rgb(221, 235, 247), 15px 60px rgb(221, 235, 247), 40px 20px rgb(242, 247, 252), 45px 20px rgb(242, 247, 252), 30px 25px rgb(242, 247, 252), 35px 25px rgb(242, 247, 252), 20px 30px rgb(242, 247, 252), 25px 30px rgb(242, 247, 252), 95px 35px rgb(242, 247, 252), 95px 40px rgb(242, 247, 252), 100px 45px rgb(242, 247, 252), 100px 50px rgb(242, 247, 252), 25px 50px rgb(242, 247, 252), 20px 60px rgb(242, 247, 252), 70px 55px rgb(242, 247, 252), 80px 65px rgb(242, 247, 252), 65px 15px rgb(189, 215, 238), 55px 20px rgb(189, 215, 238), 60px 20px rgb(189, 215, 238), 65px 20px rgb(189, 215, 238), 70px 20px rgb(189, 215, 238), 40px 25px rgb(189, 215, 238), 45px 25px rgb(189, 215, 238), 50px 25px rgb(189, 215, 238), 55px 25px rgb(189, 215, 238), 60px 25px rgb(189, 215, 238), 65px 25px rgb(189, 215, 238), 70px 25px rgb(189, 215, 238), 75px 25px rgb(189, 215, 238), 30px 30px rgb(189, 215, 238), 35px 30px rgb(189, 215, 238), 40px 30px rgb(189, 215, 238), 45px 30px rgb(189, 215, 238), 50px 30px rgb(189, 215, 238), 55px 30px rgb(189, 215, 238), 60px 30px rgb(189, 215, 238), 65px 30px rgb(189, 215, 238), 70px 30px rgb(189, 215, 238), 75px 30px rgb(189, 215, 238), 80px 30px rgb(189, 215, 238), 20px 35px rgb(189, 215, 238), 25px 35px rgb(189, 215, 238), 30px 35px rgb(189, 215, 238), 35px 35px rgb(189, 215, 238), 40px 35px rgb(189, 215, 238), 45px 35px rgb(189, 215, 238), 50px 35px rgb(189, 215, 238), 55px 35px rgb(189, 215, 238), 60px 35px rgb(189, 215, 238), 65px 35px rgb(189, 215, 238), 70px 35px rgb(189, 215, 238), 75px 35px rgb(189, 215, 238), 80px 35px rgb(189, 215, 238), 85px 35px rgb(189, 215, 238), 90px 35px rgb(189, 215, 238), 15px 40px rgb(189, 215, 238), 20px 40px rgb(189, 215, 238), 25px 40px rgb(189, 215, 238), 30px 40px rgb(189, 215, 238), 35px 40px rgb(189, 215, 238), 40px 40px rgb(189, 215, 238), 45px 40px rgb(189, 215, 238), 50px 40px rgb(189, 215, 238), 55px 40px rgb(189, 215, 238), 60px 40px rgb(189, 215, 238), 65px 40px rgb(189, 215, 238), 70px 40px rgb(189, 215, 238), 75px 40px rgb(189, 215, 238), 80px 40px rgb(189, 215, 238), 85px 40px rgb(189, 215, 238), 90px 40px rgb(189, 215, 238), 10px 45px rgb(189, 215, 238), 15px 45px rgb(189, 215, 238), 20px 45px rgb(189, 215, 238), 25px 45px rgb(189, 215, 238), 30px 45px rgb(189, 215, 238), 90px 45px rgb(189, 215, 238), 95px 45px rgb(189, 215, 238), 10px 50px rgb(189, 215, 238), 15px 50px rgb(189, 215, 238), 20px 50px rgb(189, 215, 238), 95px 50px rgb(189, 215, 238), 10px 55px rgb(189, 215, 238), 15px 55px rgb(189, 215, 238), 10px 60px rgb(189, 215, 238), 10px 65px rgb(189, 215, 238), 10px 70px rgb(189, 215, 238), 15px 75px rgb(189, 215, 238), 15px 80px rgb(189, 215, 238), 20px 85px rgb(189, 215, 238), 25px 85px rgb(189, 215, 238), 30px 90px rgb(189, 215, 238), 35px 90px rgb(189, 215, 238), 100px 65px rgb(189, 215, 238), 100px 70px rgb(189, 215, 238), 95px 75px rgb(189, 215, 238), 95px 80px rgb(189, 215, 238), 85px 85px rgb(189, 215, 238), 90px 85px rgb(189, 215, 238), 75px 90px rgb(189, 215, 238), 80px 90px rgb(189, 215, 238), 40px 95px rgb(189, 215, 238), 45px 95px rgb(189, 215, 238), 50px 95px rgb(189, 215, 238), 55px 95px rgb(189, 215, 238), 60px 95px rgb(189, 215, 238), 65px 95px rgb(189, 215, 238), 70px 95px rgb(189, 215, 238), 20px 55px rgb(180, 198, 231), 35px 45px rgb(180, 198, 231), 40px 45px rgb(180, 198, 231), 45px 45px rgb(180, 198, 231), 50px 45px rgb(180, 198, 231), 55px 45px rgb(180, 198, 231), 60px 45px rgb(180, 198, 231), 65px 45px rgb(180, 198, 231), 70px 45px rgb(180, 198, 231), 75px 45px rgb(180, 198, 231), 80px 45px rgb(180, 198, 231), 85px 45px rgb(180, 198, 231), 35px 50px rgb(180, 198, 231), 40px 50px rgb(180, 198, 231), 45px 50px rgb(180, 198, 231), 50px 50px rgb(180, 198, 231), 55px 50px rgb(180, 198, 231), 60px 50px rgb(180, 198, 231), 65px 50px rgb(180, 198, 231), 70px 50px rgb(180, 198, 231), 75px 50px rgb(180, 198, 231), 80px 50px rgb(180, 198, 231), 85px 50px rgb(180, 198, 231), 90px 50px rgb(180, 198, 231), 35px 55px rgb(180, 198, 231), 40px 55px rgb(180, 198, 231), 45px 55px rgb(180, 198, 231), 50px 55px rgb(180, 198, 231), 55px 55px rgb(180, 198, 231), 60px 55px rgb(180, 198, 231), 65px 55px rgb(180, 198, 231), 80px 55px rgb(180, 198, 231), 85px 55px rgb(180, 198, 231), 90px 55px rgb(180, 198, 231), 95px 55px rgb(180, 198, 231), 25px 60px rgb(180, 198, 231), 30px 60px rgb(180, 198, 231), 35px 60px rgb(180, 198, 231), 40px 60px rgb(180, 198, 231), 45px 60px rgb(180, 198, 231), 50px 60px rgb(180, 198, 231), 55px 60px rgb(180, 198, 231), 60px 60px rgb(180, 198, 231), 65px 60px rgb(180, 198, 231), 80px 60px rgb(180, 198, 231), 85px 60px rgb(180, 198, 231), 90px 60px rgb(180, 198, 231), 95px 60px rgb(180, 198, 231), 15px 65px rgb(180, 198, 231), 20px 65px rgb(180, 198, 231), 25px 65px rgb(180, 198, 231), 30px 65px rgb(180, 198, 231), 90px 65px rgb(180, 198, 231), 95px 65px rgb(180, 198, 231), 15px 70px rgb(180, 198, 231), 20px 70px rgb(180, 198, 231), 90px 70px rgb(180, 198, 231), 95px 70px rgb(180, 198, 231), 35px 65px rgb(142, 169, 219), 40px 65px rgb(142, 169, 219), 45px 65px rgb(142, 169, 219), 50px 65px rgb(142, 169, 219), 55px 65px rgb(142, 169, 219), 60px 65px rgb(142, 169, 219), 65px 65px rgb(142, 169, 219), 70px 65px rgb(142, 169, 219), 75px 65px rgb(142, 169, 219), 35px 70px rgb(142, 169, 219), 40px 70px rgb(142, 169, 219), 45px 70px rgb(142, 169, 219), 50px 70px rgb(142, 169, 219), 55px 70px rgb(142, 169, 219), 60px 70px rgb(142, 169, 219), 65px 70px rgb(142, 169, 219), 70px 70px rgb(142, 169, 219), 75px 70px rgb(142, 169, 219), 80px 70px rgb(142, 169, 219), 85px 70px rgb(142, 169, 219), 35px 75px rgb(142, 169, 219), 40px 75px rgb(142, 169, 219), 25px 70px rgb(142, 169, 219), 20px 75px rgb(142, 169, 219), 25px 75px rgb(142, 169, 219), 20px 80px rgb(142, 169, 219), 25px 80px rgb(142, 169, 219), 30px 80px rgb(142, 169, 219), 50px 75px rgb(142, 169, 219), 55px 75px rgb(142, 169, 219), 65px 75px rgb(142, 169, 219), 70px 75px rgb(142, 169, 219), 75px 75px rgb(142, 169, 219), 80px 75px rgb(142, 169, 219), 85px 75px rgb(142, 169, 219), 90px 75px rgb(142, 169, 219), 45px 80px rgb(142, 169, 219), 60px 80px rgb(142, 169, 219), 65px 80px rgb(142, 169, 219), 70px 80px rgb(142, 169, 219), 75px 80px rgb(142, 169, 219), 80px 80px rgb(142, 169, 219), 85px 80px rgb(142, 169, 219), 90px 80px rgb(142, 169, 219), 30px 85px rgb(142, 169, 219), 35px 85px rgb(142, 169, 219), 40px 85px rgb(142, 169, 219), 45px 85px rgb(142, 169, 219), 50px 85px rgb(142, 169, 219), 55px 85px rgb(142, 169, 219), 60px 85px rgb(142, 169, 219), 65px 85px rgb(142, 169, 219), 70px 85px rgb(142, 169, 219), 75px 85px rgb(142, 169, 219), 80px 85px rgb(142, 169, 219), 40px 90px rgb(142, 169, 219), 45px 90px rgb(142, 169, 219), 50px 90px rgb(142, 169, 219), 55px 90px rgb(142, 169, 219), 60px 90px rgb(142, 169, 219), 65px 90px rgb(142, 169, 219), 70px 90px rgb(142, 169, 219), 30px 70px rgb(248, 203, 173), 30px 75px rgb(248, 203, 173), 35px 80px rgb(248, 203, 173), 40px 80px rgb(248, 203, 173), 45px 75px rgb(248, 203, 173), 50px 80px rgb(248, 203, 173), 55px 80px rgb(248, 203, 173), 60px 75px rgb(248, 203, 173), 30px 50px rgb(64, 64, 64), 25px 55px rgb(64, 64, 64), 30px 55px rgb(64, 64, 64), 75px 55px rgb(64, 64, 64), 70px 60px rgb(64, 64, 64), 75px 60px rgb(64, 64, 64);
+      }
+    }
+  </style>
+
+
+<div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <a href="/" class="" rel="start" style="border-bottom: None !important">
+      <i class="pixel-slime"></i>
+    </a>
+    <!-- <img class="site-author-image" itemprop="image" alt="Locky Hu" src="/images/computer-chip_gray.svg"> -->
+  <a href="/" class="" rel="start"><p class="site-author-name" itemprop="name">Locky Hu</p></a>
+  <div class="site-description" itemprop="description">Just for record</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+        <div class="back-to-top animated" role="button" aria-label="Back to top">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner page posts-expand">
+
+
+    
+    
+    
+    <div class="post-block" lang="en"><header class="post-header">
+
+<h1 class="post-title" itemprop="name headline">DLSS4.0如何解决拖影问题
+</h1>
+
+<div class="post-meta-container">
+</div>
+
+</header>
+
+      
+      
+      <div class="post-body">
+          <meta name="referrer" content="no-referrer" />
+<h1 id="dlss-4.0-如何解决拖影问题">DLSS 4.0 如何解决拖影问题</h1>
+<p>拖影（Ghosting）是时间上采样（Temporal Upsampling）和帧生成（Frame
+Generation）技术中的常见问题。当物体快速移动或场景发生突变时，历史帧信息的不正确复用会导致残影、模糊和伪影。DLSS
+4.0 通过多项技术改进显著缓解了这一问题。</p>
+<h2 id="一拖影问题的根本原因">一、拖影问题的根本原因</h2>
+<h3 id="时间累积的挑战">1.1 时间累积的挑战</h3>
+<p>在时间上采样中，算法需要将历史帧信息累积到当前帧以提高画质。拖影问题主要源于：</p>
+<ol type="1">
+<li><p><strong>运动向量不准确</strong>：当物体快速移动、旋转或发生遮挡时，运动向量（Motion
+Vector）可能无法准确描述像素的位移，导致历史信息被错误地投影到当前位置。</p></li>
+<li><p><strong>遮挡与显露</strong>：当新物体出现或旧物体被遮挡时，历史帧中不存在对应信息，直接复用会导致拖影。</p></li>
+<li><p><strong>光照突变</strong>：场景光照突然变化（如开关灯、爆炸效果）时，历史帧的颜色信息不再有效。</p></li>
+<li><p><strong>半透明与粒子特效</strong>：半透明物体和粒子系统的运动模式复杂，难以用简单的运动向量描述。</p></li>
+</ol>
+<h3 id="数学表达">1.2 数学表达</h3>
+<p>在时间累积中，当前像素 <span class="math inline">\(p\)</span>
+的颜色通常表示为：</p>
+<p><span class="math display">\[C_{output}(p) = \alpha \cdot
+C_{current}(p) + (1-\alpha) \cdot C_{history}(p + mv)\]</span></p>
+<p>其中 <span class="math inline">\(mv\)</span> 是运动向量，<span
+class="math inline">\(\alpha\)</span> 是混合系数。当 <span
+class="math inline">\(mv\)</span> 不准确或 <span
+class="math inline">\(C_{history}(p + mv)\)</span>
+来自错误的历史位置时，就会产生拖影。</p>
+<h2 id="二dlss-4.0-的核心改进">二、DLSS 4.0 的核心改进</h2>
+<h3 id="增强的运动估计与验证">2.1 增强的运动估计与验证</h3>
+<h4 id="多源运动信息融合">2.1.1 多源运动信息融合</h4>
+<p>DLSS 4.0 不再仅依赖传统的运动向量，而是融合多种运动信息：</p>
+<ul>
+<li><strong>几何运动向量</strong>（Geometry Motion
+Vectors）：从渲染管线获取的基于几何的运动信息</li>
+<li><strong>光流信息</strong>（Optical
+Flow）：通过新一代光流加速器（Optical Flow
+Accelerator）计算的像素级运动</li>
+<li><strong>深度信息</strong>（Depth
+Buffer）：用于验证运动向量的有效性</li>
+</ul>
+<p>通过多源信息的交叉验证，可以更准确地识别运动向量的错误，避免将错误的历史信息投影到当前帧。</p>
+<h4 id="自适应运动向量修正">2.1.2 自适应运动向量修正</h4>
+<p>DLSS 4.0 的神经网络能够学习识别运动向量的异常，并自动修正：</p>
+<p><span class="math display">\[mv_{corrected} =
+f_{neural}(mv_{geometry}, mv_{optical}, depth, color)\]</span></p>
+<p>其中 <span class="math inline">\(f_{neural}\)</span>
+是训练好的神经网络，能够根据几何运动向量、光流、深度和颜色信息，输出修正后的运动向量。</p>
+<h3 id="智能历史拒绝机制">2.2 智能历史拒绝机制</h3>
+<h4 id="多维度一致性检测">2.2.1 多维度一致性检测</h4>
+<p>DLSS 4.0 使用更严格的一致性检测来判断历史信息是否有效：</p>
+<ol type="1">
+<li><p><strong>颜色一致性</strong>： <span class="math display">\[\Delta
+C = ||C_{current}(p) - C_{history}(p + mv)|| &lt;
+\tau_c\]</span></p></li>
+<li><p><strong>深度一致性</strong>： <span class="math display">\[\Delta
+D = |D_{current}(p) - D_{history}(p + mv)| &lt; \tau_d\]</span></p></li>
+<li><p><strong>法线一致性</strong>： <span class="math display">\[\Delta
+N = \arccos(N_{current}(p) \cdot N_{history}(p + mv)) &lt;
+\tau_n\]</span></p></li>
+<li><p><strong>速度一致性</strong>：检测运动速度是否合理，避免极端运动导致的错误投影</p></li>
+</ol>
+<p>当任一维度检测失败时，历史信息会被拒绝，避免拖影。</p>
+<h4 id="自适应混合系数">2.2.2 自适应混合系数</h4>
+<p>DLSS 4.0 根据场景复杂度动态调整混合系数 <span
+class="math inline">\(\alpha\)</span>：</p>
+<p><span class="math display">\[\alpha(p) = f_{adaptive}(confidence(p),
+motion\_magnitude(p), scene\_complexity(p))\]</span></p>
+<ul>
+<li>高置信度区域：<span class="math inline">\(\alpha\)</span>
+较小，更多使用历史信息</li>
+<li>低置信度或高速运动区域：<span class="math inline">\(\alpha\)</span>
+接近 1，主要使用当前帧信息</li>
+<li>遮挡/显露区域：<span class="math inline">\(\alpha =
+1\)</span>，完全拒绝历史信息</li>
+</ul>
+<h3 id="改进的神经网络架构">2.3 改进的神经网络架构</h3>
+<h4 id="时空注意力机制">2.3.1 时空注意力机制</h4>
+<p>DLSS 4.0 的神经网络引入了时空注意力（Spatio-Temporal
+Attention）机制，能够：</p>
+<ul>
+<li><strong>空间注意力</strong>：识别哪些区域需要更多历史信息，哪些区域应该拒绝历史信息</li>
+<li><strong>时间注意力</strong>：学习不同历史帧的权重，更重视可靠的历史帧</li>
+</ul>
+<p>注意力权重可以表示为：</p>
+<p><span class="math display">\[w_{attention}(p, t) =
+\text{softmax}(f_{attention}(C(p,t), mv(p), depth(p)))\]</span></p>
+<h4 id="多尺度特征融合">2.3.2 多尺度特征融合</h4>
+<p>DLSS 4.0 使用多尺度特征提取和融合，能够：</p>
+<ul>
+<li>在低分辨率尺度上捕获全局运动模式</li>
+<li>在高分辨率尺度上处理细节和边缘</li>
+<li>通过跨尺度信息传递，提高运动估计的准确性</li>
+</ul>
+<h3 id="遮挡与显露的专门处理">2.4 遮挡与显露的专门处理</h3>
+<h4 id="遮挡检测">2.4.1 遮挡检测</h4>
+<p>DLSS 4.0 通过深度比较和法线变化检测遮挡：</p>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">bool</span> isOccluded = (depth_current &gt; depth_history + threshold) &amp;&amp; </span><br><span class="line">                  (normal_current · normal_history &lt; threshold)</span><br></pre></td></tr></table></figure>
+<p>当检测到遮挡时，立即拒绝历史信息，避免拖影。</p>
+<h4 id="显露区域处理">2.4.2 显露区域处理</h4>
+<p>对于新出现的区域（显露），DLSS 4.0 使用：</p>
+<ul>
+<li><strong>空间上采样</strong>：主要依赖当前帧的空间信息进行上采样</li>
+<li><strong>快速收敛</strong>：在几帧内快速建立新的历史信息，避免长期拖影</li>
+</ul>
+<h3 id="特殊场景优化">2.5 特殊场景优化</h3>
+<h4 id="高速运动物体">2.5.1 高速运动物体</h4>
+<p>对于快速移动的物体，DLSS 4.0 采用：</p>
+<ul>
+<li><strong>运动模糊预测</strong>：预测运动模糊的方向和强度，在重建时考虑模糊效果</li>
+<li><strong>降低历史权重</strong>：快速运动时显著降低历史信息的权重</li>
+</ul>
+<h4 id="半透明与粒子">2.5.2 半透明与粒子</h4>
+<p>半透明物体和粒子系统使用特殊处理：</p>
+<ul>
+<li><strong>体积信息</strong>：利用体积渲染的额外信息（如透明度、散射系数）</li>
+<li><strong>粒子轨迹预测</strong>：对于粒子系统，预测粒子的运动轨迹而非简单平移</li>
+</ul>
+<h4 id="ui-与-hud-分离">2.5.3 UI 与 HUD 分离</h4>
+<p>DLSS 4.0 能够识别并单独处理 UI 元素：</p>
+<ul>
+<li>UI 元素不使用时间累积，避免拖影</li>
+<li>保持 UI 的清晰度和响应性</li>
+</ul>
+<h2 id="三技术实现细节">三、技术实现细节</h2>
+<h3 id="光流加速器的改进">3.1 光流加速器的改进</h3>
+<p>DLSS 4.0 的新一代光流加速器提供：</p>
+<ul>
+<li><strong>更高精度</strong>：支持亚像素级运动估计</li>
+<li><strong>更大搜索范围</strong>：能够处理更大幅度的运动</li>
+<li><strong>实时性能</strong>：硬件加速，不影响帧率</li>
+</ul>
+<h3 id="神经网络训练策略">3.2 神经网络训练策略</h3>
+<p>DLSS 4.0 的训练数据包含大量拖影场景：</p>
+<ul>
+<li><strong>合成数据</strong>：包含各种运动模式、遮挡、光照变化的合成场景</li>
+<li><strong>真实游戏数据</strong>：从实际游戏中采集的拖影案例</li>
+<li><strong>对抗训练</strong>：专门针对拖影问题的对抗样本训练</li>
+</ul>
+<h3 id="实时自适应">3.3 实时自适应</h3>
+<p>DLSS 4.0 在运行时能够：</p>
+<ul>
+<li><strong>场景分析</strong>：实时分析场景的运动模式、复杂度</li>
+<li><strong>参数调整</strong>：根据场景特征动态调整网络参数</li>
+<li><strong>降级策略</strong>：在极端情况下，自动降级到更保守的策略</li>
+</ul>
+<h2 id="四效果评估">四、效果评估</h2>
+<h3 id="拖影减少">4.1 拖影减少</h3>
+<p>相比 DLSS 3.0，DLSS 4.0 在以下场景中显著减少拖影：</p>
+<ul>
+<li><strong>快速相机移动</strong>：拖影减少约 60-80%</li>
+<li><strong>物体快速运动</strong>：拖影减少约 50-70%</li>
+<li><strong>遮挡/显露场景</strong>：拖影减少约 70-90%</li>
+<li><strong>半透明物体</strong>：拖影减少约 40-60%</li>
+</ul>
+<h3 id="画质提升">4.2 画质提升</h3>
+<p>在减少拖影的同时，DLSS 4.0 还提升了：</p>
+<ul>
+<li><strong>细节还原</strong>：在极低分辨率下仍能保持细节</li>
+<li><strong>边缘清晰度</strong>：运动物体的边缘更加清晰</li>
+<li><strong>时间稳定性</strong>：帧间闪烁和抖动显著减少</li>
+</ul>
+<h2 id="五总结">五、总结</h2>
+<p>DLSS 4.0
+通过多源运动信息融合、智能历史拒绝、改进的神经网络架构和特殊场景优化，系统性地解决了拖影问题。这些改进不仅减少了视觉伪影，还提升了整体画质和时间稳定性，使
+DLSS 技术在更广泛的场景下都能提供出色的体验。</p>
+<h3 id="关键技术要点">关键技术要点</h3>
+<ol type="1">
+<li><strong>多源验证</strong>：不依赖单一运动信息源，通过交叉验证提高准确性</li>
+<li><strong>自适应处理</strong>：根据场景特征动态调整策略</li>
+<li><strong>专门优化</strong>：针对拖影的常见场景进行专门优化</li>
+<li><strong>硬件协同</strong>：充分利用新一代光流加速器等硬件特性</li>
+</ol>
+<p>随着 AI 技术的持续发展，未来 DLSS
+有望进一步减少甚至消除拖影问题，实现接近原生分辨率的画质表现。</p>
+<hr />
+<blockquote>
+<p><strong>参考资源</strong>： - <a
+target="_blank" rel="noopener" href="https://www.nvidia.com/en-us/geforce/technologies/dlss/">NVIDIA
+DLSS 技术文档</a> - <a
+target="_blank" rel="noopener" href="https://www.eurogamer.net/digitalfoundry">Digital Foundry DLSS
+深度分析</a> - Temporal Upsampling 相关学术论文</p>
+</blockquote>
+
+      </div>
+      
+      
+      
+    </div>
+
+    
+    
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">粤ICP备17055045号 </a>
+  </div>
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Locky Hu</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>Word count total: </span>
+    <span title="Word count total">65k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span>Reading time total &asymp;</span>
+    <span title="Reading time total">59 mins.</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+<div>
+<span id="timeDate">载入天数...</span><span id="times">载入时分秒...</span>
+<script>
+    var now = new Date(); 
+    function createtime() { 
+        var grt= new Date("12/24/2021 19:43:01");//在此处修改你的建站时间
+        now.setTime(now.getTime()+250); 
+        days = (now - grt ) / 1000 / 60 / 60 / 24; dnum = Math.floor(days); 
+        hours = (now - grt ) / 1000 / 60 / 60 - (24 * dnum); hnum = Math.floor(hours); 
+        if(String(hnum).length ==1 ){hnum = "0" + hnum;} minutes = (now - grt ) / 1000 /60 - (24 * 60 * dnum) - (60 * hnum); 
+        mnum = Math.floor(minutes); if(String(mnum).length ==1 ){mnum = "0" + mnum;} 
+        seconds = (now - grt ) / 1000 - (24 * 60 * 60 * dnum) - (60 * 60 * hnum) - (60 * mnum); 
+        snum = Math.round(seconds); if(String(snum).length ==1 ){snum = "0" + snum;} 
+        document.getElementById("timeDate").innerHTML = "已运行 "+dnum+" 天 "; 
+        document.getElementById("times").innerHTML = hnum + " 小时 " + mnum + " 分 " + snum + " 秒"; 
+    } 
+setInterval("createtime()",250);
+</script>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+    </div>
+  </footer>
+
+  
+  <div class="reading-progress-bar"></div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/next-theme-pjax/0.6.0/pjax.min.js" integrity="sha256-vxLn1tSKWD4dqbMRyv940UYw4sXgMtYcK6reefzZrao=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/next-boot.js"></script><script src="/js/pjax.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+  <script src="/js/third-party/pace.js"></script>
+
+
+  
+  <script data-pjax async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"per_page":true,"cdn":"//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML","mhchem":false,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

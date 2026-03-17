@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#fff"><meta name="generator" content="Hexo 5.4.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/computer-chip_gray.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/computer-chip_gray.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/computer-chip_gray.svg">
+  <link rel="mask-icon" href="/images/computer-chip_gray.svg" color="#fff">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha256-yIDrPSXHZdOZhAqiBP7CKzIwMQmRCJ8UeB8Jo17YC4o=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/themes/blue/pace-theme-minimal.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/pace.min.js" integrity="sha256-gqd7YTjg/BtfqWSwsJOvndl0Bxc8gFImLEkXQT8+qj0=" crossorigin="anonymous"></script>
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"huziliang.com","root":"/","images":"/images","scheme":"Pisces","darkmode":false,"version":"8.19.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":true,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":true,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="1. 为什么需要神经延迟渲染？ 1.1 传统延迟渲染的瓶颈分析 延迟渲染的核心优势是将几何处理与光照计算解耦，但这也带来了独特的性能问题。 标准延迟渲染管线： 1234Geometry Pass → G-Buffer → Lighting Pass → Post Processing    │                           │    ↓">
+<meta property="og:type" content="website">
+<meta property="og:title" content="深度解析：神经延迟渲染——从原理到落地">
+<meta property="og:url" content="https://huziliang.com/neural-deferred-rendering.html">
+<meta property="og:site_name" content="Locky Hu">
+<meta property="og:description" content="1. 为什么需要神经延迟渲染？ 1.1 传统延迟渲染的瓶颈分析 延迟渲染的核心优势是将几何处理与光照计算解耦，但这也带来了独特的性能问题。 标准延迟渲染管线： 1234Geometry Pass → G-Buffer → Lighting Pass → Post Processing    │                           │    ↓">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2026-03-01T05:43:23.000Z">
+<meta property="article:modified_time" content="2026-03-16T02:16:19.213Z">
+<meta property="article:author" content="Locky Hu">
+<meta property="article:tag" content="neural rendering">
+<meta property="article:tag" content="deferred shading">
+<meta property="article:tag" content="mobile graphics">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://huziliang.com/neural-deferred-rendering">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":false,"lang":"en","comments":true,"permalink":"https://huziliang.com/neural-deferred-rendering.html","path":"neural-deferred-rendering.html","title":"深度解析：神经延迟渲染——从原理到落地"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>深度解析：神经延迟渲染——从原理到落地 | Locky Hu
+</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title"></p>
+      <i class="logo-line"></i>
+    </a>
+    <a href="/" class="" rel="start">
+      <p class="site-subtitle" itemprop="description">Newbie Dad, Software Engineer</p>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E7%A5%9E%E7%BB%8F%E5%BB%B6%E8%BF%9F%E6%B8%B2%E6%9F%93"><span class="nav-text">1. 为什么需要神经延迟渲染？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BC%A0%E7%BB%9F%E5%BB%B6%E8%BF%9F%E6%B8%B2%E6%9F%93%E7%9A%84%E7%93%B6%E9%A2%88%E5%88%86%E6%9E%90"><span class="nav-text">1.1 传统延迟渲染的瓶颈分析</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A5%9E%E7%BB%8F%E5%BB%B6%E8%BF%9F%E6%B8%B2%E6%9F%93%E7%9A%84%E6%A0%B8%E5%BF%83insight"><span class="nav-text">1.2 神经延迟渲染的核心insight</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%89%E7%A7%8D%E6%8A%80%E6%9C%AF%E8%B7%AF%E7%BA%BF"><span class="nav-text">1.3 三种技术路线</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E9%94%AE%E6%8A%80%E6%9C%AF%E4%B8%8E%E8%AE%BA%E6%96%87%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90"><span class="nav-text">2. 关键技术与论文深度解析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#neural-deferred-shading-siggraph-2020"><span class="nav-text">2.1 Neural Deferred
+Shading (SIGGRAPH 2020)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#neural-radiance-caching-nrc-siggraph-2021"><span class="nav-text">2.2 Neural Radiance
+Caching (NRC, SIGGRAPH 2021)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#g-buffer%E8%B6%85%E5%88%86%E8%BE%A8%E7%8E%87%E6%8A%80%E6%9C%AF"><span class="nav-text">2.3 G-Buffer超分辨率技术</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A5%9E%E7%BB%8F%E9%98%B4%E5%BD%B1%E6%8A%80%E6%9C%AF"><span class="nav-text">2.4 神经阴影技术</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B7%A5%E7%A8%8B%E8%90%BD%E5%9C%B0%E6%8C%87%E5%8D%97"><span class="nav-text">3. 工程落地指南</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1"><span class="nav-text">3.1 系统架构设计</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BD%91%E7%BB%9C%E8%AE%BE%E8%AE%A1%E5%AE%9E%E8%B7%B5"><span class="nav-text">3.2 网络设计实践</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%AD%E7%BB%83%E7%AD%96%E7%95%A5"><span class="nav-text">3.3 训练策略</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A7%BB%E5%8A%A8%E7%AB%AF%E9%83%A8%E7%BD%B2%E4%BC%98%E5%8C%96"><span class="nav-text">3.4 移动端部署优化</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%A5%E5%9D%91%E6%8C%87%E5%8D%97"><span class="nav-text">4. 入坑指南</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AD%A6%E4%B9%A0%E8%B7%AF%E5%BE%84%E8%A7%84%E5%88%92"><span class="nav-text">4.1 学习路径规划</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BF%85%E5%A4%87%E5%B7%A5%E5%85%B7%E4%B8%8E%E8%B5%84%E6%BA%90"><span class="nav-text">4.2 必备工具与资源</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%B8%E8%A7%81%E5%9D%91%E4%B8%8E%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="nav-text">4.3 常见坑与解决方案</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A0%94%E7%A9%B6%E5%89%8D%E6%B2%BF%E4%B8%8E%E6%9C%AA%E6%9D%A5%E6%96%B9%E5%90%91"><span class="nav-text">4.4 研究前沿与未来方向</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-text">5. 总结</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <style>
+    .pixel-slime {
+      height: 100px;
+      width: 105px;
+      position: relative;
+      display: inline-block;
+      margin: 20px;
+      &::before {
+        content: "";
+        position: absolute;
+        background: 0 0;
+        width: 5px;
+        height: 5px;
+        top: -5px;
+        left: -5px;
+        box-shadow: 65px 5px rgb(91, 155, 213), 55px 10px rgb(91, 155, 213), 60px 10px rgb(91, 155, 213), 70px 10px rgb(91, 155, 213), 40px 15px rgb(91, 155, 213), 45px 15px rgb(91, 155, 213), 50px 15px rgb(91, 155, 213), 75px 15px rgb(91, 155, 213), 30px 20px rgb(91, 155, 213), 35px 20px rgb(91, 155, 213), 80px 20px rgb(91, 155, 213), 20px 25px rgb(91, 155, 213), 25px 25px rgb(91, 155, 213), 85px 25px rgb(91, 155, 213), 90px 25px rgb(91, 155, 213), 15px 30px rgb(91, 155, 213), 95px 30px rgb(91, 155, 213), 10px 35px rgb(91, 155, 213), 100px 35px rgb(91, 155, 213), 10px 40px rgb(91, 155, 213), 100px 40px rgb(91, 155, 213), 5px 45px rgb(91, 155, 213), 105px 45px rgb(91, 155, 213), 5px 50px rgb(91, 155, 213), 105px 50px rgb(91, 155, 213), 5px 55px rgb(91, 155, 213), 105px 55px rgb(91, 155, 213), 5px 60px rgb(91, 155, 213), 105px 60px rgb(91, 155, 213), 5px 65px rgb(91, 155, 213), 105px 65px rgb(91, 155, 213), 5px 70px rgb(91, 155, 213), 105px 70px rgb(91, 155, 213), 10px 75px rgb(91, 155, 213), 100px 75px rgb(91, 155, 213), 10px 80px rgb(91, 155, 213), 100px 80px rgb(91, 155, 213), 15px 85px rgb(91, 155, 213), 95px 85px rgb(91, 155, 213), 20px 90px rgb(91, 155, 213), 25px 90px rgb(91, 155, 213), 85px 90px rgb(91, 155, 213), 90px 90px rgb(91, 155, 213), 30px 95px rgb(91, 155, 213), 35px 95px rgb(91, 155, 213), 75px 95px rgb(91, 155, 213), 80px 95px rgb(91, 155, 213), 40px 100px rgb(91, 155, 213), 45px 100px rgb(91, 155, 213), 50px 100px rgb(91, 155, 213), 55px 100px rgb(91, 155, 213), 60px 100px rgb(91, 155, 213), 65px 100px rgb(91, 155, 213), 70px 100px rgb(91, 155, 213), 65px 10px rgb(221, 235, 247), 55px 15px rgb(221, 235, 247), 60px 15px rgb(221, 235, 247), 70px 15px rgb(221, 235, 247), 50px 20px rgb(221, 235, 247), 75px 20px rgb(221, 235, 247), 80px 25px rgb(221, 235, 247), 85px 30px rgb(221, 235, 247), 90px 30px rgb(221, 235, 247), 15px 35px rgb(221, 235, 247), 100px 55px rgb(221, 235, 247), 100px 60px rgb(221, 235, 247), 85px 65px rgb(221, 235, 247), 15px 60px rgb(221, 235, 247), 40px 20px rgb(242, 247, 252), 45px 20px rgb(242, 247, 252), 30px 25px rgb(242, 247, 252), 35px 25px rgb(242, 247, 252), 20px 30px rgb(242, 247, 252), 25px 30px rgb(242, 247, 252), 95px 35px rgb(242, 247, 252), 95px 40px rgb(242, 247, 252), 100px 45px rgb(242, 247, 252), 100px 50px rgb(242, 247, 252), 25px 50px rgb(242, 247, 252), 20px 60px rgb(242, 247, 252), 70px 55px rgb(242, 247, 252), 80px 65px rgb(242, 247, 252), 65px 15px rgb(189, 215, 238), 55px 20px rgb(189, 215, 238), 60px 20px rgb(189, 215, 238), 65px 20px rgb(189, 215, 238), 70px 20px rgb(189, 215, 238), 40px 25px rgb(189, 215, 238), 45px 25px rgb(189, 215, 238), 50px 25px rgb(189, 215, 238), 55px 25px rgb(189, 215, 238), 60px 25px rgb(189, 215, 238), 65px 25px rgb(189, 215, 238), 70px 25px rgb(189, 215, 238), 75px 25px rgb(189, 215, 238), 30px 30px rgb(189, 215, 238), 35px 30px rgb(189, 215, 238), 40px 30px rgb(189, 215, 238), 45px 30px rgb(189, 215, 238), 50px 30px rgb(189, 215, 238), 55px 30px rgb(189, 215, 238), 60px 30px rgb(189, 215, 238), 65px 30px rgb(189, 215, 238), 70px 30px rgb(189, 215, 238), 75px 30px rgb(189, 215, 238), 80px 30px rgb(189, 215, 238), 20px 35px rgb(189, 215, 238), 25px 35px rgb(189, 215, 238), 30px 35px rgb(189, 215, 238), 35px 35px rgb(189, 215, 238), 40px 35px rgb(189, 215, 238), 45px 35px rgb(189, 215, 238), 50px 35px rgb(189, 215, 238), 55px 35px rgb(189, 215, 238), 60px 35px rgb(189, 215, 238), 65px 35px rgb(189, 215, 238), 70px 35px rgb(189, 215, 238), 75px 35px rgb(189, 215, 238), 80px 35px rgb(189, 215, 238), 85px 35px rgb(189, 215, 238), 90px 35px rgb(189, 215, 238), 15px 40px rgb(189, 215, 238), 20px 40px rgb(189, 215, 238), 25px 40px rgb(189, 215, 238), 30px 40px rgb(189, 215, 238), 35px 40px rgb(189, 215, 238), 40px 40px rgb(189, 215, 238), 45px 40px rgb(189, 215, 238), 50px 40px rgb(189, 215, 238), 55px 40px rgb(189, 215, 238), 60px 40px rgb(189, 215, 238), 65px 40px rgb(189, 215, 238), 70px 40px rgb(189, 215, 238), 75px 40px rgb(189, 215, 238), 80px 40px rgb(189, 215, 238), 85px 40px rgb(189, 215, 238), 90px 40px rgb(189, 215, 238), 10px 45px rgb(189, 215, 238), 15px 45px rgb(189, 215, 238), 20px 45px rgb(189, 215, 238), 25px 45px rgb(189, 215, 238), 30px 45px rgb(189, 215, 238), 90px 45px rgb(189, 215, 238), 95px 45px rgb(189, 215, 238), 10px 50px rgb(189, 215, 238), 15px 50px rgb(189, 215, 238), 20px 50px rgb(189, 215, 238), 95px 50px rgb(189, 215, 238), 10px 55px rgb(189, 215, 238), 15px 55px rgb(189, 215, 238), 10px 60px rgb(189, 215, 238), 10px 65px rgb(189, 215, 238), 10px 70px rgb(189, 215, 238), 15px 75px rgb(189, 215, 238), 15px 80px rgb(189, 215, 238), 20px 85px rgb(189, 215, 238), 25px 85px rgb(189, 215, 238), 30px 90px rgb(189, 215, 238), 35px 90px rgb(189, 215, 238), 100px 65px rgb(189, 215, 238), 100px 70px rgb(189, 215, 238), 95px 75px rgb(189, 215, 238), 95px 80px rgb(189, 215, 238), 85px 85px rgb(189, 215, 238), 90px 85px rgb(189, 215, 238), 75px 90px rgb(189, 215, 238), 80px 90px rgb(189, 215, 238), 40px 95px rgb(189, 215, 238), 45px 95px rgb(189, 215, 238), 50px 95px rgb(189, 215, 238), 55px 95px rgb(189, 215, 238), 60px 95px rgb(189, 215, 238), 65px 95px rgb(189, 215, 238), 70px 95px rgb(189, 215, 238), 20px 55px rgb(180, 198, 231), 35px 45px rgb(180, 198, 231), 40px 45px rgb(180, 198, 231), 45px 45px rgb(180, 198, 231), 50px 45px rgb(180, 198, 231), 55px 45px rgb(180, 198, 231), 60px 45px rgb(180, 198, 231), 65px 45px rgb(180, 198, 231), 70px 45px rgb(180, 198, 231), 75px 45px rgb(180, 198, 231), 80px 45px rgb(180, 198, 231), 85px 45px rgb(180, 198, 231), 35px 50px rgb(180, 198, 231), 40px 50px rgb(180, 198, 231), 45px 50px rgb(180, 198, 231), 50px 50px rgb(180, 198, 231), 55px 50px rgb(180, 198, 231), 60px 50px rgb(180, 198, 231), 65px 50px rgb(180, 198, 231), 70px 50px rgb(180, 198, 231), 75px 50px rgb(180, 198, 231), 80px 50px rgb(180, 198, 231), 85px 50px rgb(180, 198, 231), 90px 50px rgb(180, 198, 231), 35px 55px rgb(180, 198, 231), 40px 55px rgb(180, 198, 231), 45px 55px rgb(180, 198, 231), 50px 55px rgb(180, 198, 231), 55px 55px rgb(180, 198, 231), 60px 55px rgb(180, 198, 231), 65px 55px rgb(180, 198, 231), 80px 55px rgb(180, 198, 231), 85px 55px rgb(180, 198, 231), 90px 55px rgb(180, 198, 231), 95px 55px rgb(180, 198, 231), 25px 60px rgb(180, 198, 231), 30px 60px rgb(180, 198, 231), 35px 60px rgb(180, 198, 231), 40px 60px rgb(180, 198, 231), 45px 60px rgb(180, 198, 231), 50px 60px rgb(180, 198, 231), 55px 60px rgb(180, 198, 231), 60px 60px rgb(180, 198, 231), 65px 60px rgb(180, 198, 231), 80px 60px rgb(180, 198, 231), 85px 60px rgb(180, 198, 231), 90px 60px rgb(180, 198, 231), 95px 60px rgb(180, 198, 231), 15px 65px rgb(180, 198, 231), 20px 65px rgb(180, 198, 231), 25px 65px rgb(180, 198, 231), 30px 65px rgb(180, 198, 231), 90px 65px rgb(180, 198, 231), 95px 65px rgb(180, 198, 231), 15px 70px rgb(180, 198, 231), 20px 70px rgb(180, 198, 231), 90px 70px rgb(180, 198, 231), 95px 70px rgb(180, 198, 231), 35px 65px rgb(142, 169, 219), 40px 65px rgb(142, 169, 219), 45px 65px rgb(142, 169, 219), 50px 65px rgb(142, 169, 219), 55px 65px rgb(142, 169, 219), 60px 65px rgb(142, 169, 219), 65px 65px rgb(142, 169, 219), 70px 65px rgb(142, 169, 219), 75px 65px rgb(142, 169, 219), 35px 70px rgb(142, 169, 219), 40px 70px rgb(142, 169, 219), 45px 70px rgb(142, 169, 219), 50px 70px rgb(142, 169, 219), 55px 70px rgb(142, 169, 219), 60px 70px rgb(142, 169, 219), 65px 70px rgb(142, 169, 219), 70px 70px rgb(142, 169, 219), 75px 70px rgb(142, 169, 219), 80px 70px rgb(142, 169, 219), 85px 70px rgb(142, 169, 219), 35px 75px rgb(142, 169, 219), 40px 75px rgb(142, 169, 219), 25px 70px rgb(142, 169, 219), 20px 75px rgb(142, 169, 219), 25px 75px rgb(142, 169, 219), 20px 80px rgb(142, 169, 219), 25px 80px rgb(142, 169, 219), 30px 80px rgb(142, 169, 219), 50px 75px rgb(142, 169, 219), 55px 75px rgb(142, 169, 219), 65px 75px rgb(142, 169, 219), 70px 75px rgb(142, 169, 219), 75px 75px rgb(142, 169, 219), 80px 75px rgb(142, 169, 219), 85px 75px rgb(142, 169, 219), 90px 75px rgb(142, 169, 219), 45px 80px rgb(142, 169, 219), 60px 80px rgb(142, 169, 219), 65px 80px rgb(142, 169, 219), 70px 80px rgb(142, 169, 219), 75px 80px rgb(142, 169, 219), 80px 80px rgb(142, 169, 219), 85px 80px rgb(142, 169, 219), 90px 80px rgb(142, 169, 219), 30px 85px rgb(142, 169, 219), 35px 85px rgb(142, 169, 219), 40px 85px rgb(142, 169, 219), 45px 85px rgb(142, 169, 219), 50px 85px rgb(142, 169, 219), 55px 85px rgb(142, 169, 219), 60px 85px rgb(142, 169, 219), 65px 85px rgb(142, 169, 219), 70px 85px rgb(142, 169, 219), 75px 85px rgb(142, 169, 219), 80px 85px rgb(142, 169, 219), 40px 90px rgb(142, 169, 219), 45px 90px rgb(142, 169, 219), 50px 90px rgb(142, 169, 219), 55px 90px rgb(142, 169, 219), 60px 90px rgb(142, 169, 219), 65px 90px rgb(142, 169, 219), 70px 90px rgb(142, 169, 219), 30px 70px rgb(248, 203, 173), 30px 75px rgb(248, 203, 173), 35px 80px rgb(248, 203, 173), 40px 80px rgb(248, 203, 173), 45px 75px rgb(248, 203, 173), 50px 80px rgb(248, 203, 173), 55px 80px rgb(248, 203, 173), 60px 75px rgb(248, 203, 173), 30px 50px rgb(64, 64, 64), 25px 55px rgb(64, 64, 64), 30px 55px rgb(64, 64, 64), 75px 55px rgb(64, 64, 64), 70px 60px rgb(64, 64, 64), 75px 60px rgb(64, 64, 64);
+      }
+    }
+  </style>
+
+
+<div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <a href="/" class="" rel="start" style="border-bottom: None !important">
+      <i class="pixel-slime"></i>
+    </a>
+    <!-- <img class="site-author-image" itemprop="image" alt="Locky Hu" src="/images/computer-chip_gray.svg"> -->
+  <a href="/" class="" rel="start"><p class="site-author-name" itemprop="name">Locky Hu</p></a>
+  <div class="site-description" itemprop="description">Just for record</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+        <div class="back-to-top animated" role="button" aria-label="Back to top">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner page posts-expand">
+
+
+    
+    
+    
+    <div class="post-block" lang="en"><header class="post-header">
+
+<h1 class="post-title" itemprop="name headline">深度解析：神经延迟渲染——从原理到落地
+</h1>
+
+<div class="post-meta-container">
+</div>
+
+</header>
+
+      
+      
+      <div class="post-body">
+          <meta name="referrer" content="no-referrer" />
+<h2 id="为什么需要神经延迟渲染">1. 为什么需要神经延迟渲染？</h2>
+<h3 id="传统延迟渲染的瓶颈分析">1.1 传统延迟渲染的瓶颈分析</h3>
+<p>延迟渲染的核心优势是将几何处理与光照计算解耦，但这也带来了独特的性能问题。</p>
+<p><strong>标准延迟渲染管线：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Geometry Pass → G-Buffer → Lighting Pass → Post Processing</span><br><span class="line">    │                           │</span><br><span class="line">    ↓                           ↓</span><br><span class="line">  带宽瓶颈                   计算瓶颈</span><br></pre></td></tr></table></figure>
+<p><strong>具体瓶颈拆解：</strong></p>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>瓶颈类型</th>
+<th>移动端影响</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>G-Buffer写入</td>
+<td>带宽</td>
+<td>4-8个RenderTarget，带宽压力巨大</td>
+</tr>
+<tr>
+<td>G-Buffer读取</td>
+<td>带宽</td>
+<td>每个光源读取完整G-Buffer</td>
+</tr>
+<tr>
+<td>光照计算</td>
+<td>算力</td>
+<td>PBR着色涉及复杂数学运算</td>
+</tr>
+<tr>
+<td>阴影采样</td>
+<td>带宽+算力</td>
+<td>每光源多次shadow map采样</td>
+</tr>
+<tr>
+<td>环境光/IBL</td>
+<td>带宽</td>
+<td>预滤波环境贴图多次采样</td>
+</tr>
+</tbody>
+</table>
+<p><strong>移动端的特殊约束：</strong></p>
+<ol type="1">
+<li><strong>带宽受限</strong>：移动GPU带宽通常30-50
+GB/s，远低于桌面端的300-500 GB/s</li>
+<li><strong>Tile Memory有限</strong>：On-chip
+memory通常只有几MB，难以缓存完整G-Buffer</li>
+<li><strong>功耗敏感</strong>：带宽和算力都直接影响发热和续航</li>
+<li><strong>精度权衡</strong>：FP16算力是FP32的2倍，但可能损失质量</li>
+</ol>
+<h3 id="神经延迟渲染的核心insight">1.2 神经延迟渲染的核心insight</h3>
+<p>传统方法追求"物理正确"，每个像素都要精确计算光照。但神经渲染的核心insight是：</p>
+<blockquote>
+<p><strong>玩家无法区分"物理正确"和"感知正确"的渲染结果，只要最终画面看起来真实。</strong></p>
+</blockquote>
+<p>这意味着：</p>
+<ul>
+<li>光照积分可以被神经网络近似</li>
+<li>低分辨率的输入可以预测出高分辨率的结果</li>
+<li>历史帧信息可以辅助当前帧的质量</li>
+</ul>
+<p><strong>数学形式化：</strong></p>
+<p>传统光照计算： <span class="math display">\[L_o(p, \omega_o) =
+\int_{\Omega} f_r(p, \omega_i, \omega_o) L_i(p, \omega_i) (n \cdot
+\omega_i) d\omega_i\]</span></p>
+<p>神经近似： <span class="math display">\[L_o(p, \omega_o) \approx
+\text{NN}(\mathbf{g}(p), \mathbf{l})\]</span></p>
+<p>其中 <span class="math inline">\(\mathbf{g}(p)\)</span>
+是G-Buffer特征，<span class="math inline">\(\mathbf{l}\)</span>
+是光源信息。</p>
+<h3 id="三种技术路线">1.3 三种技术路线</h3>
+<p><strong>路线A：G-Buffer超分辨率</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">低分辨率渲染 → 神经网络上采样 → 高分辨率G-Buffer → 标准光照</span><br><span class="line">     ↑                    ↑</span><br><span class="line">   省带宽              补偿细节</span><br></pre></td></tr></table></figure>
+<p>适用场景：几何复杂度高、带宽受限</p>
+<p><strong>路线B：神经光照缓存</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">标准G-Buffer → MLP查表 → 神经网络输出</span><br><span class="line">                    ↑</span><br><span class="line">              替代复杂shader</span><br></pre></td></tr></table></figure>
+<p>适用场景：光源数量多、PBR材质复杂</p>
+<p><strong>路线C：混合神经延迟管线</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">低分辨率几何 → 神经G-Buffer超分 → 神经光照查询 → 时域稳定化</span><br></pre></td></tr></table></figure>
+<p>适用场景：全面优化，需要较大工程投入</p>
+<hr />
+<h2 id="关键技术与论文深度解析">2. 关键技术与论文深度解析</h2>
+<h3 id="neural-deferred-shading-siggraph-2020">2.1 Neural Deferred
+Shading (SIGGRAPH 2020)</h3>
+<p><strong>核心贡献：</strong> 证明了MLP可以近似任意复杂的着色模型</p>
+<p><strong>技术细节：</strong></p>
+<p>网络输入特征： <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">- 世界空间位置 P (3D)</span><br><span class="line">- 几何法线 N (3D)  </span><br><span class="line">- 切线 T (3D)</span><br><span class="line">- 材质参数: albedo, roughness, metallic</span><br><span class="line">- 光源信息: position, direction, intensity, color</span><br><span class="line">- 视线方向 V (3D)</span><br></pre></td></tr></table></figure></p>
+<p>网络架构： <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Input (20+维) → FC(128) → ReLU → FC(128) → ReLU → FC(64) → ReLU → FC(3) → Output (RGB)</span><br></pre></td></tr></table></figure></p>
+<p><strong>关键发现：</strong></p>
+<ol type="1">
+<li><strong>隐式表示学习能力</strong>：网络学习了BRDF的隐式表示，不需要显式的PBR公式</li>
+<li><strong>光源处理</strong>：多光源可以单独推理后叠加，或作为条件输入</li>
+<li><strong>材质泛化</strong>：单一网络可以处理多种材质，但材质差异大时需要条件输入</li>
+</ol>
+<p><strong>局限性：</strong></p>
+<ul>
+<li>材质多样性挑战：训练集未见过的材质表现差</li>
+<li>网络大小与质量的trade-off：小网络有明显误差</li>
+<li>时域稳定性：单帧推理，不处理时间抖动</li>
+</ul>
+<p><strong>移动端适配思考：</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 材质条件化：将材质ID作为one-hot编码输入</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">MaterialCondition</span> &#123;</span><br><span class="line">    <span class="type">int</span> material_type;  <span class="comment">// 0: dielectric, 1: metal, 2: subsurface</span></span><br><span class="line">    <span class="type">float</span> roughness;</span><br><span class="line">    <span class="type">float</span> metallic;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 或：材质嵌入</span></span><br><span class="line"><span class="comment">// 训练时学习材质embedding，推理时查表</span></span><br></pre></td></tr></table></figure>
+<h3 id="neural-radiance-caching-nrc-siggraph-2021">2.2 Neural Radiance
+Caching (NRC, SIGGRAPH 2021)</h3>
+<p><strong>核心贡献：</strong> 实时学习间接光照的空间分布</p>
+<p><strong>传统全局光照的问题：</strong></p>
+<p>路径追踪的间接光照成本随反弹次数指数增长： <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">直接光照: 1 sample</span><br><span class="line">1次反弹: +N samples</span><br><span class="line">2次反弹: +N² samples  </span><br><span class="line">3次反弹: +N³ samples</span><br></pre></td></tr></table></figure></p>
+<p><strong>NRC的解决方案：</strong></p>
+<p>使用神经网络缓存间接光照的辐射度场：</p>
+<p><span class="math display">\[L_{indirect}(x, \omega) \approx
+\text{Cache}(x, \omega)\]</span></p>
+<p><strong>技术架构：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">训练阶段：</span><br><span class="line">路径追踪采样的间接光照 → 存入训练缓冲区 → 在线训练MLP</span><br><span class="line"></span><br><span class="line">推理阶段：</span><br><span class="line">着色点位置 + 方向 → MLP查询 → 间接光照估计</span><br></pre></td></tr></table></figure>
+<p><strong>关键技术创新：</strong></p>
+<ol type="1">
+<li><strong>在线训练</strong>：每帧更新网络，适应场景变化</li>
+<li><strong>重要性采样</strong>：优先训练高贡献区域</li>
+<li><strong>参数化</strong>：使用球谐函数或小网络避免方向参数化爆炸</li>
+</ol>
+<p><strong>实现细节：</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 伪代码：NRC集成</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">NeuralRadianceCache</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">train</span><span class="params">(<span class="type">const</span> std::vector&lt;RadianceSample&gt;&amp; samples)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 从path tracer收集的间接光照样本</span></span><br><span class="line">        <span class="comment">// samples[i] = &#123;position, direction, radiance&#125;</span></span><br><span class="line">        network_.<span class="built_in">train_batch</span>(samples, learning_rate_);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function">Vec3f <span class="title">query</span><span class="params">(<span class="type">const</span> Vec3f&amp; pos, <span class="type">const</span> Vec3f&amp; dir)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 特征编码</span></span><br><span class="line">        <span class="keyword">auto</span> features = <span class="built_in">encode_position</span>(pos) + <span class="built_in">encode_direction</span>(dir);</span><br><span class="line">        <span class="comment">// 网络推理</span></span><br><span class="line">        <span class="keyword">return</span> network_.forward(features);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    MLP network_;  <span class="comment">// 通常4-6层，每层128-256神经元</span></span><br><span class="line">    <span class="type">float</span> learning_rate_ = <span class="number">0.01f</span>;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p><strong>移动端适配：</strong></p>
+<ol type="1">
+<li><strong>离线预训练 +
+在线微调</strong>：静态场景离线训练，动态物体在线更新</li>
+<li><strong>网络量化</strong>：INT8推理，质量损失控制在可接受范围</li>
+<li><strong>空间分辨率</strong>：降低缓存查询密度，空间插值补全</li>
+</ol>
+<h3 id="g-buffer超分辨率技术">2.3 G-Buffer超分辨率技术</h3>
+<p><strong>问题定义：</strong></p>
+<p>给定低分辨率G-Buffer <span
+class="math inline">\(\mathbf{G}_{low}\)</span>，预测高分辨率G-Buffer
+<span class="math inline">\(\mathbf{G}_{high}\)</span>：</p>
+<p><span class="math display">\[\mathbf{G}_{high} =
+f_\theta(\mathbf{G}_{low})\]</span></p>
+<p><strong>关键挑战：</strong></p>
+<ol type="1">
+<li><strong>几何边缘</strong>：深度不连续处的处理</li>
+<li><strong>法线一致性</strong>：上采样后法线需要归一化</li>
+<li><strong>材质边界</strong>：不同材质区域不能模糊混合</li>
+</ol>
+<p><strong>技术方案：</strong></p>
+<p><strong>方案A：基于边缘感知的上采样</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 边缘感知的双边上采样</span></span><br><span class="line"><span class="function">Vec3f <span class="title">bilateralUpsample</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">const</span> Texture&amp; low_res, </span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">const</span> Vec2f&amp; uv,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">const</span> Vec3f&amp; high_res_normal,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">const</span> Vec3f&amp; high_res_depth)</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// 找到低分辨率中对应的texel邻域</span></span><br><span class="line">    Vec2f low_uv = uv * low_res.<span class="built_in">size</span>();</span><br><span class="line">    <span class="type">int</span> x = <span class="built_in">floor</span>(low_uv.x);</span><br><span class="line">    <span class="type">int</span> y = <span class="built_in">floor</span>(low_uv.y);</span><br><span class="line">    </span><br><span class="line">    Vec3f result = <span class="built_in">Vec3f</span>(<span class="number">0</span>);</span><br><span class="line">    <span class="type">float</span> weight_sum = <span class="number">0</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> dy = <span class="number">-1</span>; dy &lt;= <span class="number">1</span>; dy++) &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> dx = <span class="number">-1</span>; dx &lt;= <span class="number">1</span>; dx++) &#123;</span><br><span class="line">            Vec3f low_normal = low_res.<span class="built_in">normal</span>(x+dx, y+dy);</span><br><span class="line">            <span class="type">float</span> low_depth = low_res.<span class="built_in">depth</span>(x+dx, y+dy);</span><br><span class="line">            </span><br><span class="line">            <span class="comment">// 法线相似度权重</span></span><br><span class="line">            <span class="type">float</span> w_normal = <span class="built_in">pow</span>(<span class="built_in">max</span>(<span class="number">0</span>, <span class="built_in">dot</span>(low_normal, high_res_normal)), <span class="number">32</span>);</span><br><span class="line">            <span class="comment">// 深度相似度权重  </span></span><br><span class="line">            <span class="type">float</span> w_depth = <span class="built_in">exp</span>(-<span class="built_in">abs</span>(low_depth - high_res_depth) * <span class="number">100</span>);</span><br><span class="line">            </span><br><span class="line">            <span class="type">float</span> weight = w_normal * w_depth;</span><br><span class="line">            result += low_res.<span class="built_in">albedo</span>(x+dx, y+dy) * weight;</span><br><span class="line">            weight_sum += weight;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> result / weight_sum;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>方案B：神经网络引导上采样</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">低分辨率几何 + 高分辨率深度/法线(来自depth pre-pass) → 神经网络 → 高分辨率G-Buffer</span><br></pre></td></tr></table></figure>
+<h3 id="神经阴影技术">2.4 神经阴影技术</h3>
+<p><strong>传统阴影的成本：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">每个光源每个像素:</span><br><span class="line">- Shadow Map采样: N次(PCF) 或 1次(PCSS)</span><br><span class="line">- 每次采样: 1次纹理读取</span><br><span class="line"></span><br><span class="line">假设: 100万像素 × 3个光源 × 4次PCF = 12M次纹理采样</span><br></pre></td></tr></table></figure>
+<p><strong>神经阴影的思路：</strong></p>
+<p>从可见性buffer预测阴影：</p>
+<p><span class="math display">\[\text{Shadow}(p) =
+\text{NN}(\mathbf{g}(p), \text{LightInfo})\]</span></p>
+<p>其中 <span class="math inline">\(\mathbf{g}(p)\)</span>
+包含深度、法线等几何特征。</p>
+<p><strong>实现方案：</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 神经阴影推理</span></span><br><span class="line"><span class="function"><span class="type">float</span> <span class="title">neuralShadow</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">const</span> Vec3f&amp; world_pos,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">const</span> Vec3f&amp; normal,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="type">const</span> Light&amp; light)</span> </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="comment">// 构建网络输入</span></span><br><span class="line">    std::vector&lt;<span class="type">float</span>&gt; features;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 位置编码 (类似NeRF的positional encoding)</span></span><br><span class="line">    features += <span class="built_in">positionalEncoding</span>(world_pos, <span class="number">10</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 法线编码</span></span><br><span class="line">    features += &#123;normal.x, normal.y, normal.z&#125;;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 光源信息</span></span><br><span class="line">    Vec3f light_dir = <span class="built_in">normalize</span>(light.position - world_pos);</span><br><span class="line">    features += &#123;light_dir.x, light_dir.y, light_dir.z&#125;;</span><br><span class="line">    features += &#123;light.intensity, light.radius&#125;;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 网络推理</span></span><br><span class="line">    <span class="keyword">return</span> shadow_network_.<span class="built_in">infer</span>(features);  <span class="comment">// 输出[0,1]阴影值</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>训练数据生成：</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 离线渲染生成训练数据</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">generate_shadow_training_data</span>(<span class="params">scene, light_configs</span>):</span><br><span class="line">    data = []</span><br><span class="line">    <span class="keyword">for</span> light <span class="keyword">in</span> light_configs:</span><br><span class="line">        <span class="comment"># 传统shadow map渲染</span></span><br><span class="line">        shadow_map = render_shadow_map(scene, light)</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 采集样本</span></span><br><span class="line">        <span class="keyword">for</span> pixel <span class="keyword">in</span> screen_space_samples:</span><br><span class="line">            world_pos = get_world_position(pixel)</span><br><span class="line">            normal = get_normal(pixel)</span><br><span class="line">            shadow_value = sample_shadow_map(shadow_map, world_pos, light)</span><br><span class="line">            </span><br><span class="line">            data.append(&#123;</span><br><span class="line">                <span class="string">&#x27;features&#x27;</span>: encode(world_pos, normal, light),</span><br><span class="line">                <span class="string">&#x27;label&#x27;</span>: shadow_value</span><br><span class="line">            &#125;)</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> data</span><br></pre></td></tr></table></figure>
+<hr />
+<h2 id="工程落地指南">3. 工程落地指南</h2>
+<h3 id="系统架构设计">3.1 系统架构设计</h3>
+<p><strong>整体架构：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">┌─────────────────────────────────────────────────────────────┐</span><br><span class="line">│                     Game Engine                             │</span><br><span class="line">├─────────────────────────────────────────────────────────────┤</span><br><span class="line">│                                                             │</span><br><span class="line">│  ┌──────────────┐    ┌────────────────┐    ┌──────────────┐ │</span><br><span class="line">│  │ Geometry Pass│───→│ Neural G-Buffer│───→│ Neural Light │ │</span><br><span class="line">│  │ (Low-Res)    │    │ Upsampling     │    │ Cache/Infer  │ │</span><br><span class="line">│  └──────────────┘    └────────────────┘    └──────────────┘ │</span><br><span class="line">│         │                   │                    │          │</span><br><span class="line">│         │                   │                    │          │</span><br><span class="line">│         ▼                   ▼                    ▼          │</span><br><span class="line">│  ┌──────────────────────────────────────────────────────┐   │</span><br><span class="line">│  │              Temporal Stabilization                  │   │</span><br><span class="line">│  │         (History Buffer + Motion Vectors)            │   │</span><br><span class="line">│  └──────────────────────────────────────────────────────┘   │</span><br><span class="line">│         │                                                   │</span><br><span class="line">│         ▼                                                   │</span><br><span class="line">│  ┌──────────────┐                                           │</span><br><span class="line">│  │ Post Process │                                           │</span><br><span class="line">│  │ (TAA, Bloom) │                                           │</span><br><span class="line">│  └──────────────┘                                           │</span><br><span class="line">└─────────────────────────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+<p><strong>模块职责划分：</strong></p>
+<table>
+<thead>
+<tr>
+<th>模块</th>
+<th>输入</th>
+<th>输出</th>
+<th>性能预算</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Geometry Pass</td>
+<td>场景几何</td>
+<td>低分辨率G-Buffer</td>
+<td>N/A (已有)</td>
+</tr>
+<tr>
+<td>Neural Upsampling</td>
+<td>低分辨率G-Buffer</td>
+<td>高分辨率G-Buffer</td>
+<td>&lt; 1.5ms</td>
+</tr>
+<tr>
+<td>Neural Light Cache</td>
+<td>G-Buffer + 光源</td>
+<td>光照结果</td>
+<td>&lt; 2ms</td>
+</tr>
+<tr>
+<td>Temporal Stabilization</td>
+<td>当前帧 + 历史帧</td>
+<td>稳定输出</td>
+<td>&lt; 0.5ms</td>
+</tr>
+</tbody>
+</table>
+<h3 id="网络设计实践">3.2 网络设计实践</h3>
+<p><strong>设计原则：</strong></p>
+<ol type="1">
+<li><strong>参数量控制</strong>：移动端建议 &lt; 500K参数</li>
+<li><strong>精度权衡</strong>：训练用FP32，推理用FP16或INT8</li>
+<li><strong>感受野设计</strong>：根据任务特点选择感受野大小</li>
+<li><strong>多任务学习</strong>：共享特征提取器，分叉输出头</li>
+</ol>
+<p><strong>网络架构示例：</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">import</span> torch.nn <span class="keyword">as</span> nn</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">NeuralDeferredNetwork</span>(nn.Module):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    轻量级神经延迟渲染网络</span></span><br><span class="line"><span class="string">    输入: 低分辨率RGB + 低分辨率G-Buffer特征</span></span><br><span class="line"><span class="string">    输出: 高分辨率RGB + (可选) 高分辨率G-Buffer</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, scale_factor=<span class="number">2</span>, num_features=<span class="number">64</span></span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        </span><br><span class="line">        <span class="variable language_">self</span>.scale_factor = scale_factor</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 特征编码器 (共享)</span></span><br><span class="line">        <span class="variable language_">self</span>.encoder = nn.Sequential(</span><br><span class="line">            nn.Conv2d(<span class="number">3</span> + <span class="number">8</span>, num_features, <span class="number">3</span>, padding=<span class="number">1</span>),  <span class="comment"># RGB + G-Buffer</span></span><br><span class="line">            nn.ReLU(inplace=<span class="literal">True</span>),</span><br><span class="line">            nn.Conv2d(num_features, num_features, <span class="number">3</span>, padding=<span class="number">1</span>),</span><br><span class="line">            nn.ReLU(inplace=<span class="literal">True</span>),</span><br><span class="line">            nn.Conv2d(num_features, num_features, <span class="number">3</span>, padding=<span class="number">1</span>),</span><br><span class="line">            nn.ReLU(inplace=<span class="literal">True</span>)</span><br><span class="line">        )</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 上采样模块</span></span><br><span class="line">        <span class="variable language_">self</span>.upsampler = nn.Sequential(</span><br><span class="line">            nn.Conv2d(num_features, num_features * <span class="number">4</span>, <span class="number">3</span>, padding=<span class="number">1</span>),</span><br><span class="line">            nn.PixelShuffle(<span class="number">2</span>),  <span class="comment"># 2x upscale</span></span><br><span class="line">            nn.ReLU(inplace=<span class="literal">True</span>),</span><br><span class="line">            nn.Conv2d(num_features, num_features, <span class="number">3</span>, padding=<span class="number">1</span>),</span><br><span class="line">            nn.ReLU(inplace=<span class="literal">True</span>)</span><br><span class="line">        )</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 输出头</span></span><br><span class="line">        <span class="variable language_">self</span>.output_head = nn.Conv2d(num_features, <span class="number">3</span>, <span class="number">3</span>, padding=<span class="number">1</span>)</span><br><span class="line">        </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, low_res_color, g_buffer_features</span>):</span><br><span class="line">        <span class="comment"># 拼接输入</span></span><br><span class="line">        x = torch.cat([low_res_color, g_buffer_features], dim=<span class="number">1</span>)</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 编码</span></span><br><span class="line">        features = <span class="variable language_">self</span>.encoder(x)</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 上采样</span></span><br><span class="line">        upsampled = <span class="variable language_">self</span>.upsampler(features)</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 如果需要更大幅度的上采样</span></span><br><span class="line">        <span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">int</span>(math.log2(<span class="variable language_">self</span>.scale_factor)) - <span class="number">1</span>):</span><br><span class="line">            upsampled = <span class="variable language_">self</span>.upsampler(upsampled)</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 输出</span></span><br><span class="line">        output = <span class="variable language_">self</span>.output_head(upsampled)</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 可选: 应用激活函数</span></span><br><span class="line">        output = torch.sigmoid(output)  <span class="comment"># 假设输出范围[0,1]</span></span><br><span class="line">        </span><br><span class="line">        <span class="keyword">return</span> output</span><br></pre></td></tr></table></figure>
+<p><strong>时域稳定化网络：</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">TemporalStabilizer</span>(nn.Module):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    时域稳定化模块</span></span><br><span class="line"><span class="string">    融合当前帧和历史帧，处理遮挡区域</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, num_features=<span class="number">32</span></span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        </span><br><span class="line">        <span class="variable language_">self</span>.feature_fusion = nn.Sequential(</span><br><span class="line">            nn.Conv2d(<span class="number">3</span> + <span class="number">3</span> + <span class="number">2</span>, num_features, <span class="number">3</span>, padding=<span class="number">1</span>),  <span class="comment"># curr + prev + motion</span></span><br><span class="line">            nn.ReLU(inplace=<span class="literal">True</span>),</span><br><span class="line">            nn.Conv2d(num_features, num_features, <span class="number">3</span>, padding=<span class="number">1</span>),</span><br><span class="line">            nn.ReLU(inplace=<span class="literal">True</span>)</span><br><span class="line">        )</span><br><span class="line">        </span><br><span class="line">        <span class="variable language_">self</span>.occlusion_mask = nn.Sequential(</span><br><span class="line">            nn.Conv2d(num_features, <span class="number">16</span>, <span class="number">3</span>, padding=<span class="number">1</span>),</span><br><span class="line">            nn.ReLU(inplace=<span class="literal">True</span>),</span><br><span class="line">            nn.Conv2d(<span class="number">16</span>, <span class="number">1</span>, <span class="number">3</span>, padding=<span class="number">1</span>),</span><br><span class="line">            nn.Sigmoid()  <span class="comment"># 输出遮挡掩码</span></span><br><span class="line">        )</span><br><span class="line">        </span><br><span class="line">        <span class="variable language_">self</span>.output = nn.Conv2d(num_features, <span class="number">3</span>, <span class="number">3</span>, padding=<span class="number">1</span>)</span><br><span class="line">        </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, current, previous, motion_vectors</span>):</span><br><span class="line">        <span class="comment"># 重投影历史帧</span></span><br><span class="line">        reprojected = warp(previous, motion_vectors)</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 拼接特征</span></span><br><span class="line">        x = torch.cat([current, reprojected, motion_vectors], dim=<span class="number">1</span>)</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 特征融合</span></span><br><span class="line">        features = <span class="variable language_">self</span>.feature_fusion(x)</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 预测遮挡掩码</span></span><br><span class="line">        occlusion = <span class="variable language_">self</span>.occlusion_mask(features)</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 基于掩码融合</span></span><br><span class="line">        output = occlusion * current + (<span class="number">1</span> - occlusion) * reprojected</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 细化输出</span></span><br><span class="line">        output = output + <span class="variable language_">self</span>.output(features)</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">return</span> output, occlusion</span><br></pre></td></tr></table></figure>
+<h3 id="训练策略">3.3 训练策略</h3>
+<p><strong>数据集准备：</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">RenderingDataset</span>(<span class="title class_ inherited__">Dataset</span>):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, scene_paths, resolution_scale=<span class="number">2</span></span>):</span><br><span class="line">        <span class="variable language_">self</span>.scene_paths = scene_paths</span><br><span class="line">        <span class="variable language_">self</span>.scale = resolution_scale</span><br><span class="line">        </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__getitem__</span>(<span class="params">self, idx</span>):</span><br><span class="line">        scene = load_scene(<span class="variable language_">self</span>.scene_paths[idx])</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 渲染高分辨率参考</span></span><br><span class="line">        high_res = render_scene(scene, resolution=(<span class="number">1920</span>, <span class="number">1080</span>))</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 渲染低分辨率输入</span></span><br><span class="line">        low_res = render_scene(scene, resolution=(<span class="number">1920</span>//<span class="variable language_">self</span>.scale, <span class="number">1080</span>//<span class="variable language_">self</span>.scale))</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 提取G-Buffer</span></span><br><span class="line">        g_buffer = extract_gbuffer(scene)</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">return</span> &#123;</span><br><span class="line">            <span class="string">&#x27;low_res_color&#x27;</span>: low_res[<span class="string">&#x27;color&#x27;</span>],</span><br><span class="line">            <span class="string">&#x27;g_buffer&#x27;</span>: g_buffer,</span><br><span class="line">            <span class="string">&#x27;high_res_color&#x27;</span>: high_res[<span class="string">&#x27;color&#x27;</span>],</span><br><span class="line">            <span class="string">&#x27;motion_vectors&#x27;</span>: compute_motion(scene)</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
+<p><strong>损失函数设计：</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">NeuralRenderingLoss</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, lambda_l1=<span class="number">1.0</span>, lambda_perceptual=<span class="number">0.1</span>, lambda_temporal=<span class="number">0.5</span></span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        <span class="variable language_">self</span>.lambda_l1 = lambda_l1</span><br><span class="line">        <span class="variable language_">self</span>.lambda_perceptual = lambda_perceptual</span><br><span class="line">        <span class="variable language_">self</span>.lambda_temporal = lambda_temporal</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 感知损失 (VGG特征)</span></span><br><span class="line">        <span class="variable language_">self</span>.vgg = vgg19(pretrained=<span class="literal">True</span>).features</span><br><span class="line">        <span class="keyword">for</span> p <span class="keyword">in</span> <span class="variable language_">self</span>.vgg.parameters():</span><br><span class="line">            p.requires_grad = <span class="literal">False</span></span><br><span class="line">            </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, pred, target, pred_prev=<span class="literal">None</span>, target_prev=<span class="literal">None</span></span>):</span><br><span class="line">        <span class="comment"># L1损失</span></span><br><span class="line">        loss_l1 = F.l1_loss(pred, target)</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 感知损失</span></span><br><span class="line">        pred_features = <span class="variable language_">self</span>.vgg(pred)</span><br><span class="line">        target_features = <span class="variable language_">self</span>.vgg(target)</span><br><span class="line">        loss_perceptual = F.l1_loss(pred_features, target_features)</span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 时域损失 (可选)</span></span><br><span class="line">        loss_temporal = <span class="number">0</span></span><br><span class="line">        <span class="keyword">if</span> pred_prev <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span> <span class="keyword">and</span> target_prev <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span>:</span><br><span class="line">            loss_temporal = F.l1_loss(pred - pred_prev, target - target_prev)</span><br><span class="line">        </span><br><span class="line">        total_loss = (<span class="variable language_">self</span>.lambda_l1 * loss_l1 + </span><br><span class="line">                      <span class="variable language_">self</span>.lambda_perceptual * loss_perceptual +</span><br><span class="line">                      <span class="variable language_">self</span>.lambda_temporal * loss_temporal)</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">return</span> total_loss, &#123;</span><br><span class="line">            <span class="string">&#x27;l1&#x27;</span>: loss_l1.item(),</span><br><span class="line">            <span class="string">&#x27;perceptual&#x27;</span>: loss_perceptual.item(),</span><br><span class="line">            <span class="string">&#x27;temporal&#x27;</span>: loss_temporal.item() <span class="keyword">if</span> <span class="built_in">isinstance</span>(loss_temporal, <span class="built_in">float</span>) <span class="keyword">else</span> loss_temporal.item()</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
+<h3 id="移动端部署优化">3.4 移动端部署优化</h3>
+<p><strong>INT8量化：</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch.quantization <span class="keyword">as</span> quant</span><br><span class="line"></span><br><span class="line"><span class="comment"># 动态量化</span></span><br><span class="line">model_quantized = quant.quantize_dynamic(</span><br><span class="line">    model, </span><br><span class="line">    &#123;nn.Linear, nn.Conv2d&#125;, </span><br><span class="line">    dtype=torch.qint8</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 静态量化 (需要校准数据)</span></span><br><span class="line">model.qconfig = quant.get_default_qconfig(<span class="string">&#x27;fbgemm&#x27;</span>)</span><br><span class="line">quant.prepare(model, inplace=<span class="literal">True</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 校准</span></span><br><span class="line"><span class="keyword">with</span> torch.no_grad():</span><br><span class="line">    <span class="keyword">for</span> batch <span class="keyword">in</span> calibration_loader:</span><br><span class="line">        model(batch)</span><br><span class="line">        </span><br><span class="line">quant.convert(model, inplace=<span class="literal">True</span>)</span><br></pre></td></tr></table></figure>
+<p><strong>ONNX导出与优化：</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 导出ONNX</span></span><br><span class="line">dummy_input = torch.randn(<span class="number">1</span>, <span class="number">3</span>, <span class="number">256</span>, <span class="number">256</span>)</span><br><span class="line">torch.onnx.export(</span><br><span class="line">    model,</span><br><span class="line">    dummy_input,</span><br><span class="line">    <span class="string">&quot;neural_deferred.onnx&quot;</span>,</span><br><span class="line">    opset_version=<span class="number">11</span>,</span><br><span class="line">    input_names=[<span class="string">&#x27;input&#x27;</span>],</span><br><span class="line">    output_names=[<span class="string">&#x27;output&#x27;</span>],</span><br><span class="line">    dynamic_axes=&#123;<span class="string">&#x27;input&#x27;</span>: &#123;<span class="number">0</span>: <span class="string">&#x27;batch&#x27;</span>&#125;, <span class="string">&#x27;output&#x27;</span>: &#123;<span class="number">0</span>: <span class="string">&#x27;batch&#x27;</span>&#125;&#125;</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment"># ONNX优化</span></span><br><span class="line"><span class="keyword">import</span> onnx</span><br><span class="line"><span class="keyword">from</span> onnxruntime.transformers <span class="keyword">import</span> optimizer</span><br><span class="line"></span><br><span class="line">onnx_model = onnx.load(<span class="string">&quot;neural_deferred.onnx&quot;</span>)</span><br><span class="line">optimized_model = optimizer.optimize_model(</span><br><span class="line">    <span class="string">&quot;neural_deferred.onnx&quot;</span>,</span><br><span class="line">    model_type=<span class="string">&#x27;bert&#x27;</span>,  <span class="comment"># 或其他适合的类型</span></span><br><span class="line">    num_heads=<span class="number">8</span>,</span><br><span class="line">    hidden_size=<span class="number">64</span></span><br><span class="line">)</span><br><span class="line">optimized_model.save_model_to_file(<span class="string">&quot;neural_deferred_optimized.onnx&quot;</span>)</span><br></pre></td></tr></table></figure>
+<p><strong>移动端推理框架选择：</strong></p>
+<table>
+<thead>
+<tr>
+<th>框架</th>
+<th>优势</th>
+<th>劣势</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NCNN (腾讯)</td>
+<td>专为移动端优化，ARM支持好</td>
+<td>自定义算子支持有限</td>
+</tr>
+<tr>
+<td>MNN (阿里)</td>
+<td>轻量，推理速度快</td>
+<td>文档相对少</td>
+</tr>
+<tr>
+<td>TFLite</td>
+<td>生态完善，工具链成熟</td>
+<td>部分算子不支持</td>
+</tr>
+<tr>
+<td>ONNX Runtime</td>
+<td>前端兼容性好</td>
+<td>移动端性能略逊</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="入坑指南">4. 入坑指南</h2>
+<h3 id="学习路径规划">4.1 学习路径规划</h3>
+<p><strong>第一阶段：理论基础 (1-2个月)</strong></p>
+<ol type="1">
+<li><strong>渲染管线基础</strong>
+<ul>
+<li>《Real-Time Rendering 4th》第2-5章</li>
+<li>延迟渲染 vs 前向渲染的详细对比</li>
+<li>G-Buffer的设计与优化</li>
+</ul></li>
+<li><strong>深度学习基础</strong>
+<ul>
+<li>CNN基础：卷积、池化、归一化</li>
+<li>UNet架构：编解码器设计</li>
+<li>PixelShuffle：高效上采样</li>
+</ul></li>
+<li><strong>神经渲染入门</strong>
+<ul>
+<li>NeRF论文精读</li>
+<li>神经网络如何表示场景和光照</li>
+</ul></li>
+</ol>
+<p><strong>推荐资源：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">论文阅读顺序：</span><br><span class="line">1. Neural Radiance Fields (NeRF) - ECCV 2020</span><br><span class="line">2. Neural Deferred Shading - SIGGRAPH 2020</span><br><span class="line">3. Neural Radiance Caching - SIGGRAPH 2021</span><br><span class="line"></span><br><span class="line">视频课程：</span><br><span class="line">- GDC Vault: Neural Rendering talks</span><br><span class="line">- SIGGRAPH Courses: Deep Learning for Rendering</span><br><span class="line">- YouTube: Two Minute Papers (神经渲染系列)</span><br><span class="line"></span><br><span class="line">开源代码：</span><br><span class="line">- https://github.com/yenchenlin/nerf-pytorch</span><br><span class="line">- https://github.com/NVlabs/nrc</span><br></pre></td></tr></table></figure>
+<p><strong>第二阶段：动手实践 (2-3个月)</strong></p>
+<ol type="1">
+<li><p><strong>环境搭建</strong> <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Python环境</span></span><br><span class="line">conda create -n neural_rendering python=3.9</span><br><span class="line">conda activate neural_rendering</span><br><span class="line">pip install torch torchvision opencv-python pillow tqdm</span><br><span class="line"></span><br><span class="line"><span class="comment"># 渲染器 (用于生成训练数据)</span></span><br><span class="line">pip install moderngl moderngl-window pyrr</span><br><span class="line"><span class="comment"># 或使用Blender Python API</span></span><br></pre></td></tr></table></figure></p></li>
+<li><p><strong>第一个项目：简单的G-Buffer超分辨率</strong></p></li>
+</ol>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 项目结构</span></span><br><span class="line">neural_gbuffer_upsample/</span><br><span class="line">├── data/</span><br><span class="line">│   ├── generate_training_data.py  <span class="comment"># 生成训练数据</span></span><br><span class="line">│   └── dataset.py                 <span class="comment"># PyTorch Dataset</span></span><br><span class="line">├── models/</span><br><span class="line">│   └── upsample_net.py            <span class="comment"># 网络定义</span></span><br><span class="line">├── train.py                        <span class="comment"># 训练脚本</span></span><br><span class="line">├── inference.py                    <span class="comment"># 推理脚本</span></span><br><span class="line">└── README.md</span><br></pre></td></tr></table></figure>
+<ol start="3" type="1">
+<li><strong>逐步增加复杂度</strong>
+<ul>
+<li>Stage 1: 仅RGB超分辨率 (类似ESRGAN)</li>
+<li>Stage 2: RGB + G-Buffer特征联合超分辨率</li>
+<li>Stage 3: 加入时域稳定化</li>
+<li>Stage 4: 加入神经光照查询</li>
+</ul></li>
+</ol>
+<p><strong>第三阶段：工程化 (3-6个月)</strong></p>
+<ol type="1">
+<li><strong>集成到游戏引擎</strong>
+<ul>
+<li>Unity: Compute Shader + ONNX Runtime</li>
+<li>Unreal: 插件开发 + NNI (Neural Network Inference)</li>
+</ul></li>
+<li><strong>性能优化</strong>
+<ul>
+<li>网络剪枝与蒸馏</li>
+<li>INT8量化</li>
+<li>半精度推理</li>
+</ul></li>
+<li><strong>质量保障</strong>
+<ul>
+<li>自动化测试</li>
+<li>边缘case收集与再训练</li>
+</ul></li>
+</ol>
+<h3 id="必备工具与资源">4.2 必备工具与资源</h3>
+<p><strong>开发工具：</strong></p>
+<table>
+<thead>
+<tr>
+<th>工具</th>
+<th>用途</th>
+<th>链接</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PyTorch</td>
+<td>模型训练</td>
+<td>pytorch.org</td>
+</tr>
+<tr>
+<td>ONNX Runtime</td>
+<td>跨平台推理</td>
+<td>onnxruntime.ai</td>
+</tr>
+<tr>
+<td>Netron</td>
+<td>网络可视化</td>
+<td>netron.app</td>
+</tr>
+<tr>
+<td>Nsight Graphics</td>
+<td>GPU性能分析</td>
+<td>developer.nvidia.com</td>
+</tr>
+<tr>
+<td>RenderDoc</td>
+<td>渲染调试</td>
+<td>renderdoc.org</td>
+</tr>
+</tbody>
+</table>
+<p><strong>数据集与基准：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">公开数据集：</span><br><span class="line">1. BTF (Bidirectional Texture Function) Database - 材质数据</span><br><span class="line">2. MERL BRDF Database - 真实BRDF测量数据</span><br><span class="line">3. ScanNet - 室内场景几何数据</span><br><span class="line">4. Tanks and Temples - 复杂场景重建数据</span><br><span class="line"></span><br><span class="line">自建数据集：</span><br><span class="line">- 使用离线渲染器 (Blender, Arnold, V-Ray) 生成</span><br><span class="line">- 多分辨率、多采样率配对</span><br><span class="line">- 包含G-Buffer和运动向量</span><br></pre></td></tr></table></figure>
+<p><strong>开源项目参考：</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// NVIDIA Neural Radiance Caching</span></span><br><span class="line">https:<span class="comment">//github.com/NVlabs/nrc</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Intel OIDN (Open Image Denoise)  </span></span><br><span class="line">https:<span class="comment">//github.com/OpenImageDenoise/oidn</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Unreal Engine NNI Plugin</span></span><br><span class="line">https:<span class="comment">//docs.unrealengine.com/5.0/en-US/nni-plugin-overview/</span></span><br></pre></td></tr></table></figure>
+<h3 id="常见坑与解决方案">4.3 常见坑与解决方案</h3>
+<p><strong>坑1：时域不稳定，画面闪烁</strong></p>
+<p>原因：纯空间网络不利用时间信息，或时域融合策略不当</p>
+<p>解决： <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 1. 添加时域损失</span></span><br><span class="line">loss_temporal = F.<span class="built_in">l1_loss</span>(pred - prev_pred, target - prev_target);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 2. 使用运动向量正确重投影</span></span><br><span class="line">Vec2f uv_prev = uv - motion_vector;</span><br><span class="line">Vec3f prev_color = <span class="built_in">sample_history</span>(uv_prev);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 3. 检测遮挡区域，减少时域融合</span></span><br><span class="line"><span class="type">float</span> depth_diff = <span class="built_in">abs</span>(current_depth - <span class="built_in">sample_history_depth</span>(uv_prev));</span><br><span class="line"><span class="type">float</span> occlusion_weight = <span class="built_in">smoothstep</span>(<span class="number">0.0</span>, <span class="number">0.1</span>, depth_diff);</span><br><span class="line">Vec3f result = <span class="built_in">mix</span>(prev_color, current_color, occlusion_weight);</span><br></pre></td></tr></table></figure></p>
+<p><strong>坑2：边缘模糊，细节丢失</strong></p>
+<p>原因：感受野设计不当，或损失函数过于平滑</p>
+<p>解决： <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 添加边缘感知损失</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">edge_loss</span>(<span class="params">pred, target</span>):</span><br><span class="line">    pred_edges = sobel_filter(pred)</span><br><span class="line">    target_edges = sobel_filter(target)</span><br><span class="line">    <span class="keyword">return</span> F.l1_loss(pred_edges, target_edges)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 使用感知损失 (VGG特征)</span></span><br><span class="line"><span class="comment"># 3. 增加skip connection保留高频信息</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ResidualBlock</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        <span class="keyword">return</span> x + <span class="variable language_">self</span>.conv(x)  <span class="comment"># 残差连接保留细节</span></span><br></pre></td></tr></table></figure></p>
+<p><strong>坑3：移动端推理速度慢</strong></p>
+<p>原因：网络设计未考虑移动端约束</p>
+<p>解决： <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 减少通道数</span></span><br><span class="line">num_features = <span class="number">32</span>  <span class="comment"># 而不是128或256</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 使用深度可分离卷积</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">DepthwiseSeparableConv</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, in_ch, out_ch</span>):</span><br><span class="line">        <span class="built_in">super</span>().__init__()</span><br><span class="line">        <span class="variable language_">self</span>.depthwise = nn.Conv2d(in_ch, in_ch, <span class="number">3</span>, padding=<span class="number">1</span>, groups=in_ch)</span><br><span class="line">        <span class="variable language_">self</span>.pointwise = nn.Conv2d(in_ch, out_ch, <span class="number">1</span>)</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        <span class="keyword">return</span> <span class="variable language_">self</span>.pointwise(<span class="variable language_">self</span>.depthwise(x))</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 避免耗时的算子</span></span><br><span class="line"><span class="comment"># 避免使用: Large kernel (&gt;5x5), Dense operations</span></span><br><span class="line"><span class="comment"># 优先使用: 3x3 conv, ReLU, PixelShuffle</span></span><br></pre></td></tr></table></figure></p>
+<p><strong>坑4：材质泛化能力差</strong></p>
+<p>原因：训练数据材质多样性不足</p>
+<p>解决： <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 材质数据增强</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">augment_material</span>(<span class="params">g_buffer</span>):</span><br><span class="line">    <span class="comment"># 随机调整albedo</span></span><br><span class="line">    g_buffer.albedo *= random_color_shift()</span><br><span class="line">    <span class="comment"># 随机调整roughness</span></span><br><span class="line">    g_buffer.roughness = torch.clamp(g_buffer.roughness + random_shift(), <span class="number">0</span>, <span class="number">1</span>)</span><br><span class="line">    <span class="keyword">return</span> g_buffer</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 材质条件化输入</span></span><br><span class="line"><span class="comment"># 将材质ID或参数作为网络条件输入</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">MaterialConditionedNetwork</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, features, material_params</span>):</span><br><span class="line">        <span class="comment"># 材质参数嵌入</span></span><br><span class="line">        material_embed = <span class="variable language_">self</span>.material_encoder(material_params)</span><br><span class="line">        <span class="comment"># 拼接到特征</span></span><br><span class="line">        conditioned = torch.cat([features, material_embed], dim=<span class="number">1</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="variable language_">self</span>.decoder(conditioned)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 多材质专家网络</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">MoENetwork</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, num_experts=<span class="number">4</span></span>):</span><br><span class="line">        <span class="variable language_">self</span>.experts = nn.ModuleList([Expert() <span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(num_experts)])</span><br><span class="line">        <span class="variable language_">self</span>.gate = nn.Linear(material_dim, num_experts)</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, features, material_params</span>):</span><br><span class="line">        <span class="comment"># 路由到不同的专家</span></span><br><span class="line">        weights = F.softmax(<span class="variable language_">self</span>.gate(material_params), dim=-<span class="number">1</span>)</span><br><span class="line">        outputs = <span class="built_in">sum</span>(w * expert(features) <span class="keyword">for</span> w, expert <span class="keyword">in</span> <span class="built_in">zip</span>(weights, <span class="variable language_">self</span>.experts))</span><br><span class="line">        <span class="keyword">return</span> outputs</span><br></pre></td></tr></table></figure></p>
+<h3 id="研究前沿与未来方向">4.4 研究前沿与未来方向</h3>
+<p><strong>当前的研究热点：</strong></p>
+<ol type="1">
+<li><strong>3D Gaussian Splatting</strong> - 比NeRF更快的场景表示</li>
+<li><strong>Neural Radiance Fields with Dynamic Scenes</strong> -
+动态场景的神经渲染</li>
+<li><strong>Differentiable Rendering</strong> -
+可微渲染，端到端优化</li>
+<li><strong>Neural Light Fields</strong> -
+直接学习光场，跳过显式几何</li>
+</ol>
+<p><strong>移动端特有的研究机会：</strong></p>
+<ol type="1">
+<li><strong>极度轻量化网络</strong> - 10K参数级模型</li>
+<li><strong>分块推理</strong> - Tile-based rendering优化</li>
+<li><strong>端云协同</strong> - 复杂计算上云</li>
+<li><strong>硬件感知网络设计</strong> - 针对特定GPU架构优化NPU加速</li>
+</ol>
+<hr />
+<h2 id="总结">5. 总结</h2>
+<p>神经延迟渲染是图形学从"精确计算"到"感知正确"范式转变的典型代表。它的核心价值在于：</p>
+<ol type="1">
+<li><strong>计算复杂度解耦</strong> -
+用固定成本的网络推理替代可变的渲染成本</li>
+<li><strong>分辨率解耦</strong> - 低分辨率渲染，高分辨率输出</li>
+<li><strong>质量与性能可调</strong> - 网络大小与质量的灵活trade-off</li>
+</ol>
+<p>对于移动端游戏开发者，这是一个值得深入的方向。建议的起步策略：</p>
+<ol type="1">
+<li>从G-Buffer超分辨率开始，风险低、收益明确</li>
+<li>积累训练数据和推理管线经验</li>
+<li>逐步扩展到神经光照和全局光照加速</li>
+</ol>
+<p>下一篇，我们将深入探讨<strong>自适应质量控制</strong>，这是另一个与移动端高度相关的方向。</p>
+
+      </div>
+      
+      
+      
+    </div>
+
+    
+    
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">粤ICP备17055045号 </a>
+  </div>
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Locky Hu</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>Word count total: </span>
+    <span title="Word count total">65k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span>Reading time total &asymp;</span>
+    <span title="Reading time total">59 mins.</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+<div>
+<span id="timeDate">载入天数...</span><span id="times">载入时分秒...</span>
+<script>
+    var now = new Date(); 
+    function createtime() { 
+        var grt= new Date("12/24/2021 19:43:01");//在此处修改你的建站时间
+        now.setTime(now.getTime()+250); 
+        days = (now - grt ) / 1000 / 60 / 60 / 24; dnum = Math.floor(days); 
+        hours = (now - grt ) / 1000 / 60 / 60 - (24 * dnum); hnum = Math.floor(hours); 
+        if(String(hnum).length ==1 ){hnum = "0" + hnum;} minutes = (now - grt ) / 1000 /60 - (24 * 60 * dnum) - (60 * hnum); 
+        mnum = Math.floor(minutes); if(String(mnum).length ==1 ){mnum = "0" + mnum;} 
+        seconds = (now - grt ) / 1000 - (24 * 60 * 60 * dnum) - (60 * 60 * hnum) - (60 * mnum); 
+        snum = Math.round(seconds); if(String(snum).length ==1 ){snum = "0" + snum;} 
+        document.getElementById("timeDate").innerHTML = "已运行 "+dnum+" 天 "; 
+        document.getElementById("times").innerHTML = hnum + " 小时 " + mnum + " 分 " + snum + " 秒"; 
+    } 
+setInterval("createtime()",250);
+</script>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+    </div>
+  </footer>
+
+  
+  <div class="reading-progress-bar"></div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/next-theme-pjax/0.6.0/pjax.min.js" integrity="sha256-vxLn1tSKWD4dqbMRyv940UYw4sXgMtYcK6reefzZrao=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/next-boot.js"></script><script src="/js/pjax.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+  <script src="/js/third-party/pace.js"></script>
+
+
+  
+  <script data-pjax async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"per_page":true,"cdn":"//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML","mhchem":false,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

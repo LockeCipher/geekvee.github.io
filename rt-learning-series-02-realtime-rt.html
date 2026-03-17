@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#fff"><meta name="generator" content="Hexo 5.4.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/computer-chip_gray.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/computer-chip_gray.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/computer-chip_gray.svg">
+  <link rel="mask-icon" href="/images/computer-chip_gray.svg" color="#fff">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha256-yIDrPSXHZdOZhAqiBP7CKzIwMQmRCJ8UeB8Jo17YC4o=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/themes/blue/pace-theme-minimal.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/pace.min.js" integrity="sha256-gqd7YTjg/BtfqWSwsJOvndl0Bxc8gFImLEkXQT8+qj0=" crossorigin="anonymous"></script>
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"huziliang.com","root":"/","images":"/images","scheme":"Pisces","darkmode":false,"version":"8.19.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":true,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":true,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="系列导航  总览：从超分辨率到光线追踪——我的技术路线规划 阶段一：理解光线追踪基础 阶段二：实时光线追踪（本文） 阶段三：AI + 光线追踪 阶段四：移动端光线追踪   阶段目标 完成本阶段学习后，你将能够：  理解GPU光线追踪的硬件架构 使用DXR或Vulkan RT实现实时光线追踪 实现混合渲染管线（光栅化 + RT） 集成基础降噪，实现30fps以上的渲染   Week 4：GPU光线">
+<meta property="og:type" content="website">
+<meta property="og:title" content="光线追踪入门（二）：实时光线追踪与混合渲染">
+<meta property="og:url" content="https://huziliang.com/rt-learning-series-02-realtime-rt.html">
+<meta property="og:site_name" content="Locky Hu">
+<meta property="og:description" content="系列导航  总览：从超分辨率到光线追踪——我的技术路线规划 阶段一：理解光线追踪基础 阶段二：实时光线追踪（本文） 阶段三：AI + 光线追踪 阶段四：移动端光线追踪   阶段目标 完成本阶段学习后，你将能够：  理解GPU光线追踪的硬件架构 使用DXR或Vulkan RT实现实时光线追踪 实现混合渲染管线（光栅化 + RT） 集成基础降噪，实现30fps以上的渲染   Week 4：GPU光线">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2026-03-16T01:33:53.000Z">
+<meta property="article:modified_time" content="2026-03-16T02:45:00.322Z">
+<meta property="article:author" content="Locky Hu">
+<meta property="article:tag" content="ray tracing">
+<meta property="article:tag" content="real-time rendering">
+<meta property="article:tag" content="hybrid rendering">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://huziliang.com/rt-learning-series-02-realtime-rt">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":false,"lang":"en","comments":true,"permalink":"https://huziliang.com/rt-learning-series-02-realtime-rt.html","path":"rt-learning-series-02-realtime-rt.html","title":"光线追踪入门（二）：实时光线追踪与混合渲染"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>光线追踪入门（二）：实时光线追踪与混合渲染 | Locky Hu
+</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title"></p>
+      <i class="logo-line"></i>
+    </a>
+    <a href="/" class="" rel="start">
+      <p class="site-subtitle" itemprop="description">Newbie Dad, Software Engineer</p>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B3%BB%E5%88%97%E5%AF%BC%E8%88%AA"><span class="nav-text">系列导航</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%98%B6%E6%AE%B5%E7%9B%AE%E6%A0%87"><span class="nav-text">阶段目标</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#week-4gpu%E5%85%89%E7%BA%BF%E8%BF%BD%E8%B8%AA%E5%85%A5%E9%97%A8"><span class="nav-text">Week 4：GPU光线追踪入门</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A1%AC%E4%BB%B6%E5%85%89%E7%BA%BF%E8%BF%BD%E8%B8%AA%E7%9A%84%E9%9D%A9%E5%91%BD"><span class="nav-text">4.1 硬件光线追踪的革命</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#dxr-directx-raytracing-%E6%9E%B6%E6%9E%84"><span class="nav-text">4.2 DXR (DirectX Raytracing)
+架构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#vulkan-ray-tracing"><span class="nav-text">4.3 Vulkan Ray Tracing</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%80%89%E6%8B%A9%E5%BB%BA%E8%AE%AE"><span class="nav-text">4.4 选择建议</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#week-5%E6%B7%B7%E5%90%88%E6%B8%B2%E6%9F%93%E7%AE%A1%E7%BA%BF"><span class="nav-text">Week 5：混合渲染管线</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E6%B7%B7%E5%90%88%E6%B8%B2%E6%9F%93"><span class="nav-text">5.1 为什么需要混合渲染？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#g-buffer%E7%94%9F%E6%88%90"><span class="nav-text">5.2 G-Buffer生成</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#rt%E9%98%B4%E5%BD%B1"><span class="nav-text">5.3 RT阴影</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#rt%E5%8F%8D%E5%B0%84"><span class="nav-text">5.4 RT反射</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#rtao-ray-traced-ambient-occlusion"><span class="nav-text">5.5 RTAO (Ray Traced Ambient
+Occlusion)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#week-6%E5%9F%BA%E7%A1%80%E9%99%8D%E5%99%AA%E9%9B%86%E6%88%90"><span class="nav-text">Week 6：基础降噪集成</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88rt%E9%9C%80%E8%A6%81%E9%99%8D%E5%99%AA"><span class="nav-text">6.1 为什么RT需要降噪</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#svgf-spatiotemporal-variance-guided-filtering"><span class="nav-text">6.2 SVGF
+(Spatiotemporal Variance-Guided Filtering)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%9B%86%E6%88%90%E5%88%B0%E6%B8%B2%E6%9F%93%E7%AE%A1%E7%BA%BF"><span class="nav-text">6.3 集成到渲染管线</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#week-7%E4%BC%98%E5%8C%96%E4%B8%8E%E8%B0%83%E8%AF%95"><span class="nav-text">Week 7：优化与调试</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96"><span class="nav-text">7.1 性能优化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%B0%83%E8%AF%95%E5%B7%A5%E5%85%B7"><span class="nav-text">7.2 调试工具</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><span class="nav-text">7.3 常见问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%9E%E8%B7%B5%E9%A1%B9%E7%9B%AE"><span class="nav-text">实践项目</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%A1%B9%E7%9B%AEhybrid-renderer-demo"><span class="nav-text">项目：Hybrid Renderer Demo</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%8B%E4%B8%80%E6%AD%A5"><span class="nav-text">下一步</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <style>
+    .pixel-slime {
+      height: 100px;
+      width: 105px;
+      position: relative;
+      display: inline-block;
+      margin: 20px;
+      &::before {
+        content: "";
+        position: absolute;
+        background: 0 0;
+        width: 5px;
+        height: 5px;
+        top: -5px;
+        left: -5px;
+        box-shadow: 65px 5px rgb(91, 155, 213), 55px 10px rgb(91, 155, 213), 60px 10px rgb(91, 155, 213), 70px 10px rgb(91, 155, 213), 40px 15px rgb(91, 155, 213), 45px 15px rgb(91, 155, 213), 50px 15px rgb(91, 155, 213), 75px 15px rgb(91, 155, 213), 30px 20px rgb(91, 155, 213), 35px 20px rgb(91, 155, 213), 80px 20px rgb(91, 155, 213), 20px 25px rgb(91, 155, 213), 25px 25px rgb(91, 155, 213), 85px 25px rgb(91, 155, 213), 90px 25px rgb(91, 155, 213), 15px 30px rgb(91, 155, 213), 95px 30px rgb(91, 155, 213), 10px 35px rgb(91, 155, 213), 100px 35px rgb(91, 155, 213), 10px 40px rgb(91, 155, 213), 100px 40px rgb(91, 155, 213), 5px 45px rgb(91, 155, 213), 105px 45px rgb(91, 155, 213), 5px 50px rgb(91, 155, 213), 105px 50px rgb(91, 155, 213), 5px 55px rgb(91, 155, 213), 105px 55px rgb(91, 155, 213), 5px 60px rgb(91, 155, 213), 105px 60px rgb(91, 155, 213), 5px 65px rgb(91, 155, 213), 105px 65px rgb(91, 155, 213), 5px 70px rgb(91, 155, 213), 105px 70px rgb(91, 155, 213), 10px 75px rgb(91, 155, 213), 100px 75px rgb(91, 155, 213), 10px 80px rgb(91, 155, 213), 100px 80px rgb(91, 155, 213), 15px 85px rgb(91, 155, 213), 95px 85px rgb(91, 155, 213), 20px 90px rgb(91, 155, 213), 25px 90px rgb(91, 155, 213), 85px 90px rgb(91, 155, 213), 90px 90px rgb(91, 155, 213), 30px 95px rgb(91, 155, 213), 35px 95px rgb(91, 155, 213), 75px 95px rgb(91, 155, 213), 80px 95px rgb(91, 155, 213), 40px 100px rgb(91, 155, 213), 45px 100px rgb(91, 155, 213), 50px 100px rgb(91, 155, 213), 55px 100px rgb(91, 155, 213), 60px 100px rgb(91, 155, 213), 65px 100px rgb(91, 155, 213), 70px 100px rgb(91, 155, 213), 65px 10px rgb(221, 235, 247), 55px 15px rgb(221, 235, 247), 60px 15px rgb(221, 235, 247), 70px 15px rgb(221, 235, 247), 50px 20px rgb(221, 235, 247), 75px 20px rgb(221, 235, 247), 80px 25px rgb(221, 235, 247), 85px 30px rgb(221, 235, 247), 90px 30px rgb(221, 235, 247), 15px 35px rgb(221, 235, 247), 100px 55px rgb(221, 235, 247), 100px 60px rgb(221, 235, 247), 85px 65px rgb(221, 235, 247), 15px 60px rgb(221, 235, 247), 40px 20px rgb(242, 247, 252), 45px 20px rgb(242, 247, 252), 30px 25px rgb(242, 247, 252), 35px 25px rgb(242, 247, 252), 20px 30px rgb(242, 247, 252), 25px 30px rgb(242, 247, 252), 95px 35px rgb(242, 247, 252), 95px 40px rgb(242, 247, 252), 100px 45px rgb(242, 247, 252), 100px 50px rgb(242, 247, 252), 25px 50px rgb(242, 247, 252), 20px 60px rgb(242, 247, 252), 70px 55px rgb(242, 247, 252), 80px 65px rgb(242, 247, 252), 65px 15px rgb(189, 215, 238), 55px 20px rgb(189, 215, 238), 60px 20px rgb(189, 215, 238), 65px 20px rgb(189, 215, 238), 70px 20px rgb(189, 215, 238), 40px 25px rgb(189, 215, 238), 45px 25px rgb(189, 215, 238), 50px 25px rgb(189, 215, 238), 55px 25px rgb(189, 215, 238), 60px 25px rgb(189, 215, 238), 65px 25px rgb(189, 215, 238), 70px 25px rgb(189, 215, 238), 75px 25px rgb(189, 215, 238), 30px 30px rgb(189, 215, 238), 35px 30px rgb(189, 215, 238), 40px 30px rgb(189, 215, 238), 45px 30px rgb(189, 215, 238), 50px 30px rgb(189, 215, 238), 55px 30px rgb(189, 215, 238), 60px 30px rgb(189, 215, 238), 65px 30px rgb(189, 215, 238), 70px 30px rgb(189, 215, 238), 75px 30px rgb(189, 215, 238), 80px 30px rgb(189, 215, 238), 20px 35px rgb(189, 215, 238), 25px 35px rgb(189, 215, 238), 30px 35px rgb(189, 215, 238), 35px 35px rgb(189, 215, 238), 40px 35px rgb(189, 215, 238), 45px 35px rgb(189, 215, 238), 50px 35px rgb(189, 215, 238), 55px 35px rgb(189, 215, 238), 60px 35px rgb(189, 215, 238), 65px 35px rgb(189, 215, 238), 70px 35px rgb(189, 215, 238), 75px 35px rgb(189, 215, 238), 80px 35px rgb(189, 215, 238), 85px 35px rgb(189, 215, 238), 90px 35px rgb(189, 215, 238), 15px 40px rgb(189, 215, 238), 20px 40px rgb(189, 215, 238), 25px 40px rgb(189, 215, 238), 30px 40px rgb(189, 215, 238), 35px 40px rgb(189, 215, 238), 40px 40px rgb(189, 215, 238), 45px 40px rgb(189, 215, 238), 50px 40px rgb(189, 215, 238), 55px 40px rgb(189, 215, 238), 60px 40px rgb(189, 215, 238), 65px 40px rgb(189, 215, 238), 70px 40px rgb(189, 215, 238), 75px 40px rgb(189, 215, 238), 80px 40px rgb(189, 215, 238), 85px 40px rgb(189, 215, 238), 90px 40px rgb(189, 215, 238), 10px 45px rgb(189, 215, 238), 15px 45px rgb(189, 215, 238), 20px 45px rgb(189, 215, 238), 25px 45px rgb(189, 215, 238), 30px 45px rgb(189, 215, 238), 90px 45px rgb(189, 215, 238), 95px 45px rgb(189, 215, 238), 10px 50px rgb(189, 215, 238), 15px 50px rgb(189, 215, 238), 20px 50px rgb(189, 215, 238), 95px 50px rgb(189, 215, 238), 10px 55px rgb(189, 215, 238), 15px 55px rgb(189, 215, 238), 10px 60px rgb(189, 215, 238), 10px 65px rgb(189, 215, 238), 10px 70px rgb(189, 215, 238), 15px 75px rgb(189, 215, 238), 15px 80px rgb(189, 215, 238), 20px 85px rgb(189, 215, 238), 25px 85px rgb(189, 215, 238), 30px 90px rgb(189, 215, 238), 35px 90px rgb(189, 215, 238), 100px 65px rgb(189, 215, 238), 100px 70px rgb(189, 215, 238), 95px 75px rgb(189, 215, 238), 95px 80px rgb(189, 215, 238), 85px 85px rgb(189, 215, 238), 90px 85px rgb(189, 215, 238), 75px 90px rgb(189, 215, 238), 80px 90px rgb(189, 215, 238), 40px 95px rgb(189, 215, 238), 45px 95px rgb(189, 215, 238), 50px 95px rgb(189, 215, 238), 55px 95px rgb(189, 215, 238), 60px 95px rgb(189, 215, 238), 65px 95px rgb(189, 215, 238), 70px 95px rgb(189, 215, 238), 20px 55px rgb(180, 198, 231), 35px 45px rgb(180, 198, 231), 40px 45px rgb(180, 198, 231), 45px 45px rgb(180, 198, 231), 50px 45px rgb(180, 198, 231), 55px 45px rgb(180, 198, 231), 60px 45px rgb(180, 198, 231), 65px 45px rgb(180, 198, 231), 70px 45px rgb(180, 198, 231), 75px 45px rgb(180, 198, 231), 80px 45px rgb(180, 198, 231), 85px 45px rgb(180, 198, 231), 35px 50px rgb(180, 198, 231), 40px 50px rgb(180, 198, 231), 45px 50px rgb(180, 198, 231), 50px 50px rgb(180, 198, 231), 55px 50px rgb(180, 198, 231), 60px 50px rgb(180, 198, 231), 65px 50px rgb(180, 198, 231), 70px 50px rgb(180, 198, 231), 75px 50px rgb(180, 198, 231), 80px 50px rgb(180, 198, 231), 85px 50px rgb(180, 198, 231), 90px 50px rgb(180, 198, 231), 35px 55px rgb(180, 198, 231), 40px 55px rgb(180, 198, 231), 45px 55px rgb(180, 198, 231), 50px 55px rgb(180, 198, 231), 55px 55px rgb(180, 198, 231), 60px 55px rgb(180, 198, 231), 65px 55px rgb(180, 198, 231), 80px 55px rgb(180, 198, 231), 85px 55px rgb(180, 198, 231), 90px 55px rgb(180, 198, 231), 95px 55px rgb(180, 198, 231), 25px 60px rgb(180, 198, 231), 30px 60px rgb(180, 198, 231), 35px 60px rgb(180, 198, 231), 40px 60px rgb(180, 198, 231), 45px 60px rgb(180, 198, 231), 50px 60px rgb(180, 198, 231), 55px 60px rgb(180, 198, 231), 60px 60px rgb(180, 198, 231), 65px 60px rgb(180, 198, 231), 80px 60px rgb(180, 198, 231), 85px 60px rgb(180, 198, 231), 90px 60px rgb(180, 198, 231), 95px 60px rgb(180, 198, 231), 15px 65px rgb(180, 198, 231), 20px 65px rgb(180, 198, 231), 25px 65px rgb(180, 198, 231), 30px 65px rgb(180, 198, 231), 90px 65px rgb(180, 198, 231), 95px 65px rgb(180, 198, 231), 15px 70px rgb(180, 198, 231), 20px 70px rgb(180, 198, 231), 90px 70px rgb(180, 198, 231), 95px 70px rgb(180, 198, 231), 35px 65px rgb(142, 169, 219), 40px 65px rgb(142, 169, 219), 45px 65px rgb(142, 169, 219), 50px 65px rgb(142, 169, 219), 55px 65px rgb(142, 169, 219), 60px 65px rgb(142, 169, 219), 65px 65px rgb(142, 169, 219), 70px 65px rgb(142, 169, 219), 75px 65px rgb(142, 169, 219), 35px 70px rgb(142, 169, 219), 40px 70px rgb(142, 169, 219), 45px 70px rgb(142, 169, 219), 50px 70px rgb(142, 169, 219), 55px 70px rgb(142, 169, 219), 60px 70px rgb(142, 169, 219), 65px 70px rgb(142, 169, 219), 70px 70px rgb(142, 169, 219), 75px 70px rgb(142, 169, 219), 80px 70px rgb(142, 169, 219), 85px 70px rgb(142, 169, 219), 35px 75px rgb(142, 169, 219), 40px 75px rgb(142, 169, 219), 25px 70px rgb(142, 169, 219), 20px 75px rgb(142, 169, 219), 25px 75px rgb(142, 169, 219), 20px 80px rgb(142, 169, 219), 25px 80px rgb(142, 169, 219), 30px 80px rgb(142, 169, 219), 50px 75px rgb(142, 169, 219), 55px 75px rgb(142, 169, 219), 65px 75px rgb(142, 169, 219), 70px 75px rgb(142, 169, 219), 75px 75px rgb(142, 169, 219), 80px 75px rgb(142, 169, 219), 85px 75px rgb(142, 169, 219), 90px 75px rgb(142, 169, 219), 45px 80px rgb(142, 169, 219), 60px 80px rgb(142, 169, 219), 65px 80px rgb(142, 169, 219), 70px 80px rgb(142, 169, 219), 75px 80px rgb(142, 169, 219), 80px 80px rgb(142, 169, 219), 85px 80px rgb(142, 169, 219), 90px 80px rgb(142, 169, 219), 30px 85px rgb(142, 169, 219), 35px 85px rgb(142, 169, 219), 40px 85px rgb(142, 169, 219), 45px 85px rgb(142, 169, 219), 50px 85px rgb(142, 169, 219), 55px 85px rgb(142, 169, 219), 60px 85px rgb(142, 169, 219), 65px 85px rgb(142, 169, 219), 70px 85px rgb(142, 169, 219), 75px 85px rgb(142, 169, 219), 80px 85px rgb(142, 169, 219), 40px 90px rgb(142, 169, 219), 45px 90px rgb(142, 169, 219), 50px 90px rgb(142, 169, 219), 55px 90px rgb(142, 169, 219), 60px 90px rgb(142, 169, 219), 65px 90px rgb(142, 169, 219), 70px 90px rgb(142, 169, 219), 30px 70px rgb(248, 203, 173), 30px 75px rgb(248, 203, 173), 35px 80px rgb(248, 203, 173), 40px 80px rgb(248, 203, 173), 45px 75px rgb(248, 203, 173), 50px 80px rgb(248, 203, 173), 55px 80px rgb(248, 203, 173), 60px 75px rgb(248, 203, 173), 30px 50px rgb(64, 64, 64), 25px 55px rgb(64, 64, 64), 30px 55px rgb(64, 64, 64), 75px 55px rgb(64, 64, 64), 70px 60px rgb(64, 64, 64), 75px 60px rgb(64, 64, 64);
+      }
+    }
+  </style>
+
+
+<div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <a href="/" class="" rel="start" style="border-bottom: None !important">
+      <i class="pixel-slime"></i>
+    </a>
+    <!-- <img class="site-author-image" itemprop="image" alt="Locky Hu" src="/images/computer-chip_gray.svg"> -->
+  <a href="/" class="" rel="start"><p class="site-author-name" itemprop="name">Locky Hu</p></a>
+  <div class="site-description" itemprop="description">Just for record</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+        <div class="back-to-top animated" role="button" aria-label="Back to top">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner page posts-expand">
+
+
+    
+    
+    
+    <div class="post-block" lang="en"><header class="post-header">
+
+<h1 class="post-title" itemprop="name headline">光线追踪入门（二）：实时光线追踪与混合渲染
+</h1>
+
+<div class="post-meta-container">
+</div>
+
+</header>
+
+      
+      
+      <div class="post-body">
+          <meta name="referrer" content="no-referrer" />
+<h2 id="系列导航">系列导航</h2>
+<ul>
+<li>总览：<a
+href="/2025/03/16/rt-learning-series-00-overview/">从超分辨率到光线追踪——我的技术路线规划</a></li>
+<li>阶段一：<a
+href="/2025/03/16/rt-learning-series-01-fundamentals/">理解光线追踪基础</a></li>
+<li><strong>阶段二：实时光线追踪</strong>（本文）</li>
+<li>阶段三：AI + 光线追踪</li>
+<li>阶段四：移动端光线追踪</li>
+</ul>
+<hr />
+<h2 id="阶段目标">阶段目标</h2>
+<p>完成本阶段学习后，你将能够：</p>
+<ol type="1">
+<li>理解GPU光线追踪的硬件架构</li>
+<li>使用DXR或Vulkan RT实现实时光线追踪</li>
+<li>实现混合渲染管线（光栅化 + RT）</li>
+<li>集成基础降噪，实现30fps以上的渲染</li>
+</ol>
+<hr />
+<h2 id="week-4gpu光线追踪入门">Week 4：GPU光线追踪入门</h2>
+<h3 id="硬件光线追踪的革命">4.1 硬件光线追踪的革命</h3>
+<p><strong>历史背景：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">timeline</span><br><span class="line">    title 光线追踪硬件化时间线</span><br><span class="line">    2018 : NVIDIA Turing</span><br><span class="line">          : 首个RT Core</span><br><span class="line">          : RTX 20系列发布</span><br><span class="line">    2020 : NVIDIA Ampere</span><br><span class="line">          : 第二代RT Core</span><br><span class="line">          : RTX 30系列</span><br><span class="line">    2021 : AMD RDNA2</span><br><span class="line">          : Ray Accelerator</span><br><span class="line">          : RX 6000系列</span><br><span class="line">    2022 : NVIDIA Ada Lovelace</span><br><span class="line">          : 第三代RT Core</span><br><span class="line">          : RTX 40系列</span><br><span class="line">    2023 : 移动端RT普及</span><br><span class="line">          : 骁龙8 Gen2</span><br><span class="line">          : 天玑9200</span><br></pre></td></tr></table></figure>
+<p><strong>RT Core的作用：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">flowchart TB</span><br><span class="line">    subgraph 传统CUDA</span><br><span class="line">        A1[光线求交] --&gt; A2[软件遍历BVH]</span><br><span class="line">        A2 --&gt; A3[返回最近交点]</span><br><span class="line">    end</span><br><span class="line">    </span><br><span class="line">    subgraph RT Core</span><br><span class="line">        B1[光线求交指令] --&gt; B2[硬件遍历BVH]</span><br><span class="line">        B2 --&gt; B3[硬件求交]</span><br><span class="line">        B3 --&gt; B4[返回最近交点]</span><br><span class="line">    end</span><br><span class="line">    </span><br><span class="line">    A1 -.-&gt;|慢10-20倍| B1</span><br></pre></td></tr></table></figure>
+<p><strong>性能对比：</strong></p>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>软件实现</th>
+<th>RT Core</th>
+<th>加速比</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>单光线求交</td>
+<td>~100 cycles</td>
+<td>~5-10 cycles</td>
+<td>10-20x</td>
+</tr>
+<tr>
+<td>BVH遍历</td>
+<td>软件分支</td>
+<td>硬件单元</td>
+<td>5-10x</td>
+</tr>
+<tr>
+<td>整体 RT</td>
+<td>几十ms</td>
+<td>几ms</td>
+<td>10x+</td>
+</tr>
+</tbody>
+</table>
+<h3 id="dxr-directx-raytracing-架构">4.2 DXR (DirectX Raytracing)
+架构</h3>
+<p><strong>核心概念：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">flowchart LR</span><br><span class="line">    A[Ray Generation&lt;br/&gt;光线生成着色器] --&gt; B[Intersection&lt;br/&gt;相交着色器]</span><br><span class="line">    B --&gt; C[Any-Hit&lt;br/&gt;任意命中着色器]</span><br><span class="line">    C --&gt; D[Closest-Hit&lt;br/&gt;最近命中着色器]</span><br><span class="line">    B --&gt; E[Miss&lt;br/&gt;未命中着色器]</span><br></pre></td></tr></table></figure>
+<table>
+<thead>
+<tr>
+<th>着色器类型</th>
+<th>功能</th>
+<th>调用时机</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ray Generation</td>
+<td>生成初始光线</td>
+<td>每个像素/线程</td>
+</tr>
+<tr>
+<td>Intersection</td>
+<td>自定义几何求交</td>
+<td>光线遇到几何</td>
+</tr>
+<tr>
+<td>Any-Hit</td>
+<td>判断是否继续 (透明/阴影)</td>
+<td>每次相交</td>
+</tr>
+<tr>
+<td>Closest-Hit</td>
+<td>计算最终颜色</td>
+<td>最近交点</td>
+</tr>
+<tr>
+<td>Miss</td>
+<td>处理背景/环境</td>
+<td>无交点时</td>
+</tr>
+</tbody>
+</table>
+<p><strong>DXR Hello World:</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// === HLSL代码 ===</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 光线生成着色器</span></span><br><span class="line">[<span class="built_in">shader</span>(<span class="string">&quot;raygeneration&quot;</span>)]</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">RayGen</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 获取像素坐标</span></span><br><span class="line">    uint2 index = <span class="built_in">DispatchRaysIndex</span>().xy;</span><br><span class="line">    uint2 dim = <span class="built_in">DispatchRaysDimensions</span>().xy;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 生成光线</span></span><br><span class="line">    float2 uv = (<span class="built_in">float2</span>(index) + <span class="number">0.5</span>) / <span class="built_in">float2</span>(dim);</span><br><span class="line">    float3 origin = cameraPosition;</span><br><span class="line">    float3 direction = <span class="built_in">normalize</span>(<span class="built_in">uvToWorld</span>(uv));</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 设置光线载荷</span></span><br><span class="line">    RayDesc ray;</span><br><span class="line">    ray.Origin = origin;</span><br><span class="line">    ray.Direction = direction;</span><br><span class="line">    ray.TMin = <span class="number">0.001f</span>;</span><br><span class="line">    ray.TMax = <span class="number">10000.0f</span>;</span><br><span class="line">    </span><br><span class="line">    Payload payload;</span><br><span class="line">    payload.color = <span class="built_in">float3</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 发射光线</span></span><br><span class="line">    <span class="built_in">TraceRay</span>(</span><br><span class="line">        scene,           <span class="comment">// 加速结构</span></span><br><span class="line">        RAY_FLAG_NONE,</span><br><span class="line">        <span class="number">0xFF</span>,            <span class="comment">// 实例掩码</span></span><br><span class="line">        <span class="number">0</span>,               <span class="comment">// 命中组索引</span></span><br><span class="line">        <span class="number">1</span>,               <span class="comment">// 命中组数量</span></span><br><span class="line">        <span class="number">0</span>,               <span class="comment">// miss着色器索引</span></span><br><span class="line">        ray,</span><br><span class="line">        payload</span><br><span class="line">    );</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 写入输出</span></span><br><span class="line">    output[index] = <span class="built_in">float4</span>(payload.color, <span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 最近命中着色器</span></span><br><span class="line">[<span class="built_in">shader</span>(<span class="string">&quot;closesthit&quot;</span>)]</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">ClosestHit</span><span class="params">(inout Payload payload, in BuiltInTriangleIntersectionAttributes attr)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 获取交点信息</span></span><br><span class="line">    float3 hitPosition = <span class="built_in">WorldRayOrigin</span>() + <span class="built_in">WorldRayDirection</span>() * <span class="built_in">RayTCurrent</span>();</span><br><span class="line">    float3 normal = <span class="built_in">normalize</span>(<span class="built_in">ObjectToWorld3x4</span>(<span class="built_in">float3</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>)));</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 简单漫反射着色</span></span><br><span class="line">    float3 lightDir = <span class="built_in">normalize</span>(<span class="built_in">float3</span>(<span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>));</span><br><span class="line">    <span class="type">float</span> ndotl = <span class="built_in">max</span>(<span class="number">0</span>, <span class="built_in">dot</span>(normal, lightDir));</span><br><span class="line">    </span><br><span class="line">    payload.color = <span class="built_in">float3</span>(<span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>) * ndotl;  <span class="comment">// 红色漫反射</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 未命中着色器</span></span><br><span class="line">[<span class="built_in">shader</span>(<span class="string">&quot;miss&quot;</span>)]</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">Miss</span><span class="params">(inout Payload payload)</span> </span>&#123;</span><br><span class="line">    payload.color = <span class="built_in">float3</span>(<span class="number">0.5</span>, <span class="number">0.7</span>, <span class="number">1.0</span>);  <span class="comment">// 天空色</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>C++ 端设置：</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 创建加速结构 (BLAS + TLAS)</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">buildAccelerationStructure</span><span class="params">(ID3D12Device5* device, <span class="type">const</span> Scene&amp; scene)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 1. 构建BLAS (Bottom Level AS) - 每个物体的加速结构</span></span><br><span class="line">    std::vector&lt;D3D12_RAYTRACING_GEOMETRY_DESC&gt; geometries;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">const</span> <span class="keyword">auto</span>&amp; mesh : scene.meshes) &#123;</span><br><span class="line">        D3D12_RAYTRACING_GEOMETRY_DESC geom = &#123;&#125;;</span><br><span class="line">        geom.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;</span><br><span class="line">        geom.Triangles.IndexBuffer = mesh.indexBuffer-&gt;<span class="built_in">GetGPUVirtualAddress</span>();</span><br><span class="line">        geom.Triangles.IndexCount = mesh.indexCount;</span><br><span class="line">        geom.Triangles.IndexFormat = DXGI_FORMAT_R32_UINT;</span><br><span class="line">        geom.Triangles.Transform3x4 = <span class="number">0</span>;</span><br><span class="line">        geom.Triangles.VertexFormat = DXGI_FORMAT_R32G32B32_FLOAT;</span><br><span class="line">        geom.Triangles.VertexCount = mesh.vertexCount;</span><br><span class="line">        geom.Triangles.VertexBuffer.StartAddress = mesh.vertexBuffer-&gt;<span class="built_in">GetGPUVirtualAddress</span>();</span><br><span class="line">        geom.Triangles.VertexBuffer.StrideInBytes = <span class="built_in">sizeof</span>(Vertex);</span><br><span class="line">        geom.Flags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;</span><br><span class="line">        geometries.<span class="built_in">push_back</span>(geom);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 2. 构建TLAS (Top Level AS) - 场景整体的加速结构</span></span><br><span class="line">    D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS tlasInputs = &#123;&#125;;</span><br><span class="line">    tlasInputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL;</span><br><span class="line">    tlasInputs.NumDescs = scene.instances.<span class="built_in">size</span>();</span><br><span class="line">    tlasInputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;</span><br><span class="line">    <span class="comment">// ... 更多设置</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 3. 执行构建</span></span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="vulkan-ray-tracing">4.3 Vulkan Ray Tracing</h3>
+<p>Vulkan的RT API与DXR类似，但更底层。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Vulkan RT 初始化</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">initRayTracing</span><span class="params">(VkDevice device)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// 获取RT特性</span></span><br><span class="line">    VkPhysicalDeviceRayTracingPipelineFeaturesKHR rtFeatures = &#123;&#125;;</span><br><span class="line">    rtFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR;</span><br><span class="line">    rtFeatures.rayTracingPipeline = VK_TRUE;</span><br><span class="line">    </span><br><span class="line">    VkPhysicalDeviceAccelerationStructureFeaturesKHR asFeatures = &#123;&#125;;</span><br><span class="line">    asFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR;</span><br><span class="line">    asFeatures.accelerationStructure = VK_TRUE;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 获取函数指针</span></span><br><span class="line">    vkGetBufferDeviceAddressKHR = (PFN_vkGetBufferDeviceAddressKHR)</span><br><span class="line">        <span class="built_in">vkGetDeviceProcAddr</span>(device, <span class="string">&quot;vkGetBufferDeviceAddressKHR&quot;</span>);</span><br><span class="line">    vkCmdBuildAccelerationStructuresKHR = (PFN_vkCmdBuildAccelerationStructuresKHR)</span><br><span class="line">        <span class="built_in">vkGetDeviceProcAddr</span>(device, <span class="string">&quot;vkCmdBuildAccelerationStructuresKHR&quot;</span>);</span><br><span class="line">    <span class="comment">// ... 更多函数</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>GLSL Ray Tracing着色器：</strong></p>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// raygen.rgen</span></span><br><span class="line"><span class="meta">#version 460</span></span><br><span class="line"><span class="meta">#extension GL_EXT_ray_tracing : require</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">layout</span>(<span class="keyword">location</span> = <span class="number">0</span>) rayPayloadEXT <span class="type">bool</span> isShadowed;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> main() &#123;</span><br><span class="line">    <span class="comment">// 计算光线方向</span></span><br><span class="line">    <span class="type">vec2</span> uv = (<span class="type">vec2</span>(gl_LaunchIDEXT.xy) + <span class="number">0.5</span>) / <span class="type">vec2</span>(gl_LaunchSizeEXT.xy);</span><br><span class="line">    <span class="type">vec3</span> origin = camera.position;</span><br><span class="line">    <span class="type">vec3</span> direction = <span class="built_in">normalize</span>(uvToWorld(uv));</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 发射光线</span></span><br><span class="line">    traceRayEXT(</span><br><span class="line">        topLevelAS,      <span class="comment">// 加速结构</span></span><br><span class="line">        gl_RayFlagsNoneEXT, </span><br><span class="line">        <span class="number">0xFF</span>,           <span class="comment">// cull mask</span></span><br><span class="line">        <span class="number">0</span>,              <span class="comment">// sbtRecordOffset</span></span><br><span class="line">        <span class="number">0</span>,              <span class="comment">// sbtRecordStride</span></span><br><span class="line">        <span class="number">0</span>,              <span class="comment">// missIndex</span></span><br><span class="line">        origin,</span><br><span class="line">        <span class="number">0.001</span>,          <span class="comment">// tmin</span></span><br><span class="line">        direction,</span><br><span class="line">        <span class="number">10000.0</span>,        <span class="comment">// tmax</span></span><br><span class="line">        <span class="number">0</span>               <span class="comment">// payload location</span></span><br><span class="line">    );</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// closesthit.rchit</span></span><br><span class="line"><span class="meta">#version 460</span></span><br><span class="line"><span class="meta">#extension GL_EXT_ray_tracing : require</span></span><br><span class="line"></span><br><span class="line">hitAttributeEXT <span class="type">vec3</span> hitAttribs;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> main() &#123;</span><br><span class="line">    <span class="comment">// 获取交点信息</span></span><br><span class="line">    <span class="type">vec3</span> hitPos = gl_WorldRayOriginEXT + gl_WorldRayDirectionEXT * gl_HitTEXT;</span><br><span class="line">    <span class="type">vec3</span> normal = <span class="built_in">normalize</span>(<span class="type">vec3</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>));  <span class="comment">// 简化</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 着色</span></span><br><span class="line">    <span class="type">vec3</span> color = <span class="type">vec3</span>(<span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>) * <span class="built_in">max</span>(<span class="number">0</span>, <span class="built_in">dot</span>(normal, <span class="type">vec3</span>(<span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>)));</span><br><span class="line">    </span><br><span class="line">    rayPayloadEXT = <span class="type">vec4</span>(color, <span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="选择建议">4.4 选择建议</h3>
+<table>
+<thead>
+<tr>
+<th>考虑因素</th>
+<th>DXR</th>
+<th>Vulkan RT</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>学习曲线</td>
+<td>较平缓</td>
+<td>较陡峭</td>
+</tr>
+<tr>
+<td>文档丰富度</td>
+<td>多</td>
+<td>中等</td>
+</tr>
+<tr>
+<td>跨平台</td>
+<td>Windows/Xbox</td>
+<td>全平台</td>
+</tr>
+<tr>
+<td>工具支持</td>
+<td>PIX, Nsight</td>
+<td>RenderDoc, Nsight</td>
+</tr>
+<tr>
+<td>推荐场景</td>
+<td>Windows开发</td>
+<td>跨平台/移动端</td>
+</tr>
+</tbody>
+</table>
+<p><strong>我的建议：</strong> - 学习阶段：DXR（资料多，上手快） -
+生产环境：根据目标平台选择</p>
+<hr />
+<h2 id="week-5混合渲染管线">Week 5：混合渲染管线</h2>
+<h3 id="为什么需要混合渲染">5.1 为什么需要混合渲染？</h3>
+<p><strong>纯路径追踪的问题：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">达到30fps的采样需求:</span><br><span class="line">- 简单场景: 4-8 spp</span><br><span class="line">- 中等复杂: 2-4 spp  </span><br><span class="line">- 复杂场景: 1-2 spp</span><br><span class="line"></span><br><span class="line">1-2 spp的结果:</span><br><span class="line">- 噪声极大</span><br><span class="line">- 必须依赖降噪</span><br><span class="line">- 间接光照质量差</span><br></pre></td></tr></table></figure>
+<p><strong>混合渲染的思路：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">flowchart TB</span><br><span class="line">    subgraph 混合渲染</span><br><span class="line">        A[光栅化] --&gt; B[G-Buffer]</span><br><span class="line">        B --&gt; C[直接光照&lt;br/&gt;光栅化阴影]</span><br><span class="line">        B --&gt; D[RT阴影&lt;br/&gt;可选]</span><br><span class="line">        B --&gt; E[RT反射]</span><br><span class="line">        B --&gt; F[RTAO]</span><br><span class="line">        D --&gt; G[合成]</span><br><span class="line">        E --&gt; G</span><br><span class="line">        F --&gt; G</span><br><span class="line">        C --&gt; G</span><br><span class="line">        G --&gt; H[降噪]</span><br><span class="line">        H --&gt; I[最终图像]</span><br><span class="line">    end</span><br></pre></td></tr></table></figure>
+<p><strong>各部分的作用：</strong></p>
+<table>
+<thead>
+<tr>
+<th>组件</th>
+<th>实现方式</th>
+<th>成本</th>
+<th>质量</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>G-Buffer</td>
+<td>光栅化</td>
+<td>极低</td>
+<td>高</td>
+</tr>
+<tr>
+<td>直接光照</td>
+<td>光栅化</td>
+<td>低</td>
+<td>高</td>
+</tr>
+<tr>
+<td>阴影</td>
+<td>RT或shadow map</td>
+<td>中</td>
+<td>RT更高</td>
+</tr>
+<tr>
+<td>反射</td>
+<td>RT</td>
+<td>中高</td>
+<td>高</td>
+</tr>
+<tr>
+<td>AO</td>
+<td>RT</td>
+<td>低</td>
+<td>高</td>
+</tr>
+<tr>
+<td>GI</td>
+<td>RT</td>
+<td>高</td>
+<td>需降噪</td>
+</tr>
+</tbody>
+</table>
+<h3 id="g-buffer生成">5.2 G-Buffer生成</h3>
+<p>G-Buffer是延迟渲染的核心，也是混合渲染的基础。</p>
+<p><strong>标准G-Buffer布局：</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">GBuffer</span> &#123;</span><br><span class="line">    Texture2D albedo;      <span class="comment">// RGB: 反照率, A: unused</span></span><br><span class="line">    Texture2D normal;      <span class="comment">// RGB: 世界空间法线</span></span><br><span class="line">    Texture2D depth;       <span class="comment">// R: 深度</span></span><br><span class="line">    Texture2D material;    <span class="comment">// R: roughness, G: metallic, B: ao</span></span><br><span class="line">    Texture2D motion;      <span class="comment">// RG: 运动向量</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p><strong>G-Buffer着色器：</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// G-Buffer Pass (像素着色器)</span></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">PSOutput</span> &#123;</span><br><span class="line">    float4 albedo : SV_Target0;</span><br><span class="line">    float4 normal : SV_Target1;</span><br><span class="line">    float4 depth : SV_Target2;</span><br><span class="line">    float4 material : SV_Target3;</span><br><span class="line">    float2 motion : SV_Target4;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function">PSOutput <span class="title">GBufferPS</span><span class="params">(VSOutput input)</span> </span>&#123;</span><br><span class="line">    PSOutput output;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 采样材质</span></span><br><span class="line">    Material mat = <span class="built_in">GetMaterial</span>(input.materialId);</span><br><span class="line">    </span><br><span class="line">    output.albedo = <span class="built_in">float4</span>(mat.albedo, <span class="number">1</span>);</span><br><span class="line">    output.normal = <span class="built_in">float4</span>(input.worldNormal * <span class="number">0.5</span> + <span class="number">0.5</span>, <span class="number">1</span>);  <span class="comment">// 编码到[0,1]</span></span><br><span class="line">    output.depth = <span class="built_in">float4</span>(input.linearDepth, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>);</span><br><span class="line">    output.material = <span class="built_in">float4</span>(mat.roughness, mat.metallic, mat.ao, <span class="number">1</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 计算运动向量</span></span><br><span class="line">    float2 currentUV = input.position.xy / screenSize;</span><br><span class="line">    float4 prevPos = <span class="built_in">mul</span>(prevViewProj, <span class="built_in">float4</span>(input.worldPos, <span class="number">1</span>));</span><br><span class="line">    float2 prevUV = prevPos.xy / prevPos.w;</span><br><span class="line">    output.motion = currentUV - prevUV;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> output;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="rt阴影">5.3 RT阴影</h3>
+<p>RT阴影可以产生物理正确的软阴影。</p>
+<p><strong>原理：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">flowchart LR</span><br><span class="line">    A[着色点P] --&gt; B&#123;发射阴影光线&#125;</span><br><span class="line">    B --&gt; C[击中遮挡物]</span><br><span class="line">    B --&gt; D[击中光源]</span><br><span class="line">    C --&gt; E[阴影=1]</span><br><span class="line">    D --&gt; F[阴影=0]</span><br></pre></td></tr></table></figure>
+<p><strong>实现：</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// RT阴影着色器</span></span><br><span class="line">[<span class="built_in">shader</span>(<span class="string">&quot;raygeneration&quot;</span>)]</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">ShadowRayGen</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    uint2 index = <span class="built_in">DispatchRaysIndex</span>().xy;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 从G-Buffer重建位置</span></span><br><span class="line">    <span class="type">float</span> depth = depthBuffer[index];</span><br><span class="line">    float2 uv = (<span class="built_in">float2</span>(index) + <span class="number">0.5</span>) / screenSize;</span><br><span class="line">    float3 worldPos = <span class="built_in">reconstructPosition</span>(uv, depth);</span><br><span class="line">    float3 normal = <span class="built_in">normalize</span>(normalBuffer[index] * <span class="number">2</span> - <span class="number">1</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 采样光源</span></span><br><span class="line">    float3 lightPos = <span class="built_in">sampleLightPosition</span>();</span><br><span class="line">    float3 lightDir = <span class="built_in">normalize</span>(lightPos - worldPos);</span><br><span class="line">    <span class="type">float</span> lightDist = <span class="built_in">length</span>(lightPos - worldPos);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 准备阴影光线</span></span><br><span class="line">    RayDesc shadowRay;</span><br><span class="line">    shadowRay.Origin = worldPos + normal * <span class="number">0.001</span>;  <span class="comment">// 避免自相交</span></span><br><span class="line">    shadowRay.Direction = lightDir;</span><br><span class="line">    shadowRay.TMin = <span class="number">0.001</span>;</span><br><span class="line">    shadowRay.TMax = lightDist - <span class="number">0.01</span>;  <span class="comment">// 避免击中光源本身</span></span><br><span class="line">    </span><br><span class="line">    ShadowPayload payload;</span><br><span class="line">    payload.isShadowed = <span class="literal">true</span>;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 发射阴影光线</span></span><br><span class="line">    <span class="built_in">TraceRay</span>(</span><br><span class="line">        scene,</span><br><span class="line">        RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,</span><br><span class="line">        <span class="number">0xFF</span>,</span><br><span class="line">        <span class="number">1</span>,  <span class="comment">// 命中组索引</span></span><br><span class="line">        <span class="number">1</span>,</span><br><span class="line">        <span class="number">1</span>,  <span class="comment">// miss索引</span></span><br><span class="line">        shadowRay,</span><br><span class="line">        payload</span><br><span class="line">    );</span><br><span class="line">    </span><br><span class="line">    shadowBuffer[index] = payload.isShadowed ? <span class="number">0.0</span> : <span class="number">1.0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">[<span class="built_in">shader</span>(<span class="string">&quot;miss&quot;</span>)]</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">ShadowMiss</span><span class="params">(inout ShadowPayload payload)</span> </span>&#123;</span><br><span class="line">    payload.isShadowed = <span class="literal">false</span>;  <span class="comment">// 未遮挡</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>软阴影（PCSS风格的RT实现）：</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">float</span> <span class="title">traceSoftShadow</span><span class="params">(float3 P, float3 N, Light light)</span> </span>&#123;</span><br><span class="line">    <span class="type">float</span> shadow = <span class="number">0.0</span>;</span><br><span class="line">    <span class="type">int</span> samples = <span class="number">8</span>;  <span class="comment">// 软阴影采样数</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; samples; ++i) &#123;</span><br><span class="line">        <span class="comment">// 在光源表面上采样</span></span><br><span class="line">        float2 diskSample = diskSamples[i];</span><br><span class="line">        float3 lightSamplePos = light.position + light.right * diskSample.x * light.radius</span><br><span class="line">                                             + light.up * diskSample.y * light.radius;</span><br><span class="line">        </span><br><span class="line">        float3 L = <span class="built_in">normalize</span>(lightSamplePos - P);</span><br><span class="line">        <span class="type">float</span> dist = <span class="built_in">length</span>(lightSamplePos - P);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 发射光线</span></span><br><span class="line">        RayDesc ray;</span><br><span class="line">        ray.Origin = P + N * <span class="number">0.001</span>;</span><br><span class="line">        ray.Direction = L;</span><br><span class="line">        ray.TMin = <span class="number">0.001</span>;</span><br><span class="line">        ray.TMax = dist - <span class="number">0.01</span>;</span><br><span class="line">        </span><br><span class="line">        ShadowPayload payload;</span><br><span class="line">        payload.isShadowed = <span class="literal">true</span>;</span><br><span class="line">        </span><br><span class="line">        <span class="built_in">TraceRay</span>(scene, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH,</span><br><span class="line">                 <span class="number">0xFF</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, ray, payload);</span><br><span class="line">        </span><br><span class="line">        shadow += payload.isShadowed ? <span class="number">0.0</span> : <span class="number">1.0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> shadow / samples;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="rt反射">5.4 RT反射</h3>
+<p>平面反射可以用光栅化实现，但RT可以处理任意弯曲表面。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">[<span class="built_in">shader</span>(<span class="string">&quot;raygeneration&quot;</span>)]</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">ReflectionRayGen</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    uint2 index = <span class="built_in">DispatchRaysIndex</span>().xy;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// G-Buffer数据</span></span><br><span class="line">    <span class="type">float</span> depth = depthBuffer[index];</span><br><span class="line">    float3 normal = <span class="built_in">normalize</span>(normalBuffer[index] * <span class="number">2</span> - <span class="number">1</span>);</span><br><span class="line">    <span class="type">float</span> roughness = materialBuffer[index].r;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 重建位置</span></span><br><span class="line">    float2 uv = (<span class="built_in">float2</span>(index) + <span class="number">0.5</span>) / screenSize;</span><br><span class="line">    float3 worldPos = <span class="built_in">reconstructPosition</span>(uv, depth);</span><br><span class="line">    float3 viewDir = <span class="built_in">normalize</span>(cameraPos - worldPos);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 反射方向</span></span><br><span class="line">    float3 reflectDir = <span class="built_in">reflect</span>(-viewDir, normal);</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 根据粗糙度添加随机性</span></span><br><span class="line">    <span class="keyword">if</span> (roughness &gt; <span class="number">0.1</span>) &#123;</span><br><span class="line">        float3 tangent, bitangent;</span><br><span class="line">        <span class="built_in">buildOrthonormalBasis</span>(normal, tangent, bitangent);</span><br><span class="line">        </span><br><span class="line">        float2 rand = <span class="built_in">randomGaussian</span>();</span><br><span class="line">        float3 roughnessOffset = tangent * rand.x + bitangent * rand.y;</span><br><span class="line">        reflectDir = <span class="built_in">normalize</span>(reflectDir + roughnessOffset * roughness);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// 发射反射光线</span></span><br><span class="line">    RayDesc ray;</span><br><span class="line">    ray.Origin = worldPos + normal * <span class="number">0.001</span>;</span><br><span class="line">    ray.Direction = reflectDir;</span><br><span class="line">    ray.TMin = <span class="number">0.001</span>;</span><br><span class="line">    ray.TMax = <span class="number">10000.0</span>;</span><br><span class="line">    </span><br><span class="line">    ReflectionPayload payload;</span><br><span class="line">    payload.color = <span class="built_in">float3</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="built_in">TraceRay</span>(scene, RAY_FLAG_NONE, <span class="number">0xFF</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>, ray, payload);</span><br><span class="line">    </span><br><span class="line">    reflectionBuffer[index] = payload.color;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="rtao-ray-traced-ambient-occlusion">5.5 RTAO (Ray Traced Ambient
+Occlusion)</h3>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">float</span> <span class="title">traceAO</span><span class="params">(float3 P, float3 N, <span class="type">int</span> samples)</span> </span>&#123;</span><br><span class="line">    <span class="type">float</span> occlusion = <span class="number">0.0</span>;</span><br><span class="line">    <span class="type">float</span> radius = <span class="number">1.0</span>;  <span class="comment">// AO半径</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; samples; ++i) &#123;</span><br><span class="line">        <span class="comment">// Cosine加权半球采样</span></span><br><span class="line">        float2 rand = <span class="built_in">random2</span>();</span><br><span class="line">        float3 sampleDir = <span class="built_in">sampleCosineHemisphere</span>(rand);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 转换到世界空间</span></span><br><span class="line">        float3 tangent, bitangent;</span><br><span class="line">        <span class="built_in">buildOrthonormalBasis</span>(N, tangent, bitangent);</span><br><span class="line">        float3 worldDir = tangent * sampleDir.x + bitangent * sampleDir.y + N * sampleDir.z;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 发射AO光线</span></span><br><span class="line">        RayDesc ray;</span><br><span class="line">        ray.Origin = P + N * <span class="number">0.001</span>;</span><br><span class="line">        ray.Direction = worldDir;</span><br><span class="line">        ray.TMin = <span class="number">0.001</span>;</span><br><span class="line">        ray.TMax = radius;</span><br><span class="line">        </span><br><span class="line">        AOPayload payload;</span><br><span class="line">        payload.occluded = <span class="literal">false</span>;</span><br><span class="line">        </span><br><span class="line">        <span class="built_in">TraceRay</span>(scene, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH,</span><br><span class="line">                 <span class="number">0xFF</span>, <span class="number">2</span>, <span class="number">1</span>, <span class="number">2</span>, ray, payload);</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">if</span> (payload.occluded) &#123;</span><br><span class="line">            occlusion += <span class="number">1.0</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="number">1.0</span> - occlusion / samples;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<hr />
+<h2 id="week-6基础降噪集成">Week 6：基础降噪集成</h2>
+<h3 id="为什么rt需要降噪">6.1 为什么RT需要降噪</h3>
+<p><strong>噪声来源：</strong></p>
+<p><span class="math display">\[\text{噪声} \propto
+\frac{\sigma}{\sqrt{N}}\]</span></p>
+<p>其中 <span class="math inline">\(\sigma\)</span> 是光照方差，<span
+class="math inline">\(N\)</span> 是采样数。</p>
+<p><strong>实时RT的采样限制：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">目标: 30fps</span><br><span class="line">每帧预算: ~33ms</span><br><span class="line"></span><br><span class="line">典型分配:</span><br><span class="line">- G-Buffer: 1-2ms</span><br><span class="line">- 直接光照: 2-3ms</span><br><span class="line">- RT阴影: 3-5ms</span><br><span class="line">- RT反射: 5-8ms</span><br><span class="line">- RTAO: 2-3ms</span><br><span class="line">- 降噪: 5-8ms</span><br><span class="line">- 后处理: 2-3ms</span><br><span class="line">-------------------</span><br><span class="line">总计: 20-32ms</span><br><span class="line"></span><br><span class="line">留给RT采样的预算极其有限</span><br></pre></td></tr></table></figure>
+<h3 id="svgf-spatiotemporal-variance-guided-filtering">6.2 SVGF
+(Spatiotemporal Variance-Guided Filtering)</h3>
+<p>SVGF是实时RT降噪的经典方法。</p>
+<p><strong>核心思想：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">flowchart TB</span><br><span class="line">    A[当前帧Noisy输入] --&gt; B[时域复用]</span><br><span class="line">    B --&gt; C[运动向量重投影]</span><br><span class="line">    C --&gt; D[历史帧数据]</span><br><span class="line">    D --&gt; E[时域累积]</span><br><span class="line">    E --&gt; F[方差估计]</span><br><span class="line">    F --&gt; G[空域滤波]</span><br><span class="line">    G --&gt; H[输出]</span><br></pre></td></tr></table></figure>
+<p><strong>实现要点：</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">SVGFDenoiser</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function">Texture <span class="title">denoise</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">        <span class="type">const</span> Texture&amp; noisyColor,</span></span></span><br><span class="line"><span class="params"><span class="function">        <span class="type">const</span> Texture&amp; albedo,</span></span></span><br><span class="line"><span class="params"><span class="function">        <span class="type">const</span> Texture&amp; normal,</span></span></span><br><span class="line"><span class="params"><span class="function">        <span class="type">const</span> Texture&amp; depth,</span></span></span><br><span class="line"><span class="params"><span class="function">        <span class="type">const</span> Texture&amp; motion,</span></span></span><br><span class="line"><span class="params"><span class="function">        <span class="type">const</span> Texture&amp; prevColor,</span></span></span><br><span class="line"><span class="params"><span class="function">        <span class="type">const</span> Texture&amp; prevMoments)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="comment">// Step 1: 时域累积</span></span><br><span class="line">        <span class="keyword">auto</span> [temporalColor, moments] = <span class="built_in">temporalAccumulation</span>(</span><br><span class="line">            noisyColor, motion, prevColor, prevMoments</span><br><span class="line">        );</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// Step 2: 方差估计</span></span><br><span class="line">        Texture variance = <span class="built_in">estimateVariance</span>(temporalColor, moments);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// Step 3: 空域滤波 (A-Trous Wavelet)</span></span><br><span class="line">        Texture filtered = <span class="built_in">aTrousFilter</span>(</span><br><span class="line">            temporalColor, variance, normal, depth</span><br><span class="line">        );</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">return</span> filtered;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="function">std::pair&lt;Texture, Texture&gt; <span class="title">temporalAccumulation</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">        <span class="type">const</span> Texture&amp; current,</span></span></span><br><span class="line"><span class="params"><span class="function">        <span class="type">const</span> Texture&amp; motion,</span></span></span><br><span class="line"><span class="params"><span class="function">        <span class="type">const</span> Texture&amp; prevColor,</span></span></span><br><span class="line"><span class="params"><span class="function">        <span class="type">const</span> Texture&amp; prevMoments)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="function">Texture <span class="title">accumulated</span><span class="params">(w, h)</span></span>;</span><br><span class="line">        <span class="function">Texture <span class="title">newMoments</span><span class="params">(w, h)</span></span>;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> y = <span class="number">0</span>; y &lt; h; ++y) &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> x = <span class="number">0</span>; x &lt; w; ++x) &#123;</span><br><span class="line">                <span class="comment">// 重投影</span></span><br><span class="line">                float2 prevUV = <span class="built_in">float2</span>(x, y) / <span class="built_in">float2</span>(w, h) - <span class="built_in">motion</span>(x, y);</span><br><span class="line">                </span><br><span class="line">                <span class="comment">// 检查是否在屏幕内</span></span><br><span class="line">                <span class="keyword">if</span> (prevUV.x &lt; <span class="number">0</span> || prevUV.x &gt; <span class="number">1</span> || prevUV.y &lt; <span class="number">0</span> || prevUV.y &gt; <span class="number">1</span>) &#123;</span><br><span class="line">                    <span class="built_in">accumulated</span>(x, y) = <span class="built_in">current</span>(x, y);</span><br><span class="line">                    <span class="built_in">newMoments</span>(x, y) = <span class="built_in">float4</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>);  <span class="comment">// m1, m2, history length=1</span></span><br><span class="line">                    <span class="keyword">continue</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                </span><br><span class="line">                <span class="comment">// 采样历史</span></span><br><span class="line">                float3 prevC = prevColor.<span class="built_in">sample</span>(prevUV);</span><br><span class="line">                float4 prevM = prevMoments.<span class="built_in">sample</span>(prevUV);</span><br><span class="line">                </span><br><span class="line">                <span class="comment">// 简单的遮挡检测</span></span><br><span class="line">                <span class="comment">// (实际应该用depth比较)</span></span><br><span class="line">                </span><br><span class="line">                <span class="comment">// 指数移动平均</span></span><br><span class="line">                <span class="type">float</span> alpha = <span class="number">0.05f</span>;  <span class="comment">// 或者基于history length</span></span><br><span class="line">                float3 tempC = <span class="built_in">lerp</span>(prevC, <span class="built_in">current</span>(x, y), alpha);</span><br><span class="line">                <span class="built_in">accumulated</span>(x, y) = tempC;</span><br><span class="line">                </span><br><span class="line">                <span class="comment">// 更新矩 (用于方差估计)</span></span><br><span class="line">                <span class="type">float</span> m1 = prevM.x;</span><br><span class="line">                <span class="type">float</span> m2 = prevM.y;</span><br><span class="line">                <span class="type">float</span> newM1 = <span class="built_in">lerp</span>(m1, <span class="built_in">luminance</span>(tempC), alpha);</span><br><span class="line">                <span class="type">float</span> newM2 = <span class="built_in">lerp</span>(m2, <span class="built_in">luminance</span>(tempC) * <span class="built_in">luminance</span>(tempC), alpha);</span><br><span class="line">                <span class="type">float</span> historyLen = prevM.z + <span class="number">1</span>;</span><br><span class="line">                </span><br><span class="line">                <span class="built_in">newMoments</span>(x, y) = <span class="built_in">float4</span>(newM1, newM2, <span class="built_in">min</span>(historyLen, <span class="number">256</span>), <span class="number">1</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">return</span> &#123;accumulated, newMoments&#125;;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function">Texture <span class="title">aTrousFilter</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">        <span class="type">const</span> Texture&amp; color,</span></span></span><br><span class="line"><span class="params"><span class="function">        <span class="type">const</span> Texture&amp; variance,</span></span></span><br><span class="line"><span class="params"><span class="function">        <span class="type">const</span> Texture&amp; normal,</span></span></span><br><span class="line"><span class="params"><span class="function">        <span class="type">const</span> Texture&amp; depth)</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="comment">// A-Trous小波滤波</span></span><br><span class="line">        <span class="comment">// 多尺度，由粗到细</span></span><br><span class="line">        </span><br><span class="line">        Texture result = color;</span><br><span class="line">        <span class="type">int</span> levels = <span class="number">4</span>;  <span class="comment">// 4层，步长1,2,4,8</span></span><br><span class="line">        </span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> level = <span class="number">0</span>; level &lt; levels; ++level) &#123;</span><br><span class="line">            <span class="type">int</span> step = <span class="number">1</span> &lt;&lt; level;  <span class="comment">// 2^level</span></span><br><span class="line">            <span class="function">Texture <span class="title">temp</span><span class="params">(w, h)</span></span>;</span><br><span class="line">            </span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> y = <span class="number">0</span>; y &lt; h; ++y) &#123;</span><br><span class="line">                <span class="keyword">for</span> (<span class="type">int</span> x = <span class="number">0</span>; x &lt; w; ++x) &#123;</span><br><span class="line">                    float3 sumColor = <span class="built_in">float3</span>(<span class="number">0</span>);</span><br><span class="line">                    <span class="type">float</span> sumWeight = <span class="number">0</span>;</span><br><span class="line">                    </span><br><span class="line">                    float3 centerNormal = <span class="built_in">normal</span>(x, y);</span><br><span class="line">                    <span class="type">float</span> centerDepth = <span class="built_in">depth</span>(x, y);</span><br><span class="line">                    <span class="type">float</span> centerVar = <span class="built_in">variance</span>(x, y);</span><br><span class="line">                    </span><br><span class="line">                    <span class="comment">// 5x5滤波核</span></span><br><span class="line">                    <span class="keyword">for</span> (<span class="type">int</span> dy = <span class="number">-2</span>; dy &lt;= <span class="number">2</span>; ++dy) &#123;</span><br><span class="line">                        <span class="keyword">for</span> (<span class="type">int</span> dx = <span class="number">-2</span>; dx &lt;= <span class="number">2</span>; ++dx) &#123;</span><br><span class="line">                            <span class="type">int</span> nx = x + dx * step;</span><br><span class="line">                            <span class="type">int</span> ny = y + dy * step;</span><br><span class="line">                            </span><br><span class="line">                            <span class="keyword">if</span> (nx &lt; <span class="number">0</span> || nx &gt;= w || ny &lt; <span class="number">0</span> || ny &gt;= h) <span class="keyword">continue</span>;</span><br><span class="line">                            </span><br><span class="line">                            <span class="comment">// 法线权重</span></span><br><span class="line">                            <span class="type">float</span> wN = <span class="built_in">pow</span>(<span class="built_in">max</span>(<span class="number">0</span>, <span class="built_in">dot</span>(<span class="built_in">normal</span>(nx, ny), centerNormal)), <span class="number">16</span>);</span><br><span class="line">                            </span><br><span class="line">                            <span class="comment">// 深度权重</span></span><br><span class="line">                            <span class="type">float</span> wD = <span class="built_in">exp</span>(-<span class="built_in">abs</span>(<span class="built_in">depth</span>(nx, ny) - centerDepth) * <span class="number">100</span>);</span><br><span class="line">                            </span><br><span class="line">                            <span class="comment">// 方差权重</span></span><br><span class="line">                            <span class="type">float</span> wV = <span class="built_in">exp</span>(-<span class="built_in">variance</span>(nx, ny) / <span class="built_in">max</span>(centerVar, <span class="number">0.001f</span>));</span><br><span class="line">                            </span><br><span class="line">                            <span class="type">float</span> weight = wN * wD * wV;</span><br><span class="line">                            </span><br><span class="line">                            sumColor += <span class="built_in">result</span>(nx, ny) * weight;</span><br><span class="line">                            sumWeight += weight;</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                    </span><br><span class="line">                    <span class="built_in">temp</span>(x, y) = sumColor / sumWeight;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            </span><br><span class="line">            result = temp;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h3 id="集成到渲染管线">6.3 集成到渲染管线</h3>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">HybridRenderer</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">render</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="comment">// ===阶段1: 光栅化 G-Buffer ===</span></span><br><span class="line">        <span class="built_in">renderGBuffer</span>();</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// ===阶段2: 光栅化直接光照 ===</span></span><br><span class="line">        <span class="built_in">renderDirectLight</span>();</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// ===阶段3: RT阴影 ===</span></span><br><span class="line">        <span class="built_in">traceRTShadows</span>();</span><br><span class="line">        shadowBuffer_ = svgf_.<span class="built_in">denoiseShadow</span>(rawShadowBuffer_);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// ===阶段4: RT反射 ===</span></span><br><span class="line">        <span class="built_in">traceRTReflections</span>();</span><br><span class="line">        reflectionBuffer_ = svgf_.<span class="built_in">denoiseReflection</span>(rawReflectionBuffer_);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// ===阶段5: RTAO ===</span></span><br><span class="line">        <span class="built_in">traceRTAO</span>();</span><br><span class="line">        aoBuffer_ = svgf_.<span class="built_in">denoiseAO</span>(rawAOBuffer_);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// ===阶段6: 合成 ===</span></span><br><span class="line">        <span class="built_in">composite</span>();</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">composite</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> y = <span class="number">0</span>; y &lt; height; ++y) &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> x = <span class="number">0</span>; x &lt; width; ++x) &#123;</span><br><span class="line">                <span class="comment">// 从G-Buffer获取材质</span></span><br><span class="line">                float3 albedo = gbuffer_.<span class="built_in">albedo</span>(x, y);</span><br><span class="line">                <span class="type">float</span> roughness = gbuffer_.<span class="built_in">material</span>(x, y).r;</span><br><span class="line">                </span><br><span class="line">                <span class="comment">// 直接光照 * 阴影</span></span><br><span class="line">                float3 direct = <span class="built_in">directLightBuffer_</span>(x, y) * <span class="built_in">shadowBuffer_</span>(x, y);</span><br><span class="line">                </span><br><span class="line">                <span class="comment">// 间接光照（简化：用AO调制环境光）</span></span><br><span class="line">                float3 ambient = ambientLight * albedo * <span class="built_in">aoBuffer_</span>(x, y);</span><br><span class="line">                </span><br><span class="line">                <span class="comment">// 反射</span></span><br><span class="line">                float3 reflection = <span class="built_in">reflectionBuffer_</span>(x, y);</span><br><span class="line">                </span><br><span class="line">                <span class="comment">// 最终颜色</span></span><br><span class="line">                float3 color = (direct + ambient) * albedo / M_PI;</span><br><span class="line">                </span><br><span class="line">                <span class="comment">// 根据roughness混合反射</span></span><br><span class="line">                color = <span class="built_in">lerp</span>(color, reflection, <span class="number">1</span> - roughness);</span><br><span class="line">                </span><br><span class="line">                <span class="comment">// 色调映射</span></span><br><span class="line">                color = color / (color + <span class="built_in">float3</span>(<span class="number">1</span>));</span><br><span class="line">                </span><br><span class="line">                <span class="built_in">outputBuffer_</span>(x, y) = color;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    GBuffer gbuffer_;</span><br><span class="line">    SVGFDenoiser svgf_;</span><br><span class="line">    Texture directLightBuffer_, shadowBuffer_, reflectionBuffer_, aoBuffer_;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<hr />
+<h2 id="week-7优化与调试">Week 7：优化与调试</h2>
+<h3 id="性能优化">7.1 性能优化</h3>
+<p><strong>常见优化技术：</strong></p>
+<table>
+<thead>
+<tr>
+<th>优化点</th>
+<th>方法</th>
+<th>提升幅度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>降低分辨率</td>
+<td>RT在1/2或1/4分辨率执行</td>
+<td>50-75%</td>
+</tr>
+<tr>
+<td>减少光线数</td>
+<td>阴影用shadow map，只在需要时RT</td>
+<td>30-50%</td>
+</tr>
+<tr>
+<td>简化BVH</td>
+<td>只对可见物体构建</td>
+<td>10-20%</td>
+</tr>
+<tr>
+<td>异步计算</td>
+<td>RT与光栅化并行</td>
+<td>10-20%</td>
+</tr>
+</tbody>
+</table>
+<p><strong>分辨率分层策略：</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">RTRenderConfig</span> &#123;</span><br><span class="line">    <span class="type">int</span> rtWidth;    <span class="comment">// RT分辨率</span></span><br><span class="line">    <span class="type">int</span> rtHeight;</span><br><span class="line">    <span class="type">int</span> displayWidth;</span><br><span class="line">    <span class="type">int</span> displayHeight;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="type">static</span> RTRenderConfig <span class="title">getQualityPreset</span><span class="params">(QualityLevel level)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">switch</span> (level) &#123;</span><br><span class="line">            <span class="keyword">case</span> QualityLevel::Low:</span><br><span class="line">                <span class="keyword">return</span> &#123;<span class="number">960</span>, <span class="number">540</span>, <span class="number">1920</span>, <span class="number">1080</span>&#125;;  <span class="comment">// 1/4分辨率</span></span><br><span class="line">            <span class="keyword">case</span> QualityLevel::Medium:</span><br><span class="line">                <span class="keyword">return</span> &#123;<span class="number">1280</span>, <span class="number">720</span>, <span class="number">1920</span>, <span class="number">1080</span>&#125;;  <span class="comment">// 1/2分辨率</span></span><br><span class="line">            <span class="keyword">case</span> QualityLevel::High:</span><br><span class="line">                <span class="keyword">return</span> &#123;<span class="number">1920</span>, <span class="number">1080</span>, <span class="number">1920</span>, <span class="number">1080</span>&#125;; <span class="comment">// 全分辨率</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h3 id="调试工具">7.2 调试工具</h3>
+<p><strong>RenderDoc：</strong> <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">1. 捕获帧</span><br><span class="line">2. 检查每个Pass的输入输出</span><br><span class="line">3. 分析RT光线数量</span><br><span class="line">4. 查看加速结构</span><br></pre></td></tr></table></figure></p>
+<p><strong>NVIDIA Nsight Graphics：</strong> <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">1. GPU trace</span><br><span class="line">2. RT Core利用率</span><br><span class="line">3. 内存带宽分析</span><br><span class="line">4. 优化建议</span><br></pre></td></tr></table></figure></p>
+<h3 id="常见问题">7.3 常见问题</h3>
+<p><strong>问题1：光线泄漏</strong></p>
+<p>现象：墙壁边缘有异常光照</p>
+<p>原因：浮点精度问题或BVH构建不当</p>
+<p>解决： <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 增加光线起点偏移</span></span><br><span class="line">ray.Origin = worldPos + normal * <span class="number">0.01</span>;  <span class="comment">// 更大的偏移</span></span><br></pre></td></tr></table></figure></p>
+<p><strong>问题2：自相交</strong></p>
+<p>现象：物体表面出现黑色噪点</p>
+<p>解决： <figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ray.TMin = <span class="number">0.001</span>;  <span class="comment">// 设置最小t值</span></span><br><span class="line"><span class="comment">// 或者使用背面剔除</span></span><br><span class="line"><span class="built_in">TraceRay</span>(..., RAY_FLAG_CULL_FRONT_FACING_TRIANGLES, ...);</span><br></pre></td></tr></table></figure></p>
+<p><strong>问题3：降噪过度模糊</strong></p>
+<p>原因：滤波参数不当</p>
+<p>解决： - 减少滤波层数 - 调整法线/深度权重 - 增加方差阈值</p>
+<hr />
+<h2 id="实践项目">实践项目</h2>
+<h3 id="项目hybrid-renderer-demo">项目：Hybrid Renderer Demo</h3>
+<p><strong>目标：</strong> 实现一个完整的混合渲染器</p>
+<p><strong>里程碑：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Week 5: G-Buffer + 直接光照</span><br><span class="line">Week 6: RT阴影 + 基础降噪</span><br><span class="line">Week 7: RT反射 + 完整合成</span><br></pre></td></tr></table></figure>
+<p><strong>验收标准：</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 场景</span></span><br><span class="line">Scene scene;</span><br><span class="line">scene.<span class="built_in">addGroundPlane</span>();</span><br><span class="line">scene.<span class="built_in">addSpheres</span>(<span class="number">5</span>);  <span class="comment">// 不同材质的球体</span></span><br><span class="line">scene.<span class="built_in">addDirectionalLight</span>();</span><br><span class="line">scene.<span class="built_in">addPointLight</span>();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 渲染</span></span><br><span class="line">HybridRenderer renderer;</span><br><span class="line">renderer.<span class="built_in">render</span>(scene);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 性能要求</span></span><br><span class="line"><span class="comment">// 1920x1080, RTX 3060:</span></span><br><span class="line"><span class="comment">// - 阴影: 2-3ms</span></span><br><span class="line"><span class="comment">// - 反射: 5-6ms</span></span><br><span class="line"><span class="comment">// - AO: 1-2ms</span></span><br><span class="line"><span class="comment">// - 降噪: 3-4ms</span></span><br><span class="line"><span class="comment">// - 总计: 20-25ms (40-50fps)</span></span><br></pre></td></tr></table></figure>
+<hr />
+<h2 id="下一步">下一步</h2>
+<p>完成混合渲染器后，你已经具备了实时RT的完整知识基础。接下来，我们将深入学习AI如何增强光线追踪——这正是你的超分和去噪经验可以直接发挥的领域。</p>
+<p>下一篇，我们将探讨神经降噪、神经采样等前沿技术。</p>
+
+      </div>
+      
+      
+      
+    </div>
+
+    
+    
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">粤ICP备17055045号 </a>
+  </div>
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Locky Hu</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>Word count total: </span>
+    <span title="Word count total">65k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span>Reading time total &asymp;</span>
+    <span title="Reading time total">59 mins.</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+<div>
+<span id="timeDate">载入天数...</span><span id="times">载入时分秒...</span>
+<script>
+    var now = new Date(); 
+    function createtime() { 
+        var grt= new Date("12/24/2021 19:43:01");//在此处修改你的建站时间
+        now.setTime(now.getTime()+250); 
+        days = (now - grt ) / 1000 / 60 / 60 / 24; dnum = Math.floor(days); 
+        hours = (now - grt ) / 1000 / 60 / 60 - (24 * dnum); hnum = Math.floor(hours); 
+        if(String(hnum).length ==1 ){hnum = "0" + hnum;} minutes = (now - grt ) / 1000 /60 - (24 * 60 * dnum) - (60 * hnum); 
+        mnum = Math.floor(minutes); if(String(mnum).length ==1 ){mnum = "0" + mnum;} 
+        seconds = (now - grt ) / 1000 - (24 * 60 * 60 * dnum) - (60 * 60 * hnum) - (60 * mnum); 
+        snum = Math.round(seconds); if(String(snum).length ==1 ){snum = "0" + snum;} 
+        document.getElementById("timeDate").innerHTML = "已运行 "+dnum+" 天 "; 
+        document.getElementById("times").innerHTML = hnum + " 小时 " + mnum + " 分 " + snum + " 秒"; 
+    } 
+setInterval("createtime()",250);
+</script>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+    </div>
+  </footer>
+
+  
+  <div class="reading-progress-bar"></div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/next-theme-pjax/0.6.0/pjax.min.js" integrity="sha256-vxLn1tSKWD4dqbMRyv940UYw4sXgMtYcK6reefzZrao=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/next-boot.js"></script><script src="/js/pjax.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+  <script src="/js/third-party/pace.js"></script>
+
+
+  
+  <script data-pjax async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"per_page":true,"cdn":"//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML","mhchem":false,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

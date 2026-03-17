@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#fff"><meta name="generator" content="Hexo 5.4.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/computer-chip_gray.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/computer-chip_gray.svg">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/computer-chip_gray.svg">
+  <link rel="mask-icon" href="/images/computer-chip_gray.svg" color="#fff">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha256-yIDrPSXHZdOZhAqiBP7CKzIwMQmRCJ8UeB8Jo17YC4o=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/themes/blue/pace-theme-minimal.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pace/1.2.4/pace.min.js" integrity="sha256-gqd7YTjg/BtfqWSwsJOvndl0Bxc8gFImLEkXQT8+qj0=" crossorigin="anonymous"></script>
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"huziliang.com","root":"/","images":"/images","scheme":"Pisces","darkmode":false,"version":"8.19.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":{"enable":true,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":true,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="Part 1: 神经延迟渲染 1.1 Why neural deferred rendering? 传统延迟渲染管线的主渲染成本集中在光照计算Pass：每个像素需要遍历所有光源、执行复杂的PBR着色模型、采样阴影贴图。对于移动端，带宽压力和算力消耗双重受限。 神经延迟渲染的核心思想是：用轻量神经网络替代或加速传统管线中最昂贵的部分——通常是光照计算和G-buffer处理。这可以带来：  分辨率解">
+<meta property="og:type" content="website">
+<meta property="og:title" content="移动端图形优化三大方向：神经延迟渲染、自适应质量控制与遮挡剔除优化">
+<meta property="og:url" content="https://huziliang.com/neural-rendering-optimization.html">
+<meta property="og:site_name" content="Locky Hu">
+<meta property="og:description" content="Part 1: 神经延迟渲染 1.1 Why neural deferred rendering? 传统延迟渲染管线的主渲染成本集中在光照计算Pass：每个像素需要遍历所有光源、执行复杂的PBR着色模型、采样阴影贴图。对于移动端，带宽压力和算力消耗双重受限。 神经延迟渲染的核心思想是：用轻量神经网络替代或加速传统管线中最昂贵的部分——通常是光照计算和G-buffer处理。这可以带来：  分辨率解">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2026-01-16T02:13:24.000Z">
+<meta property="article:modified_time" content="2026-03-16T02:13:55.799Z">
+<meta property="article:author" content="Locky Hu">
+<meta property="article:tag" content="ray tracing">
+<meta property="article:tag" content="neural rendering">
+<meta property="article:tag" content="mobile graphics">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://huziliang.com/neural-rendering-optimization">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":false,"lang":"en","comments":true,"permalink":"https://huziliang.com/neural-rendering-optimization.html","path":"neural-rendering-optimization.html","title":"移动端图形优化三大方向：神经延迟渲染、自适应质量控制与遮挡剔除优化"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>移动端图形优化三大方向：神经延迟渲染、自适应质量控制与遮挡剔除优化 | Locky Hu
+</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title"></p>
+      <i class="logo-line"></i>
+    </a>
+    <a href="/" class="" rel="start">
+      <p class="site-subtitle" itemprop="description">Newbie Dad, Software Engineer</p>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>Tags</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#part-1-%E7%A5%9E%E7%BB%8F%E5%BB%B6%E8%BF%9F%E6%B8%B2%E6%9F%93"><span class="nav-text">Part 1: 神经延迟渲染</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#why-neural-deferred-rendering"><span class="nav-text">1.1 Why neural deferred
+rendering?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#publicly-available-papers-and-resources"><span class="nav-text">1.2 Publicly available
+papers and resources</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#practical-integration-notes"><span class="nav-text">1.3 Practical integration
+notes</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#related-canonical-methods-for-baseline-comparisons"><span class="nav-text">1.4 Related
+canonical methods (for baseline comparisons)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#key-points-per-paper"><span class="nav-text">1.5 Key points per paper</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#part-2-%E8%87%AA%E9%80%82%E5%BA%94%E8%B4%A8%E9%87%8F%E6%8E%A7%E5%88%B6"><span class="nav-text">Part 2: 自适应质量控制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#why-adaptive-quality-control"><span class="nav-text">2.1 Why adaptive quality
+control?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#publicly-available-papers-and-resources-1"><span class="nav-text">2.2 Publicly
+available papers and resources</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#practical-integration-notes-1"><span class="nav-text">2.3 Practical integration
+notes</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#related-canonical-methods-for-baseline-comparisons-1"><span class="nav-text">2.4
+Related canonical methods (for baseline comparisons)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#key-points-per-paper-1"><span class="nav-text">2.5 Key points per paper</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#part-3-%E9%81%AE%E6%8C%A1%E5%89%94%E9%99%A4%E4%BC%98%E5%8C%96"><span class="nav-text">Part 3: 遮挡剔除优化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#why-occlusion-culling-matters"><span class="nav-text">3.1 Why occlusion culling
+matters?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#publicly-available-papers-and-resources-2"><span class="nav-text">3.2 Publicly
+available papers and resources</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#practical-integration-notes-2"><span class="nav-text">3.3 Practical integration
+notes</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#related-canonical-methods-for-baseline-comparisons-2"><span class="nav-text">3.4
+Related canonical methods (for baseline comparisons)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#key-points-per-paper-2"><span class="nav-text">3.5 Key points per paper</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#summary-%E8%90%BD%E5%9C%B0%E4%BC%98%E5%85%88%E7%BA%A7%E4%B8%8E%E5%BB%BA%E8%AE%AE"><span class="nav-text">Summary: 落地优先级与建议</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%AB%98%E4%BC%98%E5%85%88%E7%BA%A7%E7%9F%AD%E6%9C%9F%E5%8F%AF%E5%AE%9E%E7%8E%B0"><span class="nav-text">高优先级（短期可实现）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%AD%E4%BC%98%E5%85%88%E7%BA%A7%E4%B8%AD%E6%9C%9F%E6%8A%95%E5%85%A5"><span class="nav-text">中优先级（中期投入）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8A%80%E6%9C%AF%E4%BE%9D%E8%B5%96%E5%85%B3%E7%B3%BB"><span class="nav-text">技术依赖关系</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#references"><span class="nav-text">References</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <style>
+    .pixel-slime {
+      height: 100px;
+      width: 105px;
+      position: relative;
+      display: inline-block;
+      margin: 20px;
+      &::before {
+        content: "";
+        position: absolute;
+        background: 0 0;
+        width: 5px;
+        height: 5px;
+        top: -5px;
+        left: -5px;
+        box-shadow: 65px 5px rgb(91, 155, 213), 55px 10px rgb(91, 155, 213), 60px 10px rgb(91, 155, 213), 70px 10px rgb(91, 155, 213), 40px 15px rgb(91, 155, 213), 45px 15px rgb(91, 155, 213), 50px 15px rgb(91, 155, 213), 75px 15px rgb(91, 155, 213), 30px 20px rgb(91, 155, 213), 35px 20px rgb(91, 155, 213), 80px 20px rgb(91, 155, 213), 20px 25px rgb(91, 155, 213), 25px 25px rgb(91, 155, 213), 85px 25px rgb(91, 155, 213), 90px 25px rgb(91, 155, 213), 15px 30px rgb(91, 155, 213), 95px 30px rgb(91, 155, 213), 10px 35px rgb(91, 155, 213), 100px 35px rgb(91, 155, 213), 10px 40px rgb(91, 155, 213), 100px 40px rgb(91, 155, 213), 5px 45px rgb(91, 155, 213), 105px 45px rgb(91, 155, 213), 5px 50px rgb(91, 155, 213), 105px 50px rgb(91, 155, 213), 5px 55px rgb(91, 155, 213), 105px 55px rgb(91, 155, 213), 5px 60px rgb(91, 155, 213), 105px 60px rgb(91, 155, 213), 5px 65px rgb(91, 155, 213), 105px 65px rgb(91, 155, 213), 5px 70px rgb(91, 155, 213), 105px 70px rgb(91, 155, 213), 10px 75px rgb(91, 155, 213), 100px 75px rgb(91, 155, 213), 10px 80px rgb(91, 155, 213), 100px 80px rgb(91, 155, 213), 15px 85px rgb(91, 155, 213), 95px 85px rgb(91, 155, 213), 20px 90px rgb(91, 155, 213), 25px 90px rgb(91, 155, 213), 85px 90px rgb(91, 155, 213), 90px 90px rgb(91, 155, 213), 30px 95px rgb(91, 155, 213), 35px 95px rgb(91, 155, 213), 75px 95px rgb(91, 155, 213), 80px 95px rgb(91, 155, 213), 40px 100px rgb(91, 155, 213), 45px 100px rgb(91, 155, 213), 50px 100px rgb(91, 155, 213), 55px 100px rgb(91, 155, 213), 60px 100px rgb(91, 155, 213), 65px 100px rgb(91, 155, 213), 70px 100px rgb(91, 155, 213), 65px 10px rgb(221, 235, 247), 55px 15px rgb(221, 235, 247), 60px 15px rgb(221, 235, 247), 70px 15px rgb(221, 235, 247), 50px 20px rgb(221, 235, 247), 75px 20px rgb(221, 235, 247), 80px 25px rgb(221, 235, 247), 85px 30px rgb(221, 235, 247), 90px 30px rgb(221, 235, 247), 15px 35px rgb(221, 235, 247), 100px 55px rgb(221, 235, 247), 100px 60px rgb(221, 235, 247), 85px 65px rgb(221, 235, 247), 15px 60px rgb(221, 235, 247), 40px 20px rgb(242, 247, 252), 45px 20px rgb(242, 247, 252), 30px 25px rgb(242, 247, 252), 35px 25px rgb(242, 247, 252), 20px 30px rgb(242, 247, 252), 25px 30px rgb(242, 247, 252), 95px 35px rgb(242, 247, 252), 95px 40px rgb(242, 247, 252), 100px 45px rgb(242, 247, 252), 100px 50px rgb(242, 247, 252), 25px 50px rgb(242, 247, 252), 20px 60px rgb(242, 247, 252), 70px 55px rgb(242, 247, 252), 80px 65px rgb(242, 247, 252), 65px 15px rgb(189, 215, 238), 55px 20px rgb(189, 215, 238), 60px 20px rgb(189, 215, 238), 65px 20px rgb(189, 215, 238), 70px 20px rgb(189, 215, 238), 40px 25px rgb(189, 215, 238), 45px 25px rgb(189, 215, 238), 50px 25px rgb(189, 215, 238), 55px 25px rgb(189, 215, 238), 60px 25px rgb(189, 215, 238), 65px 25px rgb(189, 215, 238), 70px 25px rgb(189, 215, 238), 75px 25px rgb(189, 215, 238), 30px 30px rgb(189, 215, 238), 35px 30px rgb(189, 215, 238), 40px 30px rgb(189, 215, 238), 45px 30px rgb(189, 215, 238), 50px 30px rgb(189, 215, 238), 55px 30px rgb(189, 215, 238), 60px 30px rgb(189, 215, 238), 65px 30px rgb(189, 215, 238), 70px 30px rgb(189, 215, 238), 75px 30px rgb(189, 215, 238), 80px 30px rgb(189, 215, 238), 20px 35px rgb(189, 215, 238), 25px 35px rgb(189, 215, 238), 30px 35px rgb(189, 215, 238), 35px 35px rgb(189, 215, 238), 40px 35px rgb(189, 215, 238), 45px 35px rgb(189, 215, 238), 50px 35px rgb(189, 215, 238), 55px 35px rgb(189, 215, 238), 60px 35px rgb(189, 215, 238), 65px 35px rgb(189, 215, 238), 70px 35px rgb(189, 215, 238), 75px 35px rgb(189, 215, 238), 80px 35px rgb(189, 215, 238), 85px 35px rgb(189, 215, 238), 90px 35px rgb(189, 215, 238), 15px 40px rgb(189, 215, 238), 20px 40px rgb(189, 215, 238), 25px 40px rgb(189, 215, 238), 30px 40px rgb(189, 215, 238), 35px 40px rgb(189, 215, 238), 40px 40px rgb(189, 215, 238), 45px 40px rgb(189, 215, 238), 50px 40px rgb(189, 215, 238), 55px 40px rgb(189, 215, 238), 60px 40px rgb(189, 215, 238), 65px 40px rgb(189, 215, 238), 70px 40px rgb(189, 215, 238), 75px 40px rgb(189, 215, 238), 80px 40px rgb(189, 215, 238), 85px 40px rgb(189, 215, 238), 90px 40px rgb(189, 215, 238), 10px 45px rgb(189, 215, 238), 15px 45px rgb(189, 215, 238), 20px 45px rgb(189, 215, 238), 25px 45px rgb(189, 215, 238), 30px 45px rgb(189, 215, 238), 90px 45px rgb(189, 215, 238), 95px 45px rgb(189, 215, 238), 10px 50px rgb(189, 215, 238), 15px 50px rgb(189, 215, 238), 20px 50px rgb(189, 215, 238), 95px 50px rgb(189, 215, 238), 10px 55px rgb(189, 215, 238), 15px 55px rgb(189, 215, 238), 10px 60px rgb(189, 215, 238), 10px 65px rgb(189, 215, 238), 10px 70px rgb(189, 215, 238), 15px 75px rgb(189, 215, 238), 15px 80px rgb(189, 215, 238), 20px 85px rgb(189, 215, 238), 25px 85px rgb(189, 215, 238), 30px 90px rgb(189, 215, 238), 35px 90px rgb(189, 215, 238), 100px 65px rgb(189, 215, 238), 100px 70px rgb(189, 215, 238), 95px 75px rgb(189, 215, 238), 95px 80px rgb(189, 215, 238), 85px 85px rgb(189, 215, 238), 90px 85px rgb(189, 215, 238), 75px 90px rgb(189, 215, 238), 80px 90px rgb(189, 215, 238), 40px 95px rgb(189, 215, 238), 45px 95px rgb(189, 215, 238), 50px 95px rgb(189, 215, 238), 55px 95px rgb(189, 215, 238), 60px 95px rgb(189, 215, 238), 65px 95px rgb(189, 215, 238), 70px 95px rgb(189, 215, 238), 20px 55px rgb(180, 198, 231), 35px 45px rgb(180, 198, 231), 40px 45px rgb(180, 198, 231), 45px 45px rgb(180, 198, 231), 50px 45px rgb(180, 198, 231), 55px 45px rgb(180, 198, 231), 60px 45px rgb(180, 198, 231), 65px 45px rgb(180, 198, 231), 70px 45px rgb(180, 198, 231), 75px 45px rgb(180, 198, 231), 80px 45px rgb(180, 198, 231), 85px 45px rgb(180, 198, 231), 35px 50px rgb(180, 198, 231), 40px 50px rgb(180, 198, 231), 45px 50px rgb(180, 198, 231), 50px 50px rgb(180, 198, 231), 55px 50px rgb(180, 198, 231), 60px 50px rgb(180, 198, 231), 65px 50px rgb(180, 198, 231), 70px 50px rgb(180, 198, 231), 75px 50px rgb(180, 198, 231), 80px 50px rgb(180, 198, 231), 85px 50px rgb(180, 198, 231), 90px 50px rgb(180, 198, 231), 35px 55px rgb(180, 198, 231), 40px 55px rgb(180, 198, 231), 45px 55px rgb(180, 198, 231), 50px 55px rgb(180, 198, 231), 55px 55px rgb(180, 198, 231), 60px 55px rgb(180, 198, 231), 65px 55px rgb(180, 198, 231), 80px 55px rgb(180, 198, 231), 85px 55px rgb(180, 198, 231), 90px 55px rgb(180, 198, 231), 95px 55px rgb(180, 198, 231), 25px 60px rgb(180, 198, 231), 30px 60px rgb(180, 198, 231), 35px 60px rgb(180, 198, 231), 40px 60px rgb(180, 198, 231), 45px 60px rgb(180, 198, 231), 50px 60px rgb(180, 198, 231), 55px 60px rgb(180, 198, 231), 60px 60px rgb(180, 198, 231), 65px 60px rgb(180, 198, 231), 80px 60px rgb(180, 198, 231), 85px 60px rgb(180, 198, 231), 90px 60px rgb(180, 198, 231), 95px 60px rgb(180, 198, 231), 15px 65px rgb(180, 198, 231), 20px 65px rgb(180, 198, 231), 25px 65px rgb(180, 198, 231), 30px 65px rgb(180, 198, 231), 90px 65px rgb(180, 198, 231), 95px 65px rgb(180, 198, 231), 15px 70px rgb(180, 198, 231), 20px 70px rgb(180, 198, 231), 90px 70px rgb(180, 198, 231), 95px 70px rgb(180, 198, 231), 35px 65px rgb(142, 169, 219), 40px 65px rgb(142, 169, 219), 45px 65px rgb(142, 169, 219), 50px 65px rgb(142, 169, 219), 55px 65px rgb(142, 169, 219), 60px 65px rgb(142, 169, 219), 65px 65px rgb(142, 169, 219), 70px 65px rgb(142, 169, 219), 75px 65px rgb(142, 169, 219), 35px 70px rgb(142, 169, 219), 40px 70px rgb(142, 169, 219), 45px 70px rgb(142, 169, 219), 50px 70px rgb(142, 169, 219), 55px 70px rgb(142, 169, 219), 60px 70px rgb(142, 169, 219), 65px 70px rgb(142, 169, 219), 70px 70px rgb(142, 169, 219), 75px 70px rgb(142, 169, 219), 80px 70px rgb(142, 169, 219), 85px 70px rgb(142, 169, 219), 35px 75px rgb(142, 169, 219), 40px 75px rgb(142, 169, 219), 25px 70px rgb(142, 169, 219), 20px 75px rgb(142, 169, 219), 25px 75px rgb(142, 169, 219), 20px 80px rgb(142, 169, 219), 25px 80px rgb(142, 169, 219), 30px 80px rgb(142, 169, 219), 50px 75px rgb(142, 169, 219), 55px 75px rgb(142, 169, 219), 65px 75px rgb(142, 169, 219), 70px 75px rgb(142, 169, 219), 75px 75px rgb(142, 169, 219), 80px 75px rgb(142, 169, 219), 85px 75px rgb(142, 169, 219), 90px 75px rgb(142, 169, 219), 45px 80px rgb(142, 169, 219), 60px 80px rgb(142, 169, 219), 65px 80px rgb(142, 169, 219), 70px 80px rgb(142, 169, 219), 75px 80px rgb(142, 169, 219), 80px 80px rgb(142, 169, 219), 85px 80px rgb(142, 169, 219), 90px 80px rgb(142, 169, 219), 30px 85px rgb(142, 169, 219), 35px 85px rgb(142, 169, 219), 40px 85px rgb(142, 169, 219), 45px 85px rgb(142, 169, 219), 50px 85px rgb(142, 169, 219), 55px 85px rgb(142, 169, 219), 60px 85px rgb(142, 169, 219), 65px 85px rgb(142, 169, 219), 70px 85px rgb(142, 169, 219), 75px 85px rgb(142, 169, 219), 80px 85px rgb(142, 169, 219), 40px 90px rgb(142, 169, 219), 45px 90px rgb(142, 169, 219), 50px 90px rgb(142, 169, 219), 55px 90px rgb(142, 169, 219), 60px 90px rgb(142, 169, 219), 65px 90px rgb(142, 169, 219), 70px 90px rgb(142, 169, 219), 30px 70px rgb(248, 203, 173), 30px 75px rgb(248, 203, 173), 35px 80px rgb(248, 203, 173), 40px 80px rgb(248, 203, 173), 45px 75px rgb(248, 203, 173), 50px 80px rgb(248, 203, 173), 55px 80px rgb(248, 203, 173), 60px 75px rgb(248, 203, 173), 30px 50px rgb(64, 64, 64), 25px 55px rgb(64, 64, 64), 30px 55px rgb(64, 64, 64), 75px 55px rgb(64, 64, 64), 70px 60px rgb(64, 64, 64), 75px 60px rgb(64, 64, 64);
+      }
+    }
+  </style>
+
+
+<div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <a href="/" class="" rel="start" style="border-bottom: None !important">
+      <i class="pixel-slime"></i>
+    </a>
+    <!-- <img class="site-author-image" itemprop="image" alt="Locky Hu" src="/images/computer-chip_gray.svg"> -->
+  <a href="/" class="" rel="start"><p class="site-author-name" itemprop="name">Locky Hu</p></a>
+  <div class="site-description" itemprop="description">Just for record</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">24</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">32</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+        <div class="back-to-top animated" role="button" aria-label="Back to top">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner page posts-expand">
+
+
+    
+    
+    
+    <div class="post-block" lang="en"><header class="post-header">
+
+<h1 class="post-title" itemprop="name headline">移动端图形优化三大方向：神经延迟渲染、自适应质量控制与遮挡剔除优化
+</h1>
+
+<div class="post-meta-container">
+</div>
+
+</header>
+
+      
+      
+      <div class="post-body">
+          <meta name="referrer" content="no-referrer" />
+<h2 id="part-1-神经延迟渲染">Part 1: 神经延迟渲染</h2>
+<h3 id="why-neural-deferred-rendering">1.1 Why neural deferred
+rendering?</h3>
+<p>传统延迟渲染管线的主渲染成本集中在光照计算Pass：每个像素需要遍历所有光源、执行复杂的PBR着色模型、采样阴影贴图。对于移动端，带宽压力和算力消耗双重受限。</p>
+<p>神经延迟渲染的核心思想是：用轻量神经网络替代或加速传统管线中最昂贵的部分——通常是光照计算和G-buffer处理。这可以带来：</p>
+<ul>
+<li><strong>分辨率解耦</strong>：低分辨率渲染G-buffer，神经网络推理高分辨率结果</li>
+<li><strong>光照近似</strong>：用MLP查表替代光照积分，跳过复杂shader
+evaluation</li>
+<li><strong>阴影加速</strong>：从深度/法线预测阴影，避免多次shadow
+map采样</li>
+</ul>
+<p>从工业界视角看，这是从"精确计算"到"感知正确"的范式转变——玩家关心的是最终画面质量，而非中间步骤的物理正确性。</p>
+<h3 id="publicly-available-papers-and-resources">1.2 Publicly available
+papers and resources</h3>
+<ul>
+<li><strong>Neural Deferred Shading (SIGGRAPH 2020)</strong>
+<ul>
+<li>使用MLP近似延迟shading过程，将光照计算转化为神经网络推理</li>
+<li>输入：G-buffer特征（位置、法线、材质参数），输出：最终着色结果</li>
+<li>Link: <a
+target="_blank" rel="noopener" href="https://research.nvidia.com/publication/2020-07_neural-deferred-shading">research.nvidia.com</a></li>
+</ul></li>
+<li><strong>Neural Radiance Caching (NRC, SIGGRAPH 2021)</strong>
+<ul>
+<li>实时学习场景的间接光照分布，用神经网络缓存辐射度场</li>
+<li>显著加速全局光照计算，尤其适用于二次反弹以上的路径追踪</li>
+<li>Link: <a
+target="_blank" rel="noopener" href="https://research.nvidia.com/publication/2021_NR">research.nvidia.com</a></li>
+</ul></li>
+<li><strong>Unreal Engine Neural Network Inference (NNI) Plugin</strong>
+<ul>
+<li>引擎级集成示例，支持在渲染管线中插入神经网络推理</li>
+<li>提供移动端优化参考实现</li>
+<li>Link: <a
+target="_blank" rel="noopener" href="https://docs.unrealengine.com/">docs.unrealengine.com</a></li>
+</ul></li>
+<li><strong>Neural Implicit Surface Reconstruction (NeurIPS
+2022)</strong>
+<ul>
+<li>从稀疏G-buffer采样重建完整几何，可用于低分辨率渲染超分</li>
+<li>Link: <a target="_blank" rel="noopener" href="https://arxiv.org/">arXiv</a></li>
+</ul></li>
+<li><strong>Learning to Shade (EGSR 2021)</strong>
+<ul>
+<li>从少量样本学习材质的着色行为，构建材质专用的小型网络</li>
+<li>Link: <a target="_blank" rel="noopener" href="https://diglib.eg.org/">diglib.eg.org</a></li>
+</ul></li>
+</ul>
+<h3 id="practical-integration-notes">1.3 Practical integration
+notes</h3>
+<p><strong>落地策略一：G-buffer超分辨率</strong> <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">渲染流程：低分辨率G-buffer → 神经网络上采样 → 高分辨率G-buffer → 标准光照Pass</span><br><span class="line">收益：减少几何阶段带宽和填充率，光照阶段保持全分辨率</span><br></pre></td></tr></table></figure></p>
+<p><strong>落地策略二：神经光照缓存</strong> <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">渲染流程：标准G-buffer → MLP光照查表 + 阴影预测 → 神经网络输出</span><br><span class="line">收益：跳过复杂PBR计算和阴影采样，适合大量光源场景</span><br></pre></td></tr></table></figure></p>
+<p><strong>关键工程考虑：</strong></p>
+<ol type="1">
+<li><strong>网络设计权衡</strong>
+<ul>
+<li>网络大小 vs 质量：移动端建议 &lt; 500K参数，推理时间 &lt; 1ms</li>
+<li>量化：INT8推理，损失控制在0.5dB PSNR以内</li>
+<li>多任务：单个网络同时处理颜色、法线等可以共享特征提取器</li>
+</ul></li>
+<li><strong>时间一致性</strong>
+<ul>
+<li>引入时间反馈：历史帧特征 + 运动向量重投影</li>
+<li>注意处理遮挡区域：disocclusion mask + 重置策略</li>
+<li>与TAA联动：神经网络输出可以作为TAA输入的一部分</li>
+</ul></li>
+<li><strong>训练数据策略</strong>
+<ul>
+<li>离线渲染高质量参考：使用离线渲染器生成训练数据</li>
+<li>游戏内采集：上线后持续收集corner case</li>
+<li>材质分类：不同材质类型可能需要专用模型或条件输入</li>
+</ul></li>
+</ol>
+<h3 id="related-canonical-methods-for-baseline-comparisons">1.4 Related
+canonical methods (for baseline comparisons)</h3>
+<ul>
+<li><strong>传统延迟渲染</strong> - 行业基准，精确但成本高</li>
+<li><strong>Forward+ / Clustered Shading</strong> -
+光源管理的另一种优化方案</li>
+<li><strong>Tiled Deferred</strong> - 分块延迟渲染，减少带宽压力</li>
+<li><strong>可变速率着色 (VRS)</strong> -
+空间差异化渲染，思路类似但方法不同</li>
+</ul>
+<h3 id="key-points-per-paper">1.5 Key points per paper</h3>
+<p><strong>Neural Deferred Shading (SIGGRAPH 2020)</strong> -
+将光照积分转化为可学习的函数近似，MLP在运行时替代shader -
+与传统方法相比，复杂材质场景下速度提升2-3x -
+挑战在于材质多样性：需要材质嵌入或分类策略 -
+移动端启发：可考虑材质专用的小网络集合</p>
+<p><strong>Neural Radiance Caching (NRC)</strong> -
+动态学习间接光照的空间分布，支持实时更新 -
+特别擅长处理二次反弹以上的路径，传统方法在此处成本爆炸 -
+已集成到RTXGI等产品中，有工业级验证 -
+移动端适配：可以离线预训练静态场景，在线只更新动态区域</p>
+<p><strong>Neural Implicit Surface Reconstruction</strong> -
+从稀疏采样重建完整几何，本质是G-buffer超分 -
+结合了神经网络和传统几何先验（如平面假设） -
+在边缘和细节区域效果优于传统上采样 -
+移动端：可以用作低分辨率几何渲染的补救方案</p>
+<hr />
+<h2 id="part-2-自适应质量控制">Part 2: 自适应质量控制</h2>
+<h3 id="why-adaptive-quality-control">2.1 Why adaptive quality
+control?</h3>
+<p>移动端硬件状态差异巨大：从旗舰芯片到中低端芯片性能差距可达5-10倍，散热限制、电量状态、后台进程都在实时变化。固定质量设置无法适应这种动态环境：</p>
+<ul>
+<li>过高画质 → 掉帧、发热、耗电</li>
+<li>过低画质 → 画质浪费、用户体验差</li>
+</ul>
+<p>自适应质量控制的目标是：在目标帧率和功耗约束下，最大化画质。这本质上是一个约束优化问题。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">目标：max Quality(Q)</span><br><span class="line">约束：FrameTime ≤ Target, Temperature ≤ Threshold, Battery ≥ Conserved</span><br><span class="line">决策变量：&#123;resolution, texture_quality, shadow_quality, VRS_rate, ...&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="publicly-available-papers-and-resources-1">2.2 Publicly
+available papers and resources</h3>
+<ul>
+<li><strong>Dynamic Resolution Rendering (GDC 2017)</strong>
+<ul>
+<li>AMD提出的动态分辨率框架，根据帧时间自动调整渲染分辨率</li>
+<li>基础但有效的工业实现</li>
+<li>Link: <a
+target="_blank" rel="noopener" href="https://gpuopen.com/learn/dynamic-resolution-rendering/">GPUOpen</a></li>
+</ul></li>
+<li>** Adaptive Tessellation and Shading Rate Control (SIGGRAPH 2019)**
+<ul>
+<li>基于视觉重要性的着色率自适应控制</li>
+<li>结合内容感知提升质量</li>
+<li>Link: <a target="_blank" rel="noopener" href="https://dl.acm.org/">dl.acm.org</a></li>
+</ul></li>
+<li><strong>Neural Content-Aware Rendering (EGSR 2022)</strong>
+<ul>
+<li>用神经网络预测区域重要性，指导渲染资源分配</li>
+<li>Link: <a target="_blank" rel="noopener" href="https://diglib.eg.org/">diglib.eg.org</a></li>
+</ul></li>
+<li><strong>Reinforcement Learning for Adaptive Graphics Settings (IEEE
+TVCG 2021)</strong>
+<ul>
+<li>将质量控制建模为强化学习问题，学习最优调节策略</li>
+<li>Link: <a
+target="_blank" rel="noopener" href="https://ieeexplore.ieee.org/">ieeexplore.ieee.org</a></li>
+</ul></li>
+<li><strong>Perception-driven Rendering (SIGGRAPH 2020 Course)</strong>
+<ul>
+<li>感知驱动的渲染质量控制综述</li>
+<li>Link: <a
+target="_blank" rel="noopener" href="https://kesen.realtimerendering.com/">kesen.realtimerendering.com</a></li>
+</ul></li>
+</ul>
+<h3 id="practical-integration-notes-1">2.3 Practical integration
+notes</h3>
+<p><strong>系统架构：</strong></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">┌─────────────────┐</span><br><span class="line">│  Monitor Module │ ← 监控：帧时间、温度、电量、场景复杂度</span><br><span class="line">└────────┬────────┘</span><br><span class="line">         │</span><br><span class="line">┌────────▼────────┐</span><br><span class="line">│ Decision Engine │ ← 决策：规则/PID/ML模型</span><br><span class="line">└────────┬────────┘</span><br><span class="line">         │</span><br><span class="line">┌────────▼────────┐</span><br><span class="line">│ Quality Settings│ ← 执行：各渲染模块质量参数</span><br><span class="line">└─────────────────┘</span><br></pre></td></tr></table></figure>
+<p><strong>可调节的质量维度：</strong></p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>调节方式</th>
+<th>响应速度</th>
+<th>视觉影响</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>分辨率</td>
+<td>DLSS/FSR档位</td>
+<td>快</td>
+<td>中</td>
+</tr>
+<tr>
+<td>纹理</td>
+<td>LOD bias</td>
+<td>快</td>
+<td>低</td>
+</tr>
+<tr>
+<td>着色</td>
+<td>VRS rate</td>
+<td>快</td>
+<td>中</td>
+</tr>
+<tr>
+<td>阴影</td>
+<td>分辨率/级联数</td>
+<td>中</td>
+<td>高</td>
+</tr>
+<tr>
+<td>后处理</td>
+<td>质量/开关</td>
+<td>快</td>
+<td>中</td>
+</tr>
+<tr>
+<td>粒子</td>
+<td>数量上限</td>
+<td>中</td>
+<td>高</td>
+</tr>
+</tbody>
+</table>
+<p><strong>实现方案对比：</strong></p>
+<p><strong>方案A：规则基</strong> <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> frame_time &gt; target * <span class="number">1.2</span>:</span><br><span class="line">    decrease_resolution()</span><br><span class="line"><span class="keyword">elif</span> frame_time &lt; target * <span class="number">0.8</span>:</span><br><span class="line">    increase_resolution()</span><br></pre></td></tr></table></figure> -
+优点：实现简单，可解释性强 - 缺点：调节滞后，容易振荡，无法全局优化</p>
+<p><strong>方案B：PID控制</strong> <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">error = target_frame_time - current_frame_time</span><br><span class="line">adjustment = Kp * error + Ki * integral_error + Kd * derivative_error</span><br></pre></td></tr></table></figure> -
+优点：平滑调节，减少振荡 - 缺点：参数调优困难，不同场景需要不同参数</p>
+<p><strong>方案C：强化学习</strong> <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">state = [frame_time, temperature, scene_complexity, current_quality]</span><br><span class="line">action = policy_network(state)  <span class="comment"># 输出质量调整</span></span><br><span class="line">reward = quality_score - penalty_for_frame_drop</span><br></pre></td></tr></table></figure> -
+优点：全局最优，适应复杂场景 - 缺点：训练成本高，冷启动问题</p>
+<p><strong>关键工程考虑：</strong></p>
+<ol type="1">
+<li><strong>防止抖动</strong>
+<ul>
+<li>引入hysteresis：调节后等待N帧再次检测</li>
+<li>阈值设置：只在显著偏离时才调节</li>
+<li>平滑过渡：质量变化时分帧渐变而非跳变</li>
+</ul></li>
+<li><strong>场景适应</strong>
+<ul>
+<li>不同场景有不同的最优配置（室内/室外/战斗/探索）</li>
+<li>可以为常见场景类型预设配置模板</li>
+<li>运行时统计学习：记录不同配置下的实际表现</li>
+</ul></li>
+<li><strong>用户感知</strong>
+<ul>
+<li>分辨率变化比后处理变化更明显</li>
+<li>阴影质量变化在静态场景更明显</li>
+<li>优先调节用户注意力外的参数</li>
+</ul></li>
+</ol>
+<h3 id="related-canonical-methods-for-baseline-comparisons-1">2.4
+Related canonical methods (for baseline comparisons)</h3>
+<ul>
+<li><strong>固定质量等级</strong> - 传统方案，用户手动选择</li>
+<li><strong>动态分辨率 (DR)</strong> -
+仅调节分辨率，成本低但不够全面</li>
+<li><strong>GPU Boost / CPU Boost</strong> - 硬件层面的频率调节</li>
+<li><strong>帧率目标控制 (FPS Targeting)</strong> -
+NVIDIA/AMD驱动级功能</li>
+</ul>
+<h3 id="key-points-per-paper-1">2.5 Key points per paper</h3>
+<p><strong>Dynamic Resolution Rendering (AMD)</strong> -
+最基础的动态分辨率实现，已集成到各大引擎 -
+核心思想：根据上一帧渲染时间预测下一帧分辨率 - Google
+Pixel手机和部分游戏（如《原神》）已使用类似方案 -
+移动端适用性：高，但建议扩展到多维度控制</p>
+<p><strong>Reinforcement Learning for Adaptive Graphics
+Settings</strong> - 将质量控制问题形式化为MDP（马尔可夫决策过程） -
+状态：帧时间、场景特征、硬件状态；动作：质量参数调整 -
+奖励设计是关键：平衡帧率稳定性和画质最大化 -
+实验显示比规则基方法提升10-15%的用户满意度</p>
+<p><strong>Perception-driven Rendering</strong> -
+核心理念：将算力投入到用户关注的区域 -
+方法：眼动追踪数据分析注意力分布，或用内容分析网络预测 -
+移动端挑战：缺乏眼动追踪，需要用内容预测替代 - 落地思路：VRS +
+注意力预测网络，高关注度区域高着色率</p>
+<hr />
+<h2 id="part-3-遮挡剔除优化">Part 3: 遮挡剔除优化</h2>
+<h3 id="why-occlusion-culling-matters">3.1 Why occlusion culling
+matters?</h3>
+<p>渲染管线的瓶颈往往不在GPUshader，而在CPU的draw
+call提交和GPU的顶点处理。如果不做剔除，大量不可见物体的处理白白消耗算力：</p>
+<ul>
+<li><strong>Draw call开销</strong>：每个物体都有CPU提交成本</li>
+<li><strong>Early-Z失效</strong>：复杂遮挡关系导致过度绘制</li>
+<li><strong>带宽浪费</strong>：被遮挡物体的顶点/纹理数据传输</li>
+</ul>
+<p>传统遮挡剔除方法各有局限：</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>优点</th>
+<th>局限</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>视锥剔除</td>
+<td>简单高效</td>
+<td>无法处理视锥内遮挡</td>
+</tr>
+<tr>
+<td>Portal/ BSP</td>
+<td>精确</td>
+<td>需要场景预处理，不适合动态场景</td>
+</tr>
+<tr>
+<td>Hierarchical Z-Buffer (HZB)</td>
+<td>GPU端精确</td>
+<td>需要深度预pass，有延迟</td>
+</tr>
+<tr>
+<td>软件遮挡查询</td>
+<td>某些场景高效</td>
+<td>CPU成本高</td>
+</tr>
+</tbody>
+</table>
+<p>AI增强的遮挡剔除目标是：用更低的成本，预测更准确的可见性。</p>
+<h3 id="publicly-available-papers-and-resources-2">3.2 Publicly
+available papers and resources</h3>
+<ul>
+<li><strong>Learning to Cull (SIGGRAPH 2021)</strong>
+<ul>
+<li>用机器学习预测物体可见性，提前剔除不可见物体</li>
+<li>结合传统HZB和ML预测，提升整体效率</li>
+<li>Link: <a
+target="_blank" rel="noopener" href="https://research.nvidia.com/">research.nvidia.com</a></li>
+</ul></li>
+<li><strong>Neural Visibility Buffer (SIGGRAPH 2022)</strong>
+<ul>
+<li>学习场景的遮挡关系，构建神经可见性表示</li>
+<li>支持动态场景的实时更新</li>
+<li>Link: <a target="_blank" rel="noopener" href="https://dl.acm.org/">dl.acm.org</a></li>
+</ul></li>
+<li><strong>Predictive Visibility for Virtual Reality (IEEE VR
+2022)</strong>
+<ul>
+<li>针对VR场景的预测性可见性判断</li>
+<li>结合头部运动预测提前剔除</li>
+<li>Link: <a
+target="_blank" rel="noopener" href="https://ieeexplore.ieee.org/">ieeexplore.ieee.org</a></li>
+</ul></li>
+<li><strong>Deep Learning for Real-Time Rendering</strong> (SIGGRAPH
+2020 Course)
+<ul>
+<li>综述性课程，包含遮挡剔除相关内容</li>
+<li>Link: <a
+target="_blank" rel="noopener" href="https://kesen.realtimerendering.com/">kesen.realtimerendering.com</a></li>
+</ul></li>
+<li><strong>Conservative Rasterization for Occlusion Culling (GPU Pro
+7)</strong>
+<ul>
+<li>传统GPU方法的优化，可作为baseline</li>
+<li>Link: <a target="_blank" rel="noopener" href="https://www.crcpress.com/">book website</a></li>
+</ul></li>
+</ul>
+<h3 id="practical-integration-notes-2">3.3 Practical integration
+notes</h3>
+<p><strong>技术路线对比：</strong></p>
+<p><strong>路线A：物体级可见性预测</strong> <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">输入：相机位置、方向、场景骨骼信息（静态场景结构）</span><br><span class="line">处理：轻量网络预测每个物体的可见概率</span><br><span class="line">输出：剔除概率 &gt; 阈值的物体，或作为HZB的预筛选</span><br></pre></td></tr></table></figure></p>
+<p><strong>路线B：像素级着色稀疏化</strong> <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">输入：G-buffer特征</span><br><span class="line">处理：网络预测哪些像素需要完整着色</span><br><span class="line">输出：稀疏着色 + 插值补全</span><br></pre></td></tr></table></figure></p>
+<p><strong>路线C：潜在可见集 (PVS) 学习</strong> <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">离线：训练网络学习场景的遮挡结构</span><br><span class="line">在线：查询网络得到当前视角的PVS</span><br><span class="line">收益：替代手工标记，自动化处理</span><br></pre></td></tr></table></figure></p>
+<p><strong>实现细节：</strong></p>
+<ol type="1">
+<li><strong>网络设计</strong>
+<ul>
+<li>物体级预测：简单的全连接网络或小型CNN</li>
+<li>输入特征：物体AABB、相机参数、历史可见性</li>
+<li>推理预算：建议 &lt; 0.5ms，否则不如传统方法</li>
+</ul></li>
+<li><strong>与传统方法结合</strong>
+<ul>
+<li>ML预筛选 + HZB精确验证：两层pipeline</li>
+<li>ML处理"模糊"情况，传统方法处理"确定"情况</li>
+<li>可以显著减少HZB的深度查询次数</li>
+</ul></li>
+<li><strong>动态场景处理</strong>
+<ul>
+<li>移动物体单独处理：通常无法预测遮挡</li>
+<li>静态场景预训练：场景结构化的静态部分可以离线优化</li>
+<li>混合策略：静态预测 + 动态保守渲染</li>
+</ul></li>
+<li><strong>错误处理</strong>
+<ul>
+<li>误剔除（假阴性）：严重错误，物体突然出现/消失</li>
+<li>过剔除（假阳性）：性能浪费，但不会出错</li>
+<li>策略：宁可过渲染，不可误剔除；设置保守阈值</li>
+</ul></li>
+</ol>
+<p><strong>代码结构示例：</strong></p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">NeuralOcclusionCuller</span> &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="comment">// 每帧调用</span></span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">update</span><span class="params">(<span class="type">const</span> Camera&amp; camera, <span class="type">const</span> Scene&amp; scene)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 1. 提取特征</span></span><br><span class="line">        <span class="keyword">auto</span> features = <span class="built_in">extractFeatures</span>(camera, scene.objects);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 2. 网络推理</span></span><br><span class="line">        <span class="keyword">auto</span> visibility_probs = network_.<span class="built_in">infer</span>(features);</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 3. 筛选物体</span></span><br><span class="line">        visible_objects_.<span class="built_in">clear</span>();</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; scene.objects.<span class="built_in">size</span>(); ++i) &#123;</span><br><span class="line">            <span class="keyword">if</span> (visibility_probs[i] &gt; threshold_) &#123;</span><br><span class="line">                visible_objects_.<span class="built_in">push_back</span>(scene.objects[i]);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="comment">// 4. 可选：HZB验证边缘情况</span></span><br><span class="line">        <span class="keyword">if</span> (enable_hvb_verification_) &#123;</span><br><span class="line">            <span class="built_in">verifyOcclusion</span>(visible_objects_);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    NeuralNetwork network_;  <span class="comment">// 轻量网络，INT8量化</span></span><br><span class="line">    <span class="type">float</span> threshold_ = <span class="number">0.1f</span>;  <span class="comment">// 保守阈值，避免误剔除</span></span><br><span class="line">    <span class="type">bool</span> enable_hvb_verification_ = <span class="literal">true</span>;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<h3 id="related-canonical-methods-for-baseline-comparisons-2">3.4
+Related canonical methods (for baseline comparisons)</h3>
+<ul>
+<li><strong>Frustum Culling</strong> - 基础必备，所有引擎都有</li>
+<li><strong>Hierarchical Z-Buffer (HZB)</strong> -
+GPU精确剔除，需要深度预pass</li>
+<li><strong>Software Occlusion Culling</strong> -
+Intel开源方案，CPU端光栅化</li>
+<li><strong>Portal/Cell Culling</strong> - 室内场景经典方案</li>
+<li><strong>Distance Culling</strong> - 距离剔除，简单有效</li>
+</ul>
+<h3 id="key-points-per-paper-2">3.5 Key points per paper</h3>
+<p><strong>Learning to Cull (SIGGRAPH 2021)</strong> -
+证明了ML在遮挡剔除上的可行性 -
+关键insight：遮挡关系有规律可学习，相机位置和场景结构决定可见性 -
+采用混合策略：ML粗筛选 + HZB精筛选 - 性能数据：减少60-80%的draw
+call，推理时间 &lt; 0.3ms</p>
+<p><strong>Neural Visibility Buffer</strong> -
+构建神经表示存储场景的可见性函数 - 支持视角变化时的快速查询 -
+对动态场景有更好的适应性 - 移动端挑战：显存占用和网络推理成本</p>
+<p><strong>Predictive Visibility for VR</strong> -
+VR场景的特殊性：高帧率要求 + 已知的头部运动模式 -
+利用头部运动预测提前计算下一帧可见性 -
+思路可借鉴到非VR场景：利用输入预测进行预计算</p>
+<hr />
+<h2 id="summary-落地优先级与建议">Summary: 落地优先级与建议</h2>
+<p>基于现有技术成熟度和工程实现难度，建议的优先级：</p>
+<h3 id="高优先级短期可实现">高优先级（短期可实现）</h3>
+<ol type="1">
+<li><strong>自适应质量控制</strong> -
+基于规则的动态分辨率已广泛应用，加入多维度控制和机器学习预测是自然的迭代方向</li>
+<li><strong>遮挡剔除优化</strong> -
+在CPU瓶颈场景立竿见影，且可与现有HZB无缝结合</li>
+</ol>
+<h3 id="中优先级中期投入">中优先级（中期投入）</h3>
+<ol start="3" type="1">
+<li><strong>神经延迟渲染</strong> -
+需要引擎底层改造，建议从小范围试点开始（如G-buffer超分）</li>
+</ol>
+<h3 id="技术依赖关系">技术依赖关系</h3>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">自适应质量控制</span><br><span class="line">         ↓</span><br><span class="line">   遮挡剔除优化 ← 你的工作基础</span><br><span class="line">         ↓</span><br><span class="line">神经延迟渲染</span><br></pre></td></tr></table></figure>
+<p>你的超分辨率和光线追踪工作为神经延迟渲染提供了良好的技术基础（网络设计、推理优化、时间一致性处理）。建议从自适应质量控制切入，逐步积累技术和数据，再向更复杂的神经渲染方向扩展。</p>
+<hr />
+<h2 id="references">References</h2>
+<ul>
+<li>NVIDIA Research Publications: https://research.nvidia.com/</li>
+<li>AMD GPUOpen: https://gpuopen.com/</li>
+<li>SIGGRAPH Courses: https://kesen.realtimerendering.com/</li>
+<li>Intel Software Occlusion Culling: https://software.intel.com/</li>
+</ul>
+
+      </div>
+      
+      
+      
+    </div>
+
+    
+    
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="beian"><a href="https://beian.miit.gov.cn/" rel="noopener" target="_blank">粤ICP备17055045号 </a>
+  </div>
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">Locky Hu</span>
+  </div>
+<div class="wordcount">
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-chart-line"></i>
+    </span>
+      <span>Word count total: </span>
+    <span title="Word count total">65k</span>
+  </span>
+  <span class="post-meta-item">
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+      <span>Reading time total &asymp;</span>
+    <span title="Reading time total">59 mins.</span>
+  </span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="Total Visitors">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="Total Views">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div>
+
+<div>
+<span id="timeDate">载入天数...</span><span id="times">载入时分秒...</span>
+<script>
+    var now = new Date(); 
+    function createtime() { 
+        var grt= new Date("12/24/2021 19:43:01");//在此处修改你的建站时间
+        now.setTime(now.getTime()+250); 
+        days = (now - grt ) / 1000 / 60 / 60 / 24; dnum = Math.floor(days); 
+        hours = (now - grt ) / 1000 / 60 / 60 - (24 * dnum); hnum = Math.floor(hours); 
+        if(String(hnum).length ==1 ){hnum = "0" + hnum;} minutes = (now - grt ) / 1000 /60 - (24 * 60 * dnum) - (60 * hnum); 
+        mnum = Math.floor(minutes); if(String(mnum).length ==1 ){mnum = "0" + mnum;} 
+        seconds = (now - grt ) / 1000 - (24 * 60 * 60 * dnum) - (60 * 60 * hnum) - (60 * mnum); 
+        snum = Math.round(seconds); if(String(snum).length ==1 ){snum = "0" + snum;} 
+        document.getElementById("timeDate").innerHTML = "已运行 "+dnum+" 天 "; 
+        document.getElementById("times").innerHTML = hnum + " 小时 " + mnum + " 分 " + snum + " 秒"; 
+    } 
+setInterval("createtime()",250);
+</script>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/pisces/" rel="noopener" target="_blank">NexT.Pisces</a>
+  </div>
+    </div>
+  </footer>
+
+  
+  <div class="reading-progress-bar"></div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/next-theme-pjax/0.6.0/pjax.min.js" integrity="sha256-vxLn1tSKWD4dqbMRyv940UYw4sXgMtYcK6reefzZrao=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/next-boot.js"></script><script src="/js/pjax.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+  <script src="/js/third-party/pace.js"></script>
+
+
+  
+  <script data-pjax async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"per_page":true,"cdn":"//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML","mhchem":false,"tags":"none","js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>
