@@ -3509,6 +3509,12 @@ Akenine-Möller et al.</li>
 <p>希望这份教材能帮助你进入光线追踪和神经渲染的精彩世界！</p>
 <hr />
 <h2 id="附录术语表">附录：术语表</h2>
+<style>
+/* 设置第1列、第2列和第3列的宽度占比 */
+table th:nth-of-type(1) { width: 10%; }
+table th:nth-of-type(2) { width: 64%; }
+table th:nth-of-type(3) { width: 25%; }
+</style>
 <table>
 <colgroup>
 <col style="width: 5%" />
@@ -3601,7 +3607,6 @@ Akenine-Möller et al.</li>
 </tbody>
 </table>
 <hr />
-<p><em>本教材完</em></p>
 ]]></content>
       <tags>
         <tag>Ray-Tracing</tag>
